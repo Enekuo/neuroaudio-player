@@ -11,7 +11,7 @@ function HeroSection() {
           calma, tu sueño y tu energía interior.
         </p>
         <div className="landing-hero__actions">
-          <a className="landing-hero__button landing-hero__button--primary" href="#planes">
+          <a className="landing-hero__button landing-hero__button--primary" href="/app">
             Prueba gratis
           </a>
           <a className="landing-hero__button landing-hero__button--secondary" href="#planes">

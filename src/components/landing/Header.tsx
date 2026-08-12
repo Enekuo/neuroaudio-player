@@ -15,10 +15,10 @@ function Header() {
       </nav>
 
       <div className="landing-header__actions">
-        <a className="landing-header__button landing-header__button--ghost" href="#">
+        <a className="landing-header__button landing-header__button--ghost" href="/app">
           Iniciar sesión
         </a>
-        <a className="landing-header__button landing-header__button--primary" href="#planes">
+        <a className="landing-header__button landing-header__button--primary" href="/app">
           Prueba gratis
         </a>
       </div>
