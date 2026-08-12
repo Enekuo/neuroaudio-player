@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import FloatingCards from './FloatingCards'
 
 function HeroSection() {
@@ -11,9 +12,9 @@ function HeroSection() {
           calma, tu sueño y tu energía interior.
         </p>
         <div className="landing-hero__actions">
-          <a className="landing-hero__button landing-hero__button--primary" href="/app">
+          <Link className="landing-hero__button landing-hero__button--primary" to="/login">
             Prueba gratis
-          </a>
+          </Link>
           <a className="landing-hero__button landing-hero__button--secondary" href="#planes">
             Saber más
           </a>

@@ -1,4 +1,6 @@
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../../auth/context/AuthContext'
+import { signOutUser } from '../../auth/services/authService'
 
 const navigationItems = [
   {
@@ -35,6 +37,12 @@ const navigationItems = [
 ]
 
 function MenuLateral() {
+  const { user } = useAuth()
+
+  async function handleSignOut() {
+    await signOutUser()
+  }
+
   return (
     <aside className="library-sidebar" aria-label="Menú de biblioteca">
       <div className="library-sidebar__top">
@@ -78,9 +86,19 @@ function MenuLateral() {
           </span>
           Añadir audio
         </button>
-        <a className="library-sidebar__account" href="#">
-          Mi cuenta
-        </a>
+        <div className="library-sidebar__account">
+          <div className="library-sidebar__account-info">
+            <span className="library-sidebar__account-avatar" aria-hidden="true">
+              {(user?.displayName ?? user?.email ?? '?').charAt(0).toUpperCase()}
+            </span>
+            <span className="library-sidebar__account-name">
+              {user?.displayName ?? user?.email ?? 'Mi cuenta'}
+            </span>
+          </div>
+          <button type="button" className="library-sidebar__signout" onClick={handleSignOut}>
+            Cerrar sesión
+          </button>
+        </div>
       </div>
     </aside>
   )

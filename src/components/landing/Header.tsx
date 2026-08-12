@@ -1,10 +1,12 @@
+import { Link } from 'react-router-dom'
+
 function Header() {
   return (
     <header className="landing-header">
       <div className="landing-header__left">
-        <a className="landing-header__brand" href="/">
+        <Link className="landing-header__brand" to="/">
           NeuroAudio
-        </a>
+        </Link>
       </div>
 
       <nav className="landing-header__nav" aria-label="Navegación principal">
@@ -15,12 +17,12 @@ function Header() {
       </nav>
 
       <div className="landing-header__actions">
-        <a className="landing-header__button landing-header__button--ghost" href="/app">
+        <Link className="landing-header__button landing-header__button--ghost" to="/login">
           Iniciar sesión
-        </a>
-        <a className="landing-header__button landing-header__button--primary" href="/app">
+        </Link>
+        <Link className="landing-header__button landing-header__button--primary" to="/login">
           Prueba gratis
-        </a>
+        </Link>
       </div>
     </header>
   )
