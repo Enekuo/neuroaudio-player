@@ -10,7 +10,7 @@ type UserPlanContextValue = {
 const UserPlanContext = createContext<UserPlanContextValue | undefined>(undefined)
 
 export function UserPlanProvider({ children }: { children: ReactNode }) {
-  const [userPlan, setUserPlan] = useState<UserPlan>('premium')
+  const [userPlan, setUserPlan] = useState<UserPlan>('free')
 
   const value = useMemo(
     () => ({

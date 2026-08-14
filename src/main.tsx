@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './features/auth/context/AuthContext'
 import { UserPlanProvider } from './features/dashboard/context/UserPlanContext'
+import { PlayerProvider } from './features/player/context/PlayerContext'
 import './styles/global.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -11,7 +12,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AuthProvider>
         <UserPlanProvider>
-          <App />
+          <PlayerProvider>
+            <App />
+          </PlayerProvider>
         </UserPlanProvider>
       </AuthProvider>
     </BrowserRouter>

@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import ModalSubirAudio from '../../library/components/ModalSubirAudio'
+
 const steps = [
   {
     id: 1,
@@ -20,6 +23,8 @@ const steps = [
 ]
 
 function DashboardHome() {
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+
   return (
     <section className="dashboard-home-page" aria-label="Inicio de NeuroAudio">
       <div className="dashboard-home-page__content">
@@ -57,7 +62,11 @@ function DashboardHome() {
                   <p>{step.description}</p>
                 </div>
                 {step.active ? (
-                  <button type="button" className="dashboard-step-card__button">
+                  <button
+                    type="button"
+                    className="dashboard-step-card__button"
+                    onClick={() => setIsUploadModalOpen(true)}
+                  >
                     <span aria-hidden="true" className="dashboard-step-card__button-icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 5v14" />
@@ -88,6 +97,8 @@ function DashboardHome() {
           </div>
         </section>
       </div>
+
+      <ModalSubirAudio isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
     </section>
   )
 }

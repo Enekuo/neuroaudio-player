@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import { signOutUser } from '../../auth/services/authService'
+import ModalSubirAudio from './ModalSubirAudio'
 
 const navigationItems = [
   {
@@ -38,6 +40,7 @@ const navigationItems = [
 
 function MenuLateral() {
   const { user } = useAuth()
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
 
   async function handleSignOut() {
     await signOutUser()
@@ -80,7 +83,11 @@ function MenuLateral() {
       </div>
 
       <div className="library-sidebar__footer">
-        <button type="button" className="library-sidebar__add">
+        <button
+          type="button"
+          className="library-sidebar__add"
+          onClick={() => setIsUploadModalOpen(true)}
+        >
           <span className="library-sidebar__add-icon" aria-hidden="true">
             +
           </span>
@@ -100,6 +107,8 @@ function MenuLateral() {
           </button>
         </div>
       </div>
+
+      <ModalSubirAudio isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
     </aside>
   )
 }
