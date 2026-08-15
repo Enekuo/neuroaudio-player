@@ -1,4 +1,6 @@
 import type { ChangeEvent } from 'react'
+import { useAuth } from '../../auth/context/AuthContext'
+import UserAvatar from '../../auth/components/UserAvatar'
 import PlanSwitcher from '../../dashboard/components/PlanSwitcher'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
@@ -10,6 +12,7 @@ const WAVEFORM_BARS = Array.from({ length: 48 }, (_, index) => {
 })
 
 function PantallaCompletaReproductor() {
+  const { user } = useAuth()
   const {
     currentTrack,
     isPlaying,
@@ -56,9 +59,7 @@ function PantallaCompletaReproductor() {
           <p className="now-playing__eyebrow">Reproduciendo</p>
           <div className="now-playing__header-actions">
             <PlanSwitcher />
-            <div className="now-playing__avatar" aria-label="Avatar de usuario">
-              AG
-            </div>
+            <UserAvatar user={user} className="now-playing__avatar" />
           </div>
         </header>
 

@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useAuth } from '../../auth/context/AuthContext'
+import UserAvatar from '../../auth/components/UserAvatar'
 import ModalSubirAudio from '../../library/components/ModalSubirAudio'
 
 const steps = [
@@ -23,6 +25,7 @@ const steps = [
 ]
 
 function DashboardHome() {
+  const { user } = useAuth()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
 
   return (
@@ -32,9 +35,7 @@ function DashboardHome() {
           <h1>Inicio</h1>
 
           <div className="dashboard-home-page__header-actions">
-            <div className="dashboard-home-page__avatar" aria-label="Avatar de usuario">
-              AG
-            </div>
+            <UserAvatar user={user} className="dashboard-home-page__avatar" />
           </div>
         </header>
 

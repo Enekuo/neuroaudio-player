@@ -216,11 +216,26 @@ button {
   font-size: 0.82rem;
   font-weight: 600;
   flex-shrink: 0;
+  object-fit: cover;
+}
+
+.library-sidebar__account-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .library-sidebar__account-name {
   color: #f0f1f3;
   font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-sidebar__account-email {
+  color: #6b8cae;
+  font-size: 0.76rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -290,18 +305,26 @@ button {
   position: relative;
 }
 
+.mobile-topbar__avatar-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
 .mobile-topbar__avatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: none;
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
   font-weight: 600;
   font-size: 0.85rem;
   display: grid;
   place-items: center;
-  cursor: pointer;
+  object-fit: cover;
 }
 
 .mobile-topbar__menu {
@@ -325,6 +348,16 @@ button {
   padding: 0 0.2rem;
   color: var(--text);
   font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-topbar__menu-email {
+  margin: 0;
+  padding: 0 0.2rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -722,6 +755,7 @@ button {
   color: #FFFFFF;
   font-weight: 600;
   font-size: 0.95rem;
+  object-fit: cover;
 }
 
 .dashboard-home-page__welcome-card {
@@ -1102,6 +1136,7 @@ button {
   background: #2680eb;
   color: #ffffff;
   font-weight: 500;
+  object-fit: cover;
 }
 
 .library-empty-state {
@@ -1415,6 +1450,7 @@ button {
   background: var(--brand-600);
   color: #ffffff;
   font-weight: 500;
+  object-fit: cover;
 }
 
 .now-playing__icon-button {

@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useAuth } from '../../auth/context/AuthContext'
+import UserAvatar from '../../auth/components/UserAvatar'
 import PlanSwitcher from '../../dashboard/components/PlanSwitcher'
 import { useUserPlan } from '../../dashboard/context/UserPlanContext'
 import { usePlayer } from '../../player/context/PlayerContext'
@@ -9,6 +11,7 @@ import LibraryIcon from './LibraryIcon'
 import ModalSubirAudio from './ModalSubirAudio'
 
 function Biblioteca() {
+  const { user } = useAuth()
   const { userPlan } = useUserPlan()
   const { audios, isLoading } = useUserAudios()
   const { playTrack } = usePlayer()
@@ -50,9 +53,7 @@ function Biblioteca() {
 
           <div className="library-screen__actions">
             <PlanSwitcher />
-            <div className="library-screen__avatar" aria-label="Avatar de usuario">
-              AG
-            </div>
+            <UserAvatar user={user} className="library-screen__avatar" />
           </div>
         </header>
 

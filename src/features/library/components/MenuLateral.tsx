@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import { signOutUser } from '../../auth/services/authService'
+import UserAvatar from '../../auth/components/UserAvatar'
 import ModalSubirAudio from './ModalSubirAudio'
 
 const navigationItems = [
@@ -42,8 +43,6 @@ function MenuLateral() {
   const { user } = useAuth()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
-
-  const initial = (user?.displayName ?? user?.email ?? '?').charAt(0).toUpperCase()
 
   async function handleSignOut() {
     await signOutUser()
@@ -99,11 +98,12 @@ function MenuLateral() {
           </button>
           <div className="library-sidebar__account">
             <div className="library-sidebar__account-info">
-              <span className="library-sidebar__account-avatar" aria-hidden="true">
-                {initial}
-              </span>
-              <span className="library-sidebar__account-name">
-                {user?.displayName ?? user?.email ?? 'Mi cuenta'}
+              <UserAvatar user={user} className="library-sidebar__account-avatar" />
+              <span className="library-sidebar__account-text">
+                <span className="library-sidebar__account-name">
+                  {user?.displayName ?? user?.email ?? 'Mi cuenta'}
+                </span>
+                {user?.email ? <span className="library-sidebar__account-email">{user.email}</span> : null}
               </span>
             </div>
             <button type="button" className="library-sidebar__signout" onClick={handleSignOut}>
@@ -141,18 +141,19 @@ function MenuLateral() {
           <div className="mobile-topbar__account">
             <button
               type="button"
-              className="mobile-topbar__avatar"
+              className="mobile-topbar__avatar-button"
               onClick={() => setIsAccountMenuOpen((value) => !value)}
               aria-haspopup="true"
               aria-expanded={isAccountMenuOpen}
               aria-label="Cuenta"
             >
-              {initial}
+              <UserAvatar user={user} className="mobile-topbar__avatar" />
             </button>
 
             {isAccountMenuOpen ? (
               <div className="mobile-topbar__menu" role="menu">
                 <p className="mobile-topbar__menu-name">{user?.displayName ?? user?.email ?? 'Mi cuenta'}</p>
+                {user?.email ? <p className="mobile-topbar__menu-email">{user.email}</p> : null}
                 <button
                   type="button"
                   className="mobile-topbar__menu-signout"
