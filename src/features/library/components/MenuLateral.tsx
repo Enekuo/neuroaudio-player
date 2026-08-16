@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import { signOutUser } from '../../auth/services/authService'
 import UserAvatar from '../../auth/components/UserAvatar'
+import { useUserProfile } from '../../auth/hooks/useUserProfile'
+import ModalAjustes from '../../settings/components/ModalAjustes'
+import SettingsIcon from '../../settings/components/SettingsIcon'
 import { getTemplateById } from '../data/plantillasListas'
 import { useUserListas } from '../hooks/useUserListas'
 import ModalCrearLista from './ModalCrearLista'
@@ -45,13 +48,42 @@ const navigationItems = [
 
 function MenuLateral() {
   const { user } = useAuth()
+  const { profile } = useUserProfile()
   const { listas } = useUserListas()
+  const displayName = profile?.displayNamePref?.trim() || user?.displayName || user?.email || 'Mi cuenta'
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
+  const sidebarAccountRef = useRef<HTMLDivElement>(null)
+  const mobileAccountRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isAccountMenuOpen) {
+      return
+    }
+
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node
+      const isInsideSidebar = sidebarAccountRef.current?.contains(target)
+      const isInsideMobile = mobileAccountRef.current?.contains(target)
+
+      if (!isInsideSidebar && !isInsideMobile) {
+        setIsAccountMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isAccountMenuOpen])
 
   async function handleSignOut() {
     await signOutUser()
+  }
+
+  function handleOpenSettings() {
+    setIsAccountMenuOpen(false)
+    setIsSettingsModalOpen(true)
   }
 
   return (
@@ -136,19 +168,40 @@ function MenuLateral() {
             </span>
             Añadir audio
           </button>
-          <div className="library-sidebar__account">
-            <div className="library-sidebar__account-info">
+          <div className="library-sidebar__account" ref={sidebarAccountRef}>
+            <button
+              type="button"
+              className="library-sidebar__account-trigger"
+              onClick={() => setIsAccountMenuOpen((value) => !value)}
+              aria-haspopup="true"
+              aria-expanded={isAccountMenuOpen}
+            >
               <UserAvatar user={user} className="library-sidebar__account-avatar" />
-              <span className="library-sidebar__account-text">
-                <span className="library-sidebar__account-name">
-                  {user?.displayName ?? user?.email ?? 'Mi cuenta'}
-                </span>
-                {user?.email ? <span className="library-sidebar__account-email">{user.email}</span> : null}
-              </span>
-            </div>
-            <button type="button" className="library-sidebar__signout" onClick={handleSignOut}>
-              Cerrar sesión
+              <span className="library-sidebar__account-name">{displayName}</span>
             </button>
+
+            {isAccountMenuOpen ? (
+              <div className="library-sidebar__account-menu" role="menu">
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="library-sidebar__account-menu-item"
+                  onClick={handleOpenSettings}
+                >
+                  <SettingsIcon name="settings" />
+                  Ajustes
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="library-sidebar__account-menu-item"
+                  onClick={handleSignOut}
+                >
+                  <SettingsIcon name="logout" />
+                  Cerrar sesión
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </aside>
@@ -178,7 +231,7 @@ function MenuLateral() {
             </svg>
           </button>
 
-          <div className="mobile-topbar__account">
+          <div className="mobile-topbar__account" ref={mobileAccountRef}>
             <button
               type="button"
               className="mobile-topbar__avatar-button"
@@ -192,14 +245,24 @@ function MenuLateral() {
 
             {isAccountMenuOpen ? (
               <div className="mobile-topbar__menu" role="menu">
-                <p className="mobile-topbar__menu-name">{user?.displayName ?? user?.email ?? 'Mi cuenta'}</p>
+                <p className="mobile-topbar__menu-name">{displayName}</p>
                 {user?.email ? <p className="mobile-topbar__menu-email">{user.email}</p> : null}
                 <button
                   type="button"
-                  className="mobile-topbar__menu-signout"
+                  className="mobile-topbar__menu-item"
+                  role="menuitem"
+                  onClick={handleOpenSettings}
+                >
+                  <SettingsIcon name="settings" />
+                  Ajustes
+                </button>
+                <button
+                  type="button"
+                  className="mobile-topbar__menu-item"
                   role="menuitem"
                   onClick={handleSignOut}
                 >
+                  <SettingsIcon name="logout" />
                   Cerrar sesión
                 </button>
               </div>
@@ -226,6 +289,7 @@ function MenuLateral() {
 
       <ModalSubirAudio isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
       <ModalCrearLista isOpen={isCreateListModalOpen} onClose={() => setIsCreateListModalOpen(false)} />
+      <ModalAjustes isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} />
     </>
   )
 }

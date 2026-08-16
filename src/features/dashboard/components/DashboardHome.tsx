@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../auth/context/AuthContext'
 import UserAvatar from '../../auth/components/UserAvatar'
+import { useUserProfile } from '../../auth/hooks/useUserProfile'
 import { getTemplateById } from '../../library/data/plantillasListas'
 import { useUserListas } from '../../library/hooks/useUserListas'
 import ModalCrearLista from '../../library/components/ModalCrearLista'
@@ -34,9 +35,12 @@ const steps = [
 
 function DashboardHome() {
   const { user } = useAuth()
+  const { profile } = useUserProfile()
   const { listas } = useUserListas()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
+
+  const greetingName = profile?.displayNamePref?.trim() || user?.displayName?.split(' ')[0] || null
 
   return (
     <section className="dashboard-home-page" aria-label="Inicio de NeuroAudio">
@@ -50,7 +54,7 @@ function DashboardHome() {
         </header>
 
         <div className="dashboard-home-page__welcome-card">
-          <h2>Bienvenido a NeuroAudio</h2>
+          <h2>{greetingName ? `Hola, ${greetingName}` : 'Bienvenido a NeuroAudio'}</h2>
           <p>
             Tu espacio para guardar y organizar tus audios de bienestar. Empieza en tres
             pasos.
