@@ -3,7 +3,11 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import { signOutUser } from '../../auth/services/authService'
 import UserAvatar from '../../auth/components/UserAvatar'
+import { getTemplateById } from '../data/plantillasListas'
+import { useUserListas } from '../hooks/useUserListas'
+import ModalCrearLista from './ModalCrearLista'
 import ModalSubirAudio from './ModalSubirAudio'
+import TemplateIcon from './TemplateIcon'
 
 const navigationItems = [
   {
@@ -41,7 +45,9 @@ const navigationItems = [
 
 function MenuLateral() {
   const { user } = useAuth()
+  const { listas } = useUserListas()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
 
   async function handleSignOut() {
@@ -80,8 +86,42 @@ function MenuLateral() {
           </nav>
 
           <div className="library-sidebar__section">
-            <p className="library-sidebar__section-title">Listas</p>
-            <p className="library-sidebar__empty">Sin listas todavía</p>
+            <div className="library-sidebar__section-header">
+              <p className="library-sidebar__section-title">Listas</p>
+              <button
+                type="button"
+                className="library-sidebar__section-add"
+                onClick={() => setIsCreateListModalOpen(true)}
+                aria-label="Crear lista"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+              </button>
+            </div>
+
+            {listas.length === 0 ? (
+              <p className="library-sidebar__empty">Sin listas todavía</p>
+            ) : (
+              <ul className="library-sidebar__lists">
+                {listas.map((lista) => {
+                  const template = getTemplateById(lista.template)
+                  return (
+                    <li key={lista.id} className="library-sidebar__list-item">
+                      <span
+                        className="library-sidebar__list-icon"
+                        style={{ background: `linear-gradient(135deg, ${template.gradientFrom}, ${template.gradientTo})` }}
+                        aria-hidden="true"
+                      >
+                        <TemplateIcon name={template.icon} />
+                      </span>
+                      <span className="library-sidebar__list-name">{lista.name}</span>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </div>
         </div>
 
@@ -185,6 +225,7 @@ function MenuLateral() {
       </nav>
 
       <ModalSubirAudio isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
+      <ModalCrearLista isOpen={isCreateListModalOpen} onClose={() => setIsCreateListModalOpen(false)} />
     </>
   )
 }

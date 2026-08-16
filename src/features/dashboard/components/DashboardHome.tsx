@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { useAuth } from '../../auth/context/AuthContext'
 import UserAvatar from '../../auth/components/UserAvatar'
+import { getTemplateById } from '../../library/data/plantillasListas'
+import { useUserListas } from '../../library/hooks/useUserListas'
+import ModalCrearLista from '../../library/components/ModalCrearLista'
 import ModalSubirAudio from '../../library/components/ModalSubirAudio'
+import TemplateIcon from '../../library/components/TemplateIcon'
 
 const steps = [
   {
@@ -9,12 +13,16 @@ const steps = [
     title: 'Añade tu primer audio',
     description: 'Desde YouTube, un archivo o un enlace.',
     active: true,
+    buttonLabel: 'Añadir',
+    action: 'upload' as const,
   },
   {
     id: 2,
     title: 'Crea una lista',
     description: 'Agrupa tus audios como quieras: dormir, ansiedad…',
-    active: false,
+    active: true,
+    buttonLabel: 'Crear lista',
+    action: 'create-list' as const,
   },
   {
     id: 3,
@@ -26,7 +34,9 @@ const steps = [
 
 function DashboardHome() {
   const { user } = useAuth()
+  const { listas } = useUserListas()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
 
   return (
     <section className="dashboard-home-page" aria-label="Inicio de NeuroAudio">
@@ -66,7 +76,9 @@ function DashboardHome() {
                   <button
                     type="button"
                     className="dashboard-step-card__button"
-                    onClick={() => setIsUploadModalOpen(true)}
+                    onClick={() =>
+                      step.action === 'upload' ? setIsUploadModalOpen(true) : setIsCreateListModalOpen(true)
+                    }
                   >
                     <span aria-hidden="true" className="dashboard-step-card__button-icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -74,7 +86,7 @@ function DashboardHome() {
                         <path d="M5 12h14" />
                       </svg>
                     </span>
-                    Añadir
+                    {step.buttonLabel}
                   </button>
                 ) : null}
               </article>
@@ -84,22 +96,47 @@ function DashboardHome() {
 
         <section className="dashboard-home-page__section" aria-labelledby="dashboard-lists-title">
           <p className="dashboard-home-page__section-label">TUS LISTAS</p>
-          <div className="dashboard-empty-lists-panel">
-            <div className="dashboard-empty-lists-panel__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14" />
-                <path d="M5 12h14" />
-              </svg>
+          {listas.length === 0 ? (
+            <button
+              type="button"
+              className="dashboard-empty-lists-panel"
+              onClick={() => setIsCreateListModalOpen(true)}
+            >
+              <div className="dashboard-empty-lists-panel__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+              </div>
+              <div>
+                <h3>Aún no tienes listas</h3>
+                <p>Crea la primera para empezar a organizar tus audios.</p>
+              </div>
+            </button>
+          ) : (
+            <div className="dashboard-home-page__lists-grid">
+              {listas.map((lista) => {
+                const template = getTemplateById(lista.template)
+                return (
+                  <div
+                    key={lista.id}
+                    className="dashboard-list-card"
+                    style={{ background: `linear-gradient(135deg, ${template.gradientFrom}, ${template.gradientTo})` }}
+                  >
+                    <span className="dashboard-list-card__icon" aria-hidden="true">
+                      <TemplateIcon name={template.icon} />
+                    </span>
+                    <span className="dashboard-list-card__name">{lista.name}</span>
+                  </div>
+                )
+              })}
             </div>
-            <div>
-              <h3>Aún no tienes listas</h3>
-              <p>Crea la primera cuando añadas un audio.</p>
-            </div>
-          </div>
+          )}
         </section>
       </div>
 
       <ModalSubirAudio isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
+      <ModalCrearLista isOpen={isCreateListModalOpen} onClose={() => setIsCreateListModalOpen(false)} />
     </section>
   )
 }
