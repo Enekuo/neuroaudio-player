@@ -16,6 +16,8 @@ export type AudioTrack = {
   duration?: number
 }
 
+export type RepeatMode = 'off' | 'infinite' | 'times'
+
 type PlayerContextValue = {
   queue: AudioTrack[]
   currentTrack: AudioTrack | null
@@ -24,6 +26,9 @@ type PlayerContextValue = {
   duration: number
   volume: number
   isExpanded: boolean
+  repeatMode: RepeatMode
+  repeatTimes: number
+  repeatCount: number
   playTrack: (track: AudioTrack, queue?: AudioTrack[]) => void
   togglePlay: () => void
   seek: (time: number) => void
@@ -32,6 +37,9 @@ type PlayerContextValue = {
   playPrevious: () => void
   expand: () => void
   collapse: () => void
+  setRepeatOff: () => void
+  setRepeatInfinite: () => void
+  applyRepeatTimes: (times: number) => void
 }
 
 const PlayerContext = createContext<PlayerContextValue | undefined>(undefined)
@@ -48,12 +56,30 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [duration, setDuration] = useState(0)
   const [volume, setVolumeState] = useState(1)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>('off')
+  const [repeatTimes, setRepeatTimes] = useState(5)
+  const [repeatCount, setRepeatCount] = useState(0)
+
+  const repeatModeRef = useRef<RepeatMode>('off')
+  const repeatTimesRef = useRef(5)
 
   const currentTrack = currentIndex !== null ? (queue[currentIndex] ?? null) : null
 
   useEffect(() => {
     queueRef.current = queue
   }, [queue])
+
+  useEffect(() => {
+    repeatModeRef.current = repeatMode
+  }, [repeatMode])
+
+  useEffect(() => {
+    repeatTimesRef.current = repeatTimes
+  }, [repeatTimes])
+
+  useEffect(() => {
+    setRepeatCount(0)
+  }, [currentTrack?.id])
 
   useEffect(() => {
     const audioEl = audioRef.current
@@ -65,7 +91,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const handleLoadedMetadata = () => setDuration(audioEl.duration || 0)
     const handlePlay = () => setIsPlaying(true)
     const handlePause = () => setIsPlaying(false)
-    const handleEnded = () => {
+    const advanceQueueOrStop = () => {
       setCurrentIndex((prevIndex) => {
         if (prevIndex === null) {
           return prevIndex
@@ -77,6 +103,32 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         setIsPlaying(false)
         return prevIndex
       })
+    }
+
+    const handleEnded = () => {
+      const mode = repeatModeRef.current
+
+      if (mode === 'infinite') {
+        audioEl.currentTime = 0
+        audioEl.play().catch(() => setIsPlaying(false))
+        return
+      }
+
+      if (mode === 'times') {
+        setRepeatCount((prevCount) => {
+          const nextCount = prevCount + 1
+          if (nextCount < repeatTimesRef.current) {
+            audioEl.currentTime = 0
+            audioEl.play().catch(() => setIsPlaying(false))
+            return nextCount
+          }
+          advanceQueueOrStop()
+          return 0
+        })
+        return
+      }
+
+      advanceQueueOrStop()
     }
 
     audioEl.addEventListener('timeupdate', handleTimeUpdate)
@@ -174,6 +226,23 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const expand = useCallback(() => setIsExpanded(true), [])
   const collapse = useCallback(() => setIsExpanded(false), [])
 
+  const setRepeatOff = useCallback(() => {
+    setRepeatMode('off')
+    setRepeatCount(0)
+  }, [])
+
+  const setRepeatInfinite = useCallback(() => {
+    setRepeatMode('infinite')
+    setRepeatCount(0)
+  }, [])
+
+  const applyRepeatTimes = useCallback((times: number) => {
+    const clamped = Math.min(99, Math.max(1, Math.round(times)))
+    setRepeatTimes(clamped)
+    setRepeatMode('times')
+    setRepeatCount(0)
+  }, [])
+
   const value = useMemo<PlayerContextValue>(
     () => ({
       queue,
@@ -183,6 +252,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       duration,
       volume,
       isExpanded,
+      repeatMode,
+      repeatTimes,
+      repeatCount,
       playTrack,
       togglePlay,
       seek,
@@ -191,6 +263,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       playPrevious,
       expand,
       collapse,
+      setRepeatOff,
+      setRepeatInfinite,
+      applyRepeatTimes,
     }),
     [
       queue,
@@ -200,6 +275,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       duration,
       volume,
       isExpanded,
+      repeatMode,
+      repeatTimes,
+      repeatCount,
       playTrack,
       togglePlay,
       seek,
@@ -208,6 +286,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       playPrevious,
       expand,
       collapse,
+      setRepeatOff,
+      setRepeatInfinite,
+      applyRepeatTimes,
     ],
   )
 

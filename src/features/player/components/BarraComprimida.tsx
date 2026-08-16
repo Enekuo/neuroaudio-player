@@ -2,6 +2,7 @@ import type { ChangeEvent } from 'react'
 import LibraryIcon from '../../library/components/LibraryIcon'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
+import RepeatButton from './RepeatButton'
 
 function BarraComprimida() {
   const {
@@ -86,14 +87,7 @@ function BarraComprimida() {
           />
         </div>
 
-        <button type="button" disabled aria-label="Repetir (próximamente)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 2l4 4-4 4" />
-            <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-            <path d="M7 22l-4-4 4-4" />
-            <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-          </svg>
-        </button>
+        <RepeatButton />
 
         <button type="button" disabled aria-label="Temporizador (próximamente)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
