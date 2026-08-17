@@ -32,6 +32,7 @@ type PlayerContextValue = {
   playTrack: (track: AudioTrack, queue?: AudioTrack[]) => void
   togglePlay: () => void
   seek: (time: number) => void
+  skip: (seconds: number) => void
   setVolume: (volume: number) => void
   playNext: () => void
   playPrevious: () => void
@@ -91,19 +92,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const handleLoadedMetadata = () => setDuration(audioEl.duration || 0)
     const handlePlay = () => setIsPlaying(true)
     const handlePause = () => setIsPlaying(false)
-    const advanceQueueOrStop = () => {
-      setCurrentIndex((prevIndex) => {
-        if (prevIndex === null) {
-          return prevIndex
-        }
-        const nextIndex = prevIndex + 1
-        if (nextIndex < queueRef.current.length) {
-          return nextIndex
-        }
-        setIsPlaying(false)
-        return prevIndex
-      })
-    }
 
     const handleEnded = () => {
       const mode = repeatModeRef.current
@@ -122,13 +110,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             audioEl.play().catch(() => setIsPlaying(false))
             return nextCount
           }
-          advanceQueueOrStop()
+          setIsPlaying(false)
           return 0
         })
         return
       }
 
-      advanceQueueOrStop()
+      setIsPlaying(false)
     }
 
     audioEl.addEventListener('timeupdate', handleTimeUpdate)
@@ -192,6 +180,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
     audioEl.currentTime = time
     setCurrentTime(time)
+  }, [])
+
+  const skip = useCallback((seconds: number) => {
+    const audioEl = audioRef.current
+    if (!audioEl) {
+      return
+    }
+    const upperBound = Number.isFinite(audioEl.duration) ? audioEl.duration : Infinity
+    const target = Math.min(Math.max(audioEl.currentTime + seconds, 0), upperBound)
+    audioEl.currentTime = target
+    setCurrentTime(target)
   }, [])
 
   const setVolume = useCallback((value: number) => {
@@ -258,6 +257,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       playTrack,
       togglePlay,
       seek,
+      skip,
       setVolume,
       playNext,
       playPrevious,
@@ -281,6 +281,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       playTrack,
       togglePlay,
       seek,
+      skip,
       setVolume,
       playNext,
       playPrevious,

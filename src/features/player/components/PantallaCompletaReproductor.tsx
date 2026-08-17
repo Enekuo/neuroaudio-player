@@ -1,10 +1,10 @@
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
 import { useAuth } from '../../auth/context/AuthContext'
 import UserAvatar from '../../auth/components/UserAvatar'
-import PlanSwitcher from '../../dashboard/components/PlanSwitcher'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
 import RepeatButton from './RepeatButton'
+import SkipButton from './SkipButton'
 
 const WAVEFORM_BARS = Array.from({ length: 48 }, (_, index) => {
   const wave = Math.sin(index * 0.45) * 0.5 + 0.5
@@ -14,19 +14,8 @@ const WAVEFORM_BARS = Array.from({ length: 48 }, (_, index) => {
 
 function PantallaCompletaReproductor() {
   const { user } = useAuth()
-  const {
-    currentTrack,
-    isPlaying,
-    currentTime,
-    duration,
-    volume,
-    togglePlay,
-    seek,
-    setVolume,
-    playNext,
-    playPrevious,
-    collapse,
-  } = usePlayer()
+  const { currentTrack, isPlaying, currentTime, duration, volume, togglePlay, seek, setVolume, collapse } =
+    usePlayer()
 
   const remaining = Math.max(0, duration - currentTime)
   const progressRatio = duration > 0 ? currentTime / duration : 0
@@ -35,8 +24,8 @@ function PantallaCompletaReproductor() {
     seek(Number(event.target.value))
   }
 
-  function handleVolumeChange(event: ChangeEvent<HTMLInputElement>) {
-    setVolume(Number(event.target.value))
+  function handleVolumeInput(event: FormEvent<HTMLInputElement>) {
+    setVolume(Number(event.currentTarget.value))
   }
 
   if (!currentTrack) {
@@ -59,7 +48,6 @@ function PantallaCompletaReproductor() {
           </button>
           <p className="now-playing__eyebrow">Reproduciendo</p>
           <div className="now-playing__header-actions">
-            <PlanSwitcher />
             <UserAvatar user={user} className="now-playing__avatar" />
           </div>
         </header>
@@ -97,12 +85,7 @@ function PantallaCompletaReproductor() {
 
         <div className="now-playing__controls">
           <div className="now-playing__transport">
-            <button type="button" aria-label="Anterior" onClick={playPrevious}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 7L5 12l6 5" />
-                <path d="M19 7v10" />
-              </svg>
-            </button>
+            <SkipButton direction="backward" />
 
             <button
               type="button"
@@ -122,12 +105,7 @@ function PantallaCompletaReproductor() {
               )}
             </button>
 
-            <button type="button" aria-label="Siguiente" onClick={playNext}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M13 7l6 5-6 5" />
-                <path d="M5 7v10" />
-              </svg>
-            </button>
+            <SkipButton direction="forward" />
           </div>
 
           <div className="now-playing__controls-extra">
@@ -152,9 +130,9 @@ function PantallaCompletaReproductor() {
               type="range"
               min={0}
               max={1}
-              step={0.01}
+              step={0.001}
               value={volume}
-              onChange={handleVolumeChange}
+              onInput={handleVolumeInput}
               aria-label="Volumen"
             />
           </div>

@@ -1,41 +1,26 @@
-import type { ChangeEvent } from 'react'
+import type { FormEvent } from 'react'
 import LibraryIcon from '../../library/components/LibraryIcon'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
 import RepeatButton from './RepeatButton'
+import SkipButton from './SkipButton'
 
 function BarraComprimida() {
-  const {
-    currentTrack,
-    isPlaying,
-    currentTime,
-    duration,
-    volume,
-    togglePlay,
-    setVolume,
-    playNext,
-    playPrevious,
-    expand,
-  } = usePlayer()
+  const { currentTrack, isPlaying, currentTime, duration, volume, togglePlay, setVolume, expand } = usePlayer()
 
   if (!currentTrack) {
     return null
   }
 
-  function handleVolumeChange(event: ChangeEvent<HTMLInputElement>) {
-    setVolume(Number(event.target.value))
+  function handleVolumeInput(event: FormEvent<HTMLInputElement>) {
+    setVolume(Number(event.currentTarget.value))
   }
 
   return (
     <footer className="mini-player" aria-label="Reproductor comprimido">
       <div className="mini-player__left">
         <div className="mini-player__transport">
-          <button type="button" aria-label="Anterior" onClick={playPrevious}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M11 7L5 12l6 5" />
-              <path d="M19 7v10" />
-            </svg>
-          </button>
+          <SkipButton direction="backward" />
           <button type="button" aria-label={isPlaying ? 'Pausar' : 'Reproducir'} onClick={togglePlay}>
             {isPlaying ? (
               <svg viewBox="0 0 24 24" fill="currentColor">
@@ -48,12 +33,7 @@ function BarraComprimida() {
               </svg>
             )}
           </button>
-          <button type="button" aria-label="Siguiente" onClick={playNext}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M13 7l6 5-6 5" />
-              <path d="M5 7v10" />
-            </svg>
-          </button>
+          <SkipButton direction="forward" />
         </div>
         <span className="mini-player__time">
           {formatTime(currentTime)} / {formatTime(duration)}
@@ -80,9 +60,9 @@ function BarraComprimida() {
             type="range"
             min={0}
             max={1}
-            step={0.01}
+            step={0.001}
             value={volume}
-            onChange={handleVolumeChange}
+            onInput={handleVolumeInput}
             aria-label="Volumen"
           />
         </div>

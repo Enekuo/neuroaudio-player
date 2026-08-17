@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../auth/context/AuthContext'
 import UserAvatar from '../../auth/components/UserAvatar'
-import PlanSwitcher from '../../dashboard/components/PlanSwitcher'
-import { useUserPlan } from '../../dashboard/context/UserPlanContext'
 import { usePlayer } from '../../player/context/PlayerContext'
 import { useUserAudios, type LibraryAudio } from '../hooks/useUserAudios'
 import { useUserListas } from '../hooks/useUserListas'
@@ -18,7 +16,6 @@ type LibraryTab = 'general' | 'listas'
 
 function Biblioteca() {
   const { user } = useAuth()
-  const { userPlan } = useUserPlan()
   const { audios, isLoading } = useUserAudios()
   const { listas, isLoading: isLoadingListas } = useUserListas()
   const { playTrack } = usePlayer()
@@ -56,12 +53,10 @@ function Biblioteca() {
       <div className="library-screen__content">
         <header className="library-screen__header">
           <div>
-            <p className="library-screen__eyebrow">Acceso {userPlan === 'premium' ? 'Premium' : 'Gratis'}</p>
             <h1>Tu biblioteca</h1>
           </div>
 
           <div className="library-screen__actions">
-            <PlanSwitcher />
             <UserAvatar user={user} className="library-screen__avatar" />
           </div>
         </header>
