@@ -7,7 +7,9 @@ function MainLayout() {
     <div className="app-shell app-shell--library">
       <MenuLateral />
       <main className="content-area">
-        <Outlet />
+        <div className="content-area__scroll">
+          <Outlet />
+        </div>
         <Reproductor />
       </main>
     </div>

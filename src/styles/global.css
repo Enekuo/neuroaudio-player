@@ -24,6 +24,7 @@
   --shadow-strong: 0 24px 60px rgba(0, 0, 0, 0.32);
   --topbar-h: 56px;
   --bottomnav-h: 64px;
+  --miniplayer-h: 64px;
   scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
   scrollbar-width: thin;
 }
@@ -952,11 +953,20 @@ button {
   position: relative;
   padding: 0;
   display: flex;
+  flex-direction: column;
+  background: #1b1c1f;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.content-area__scroll {
+  flex: 1;
+  min-height: 0;
+  display: flex;
   align-items: stretch;
   justify-content: center;
-  background: #1b1c1f;
   overflow-y: auto;
-  min-height: 0;
+  padding-bottom: var(--miniplayer-h);
 }
 
 .page {
@@ -2478,9 +2488,13 @@ button {
     gap: 0.75rem;
   }
 
+  .library-audio-row__main {
+    width: 100%;
+  }
+
   .library-audio-row__meta {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-end;
   }
 
   .mini-player {
@@ -2490,6 +2504,21 @@ button {
 
   .mini-player__left {
     gap: 0.4rem;
+  }
+
+  .mini-player__transport button,
+  .mini-player__right > button,
+  .repeat-control__trigger {
+    width: 36px;
+    height: 36px;
+  }
+
+  .repeat-menu {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(var(--bottomnav-h) + 12px);
+    width: auto;
   }
 }
 
@@ -2506,6 +2535,10 @@ button {
 
   .mini-player__right {
     gap: 0.4rem;
+  }
+
+  .mini-player__right button[disabled] {
+    display: none;
   }
 }
 
