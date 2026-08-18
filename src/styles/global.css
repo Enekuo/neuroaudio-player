@@ -1469,24 +1469,38 @@ button {
 }
 
 .library-list-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.6rem;
-  min-height: 120px;
-  padding: 1.1rem;
-  border: none;
+  position: relative;
   border-radius: 16px;
   color: #ffffff;
-  cursor: pointer;
-  text-align: left;
-  font: inherit;
   transition: transform 140ms ease;
 }
 
 .library-list-card:hover {
   transform: translateY(-2px);
+}
+
+.library-list-card__main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.6rem;
+  width: 100%;
+  min-height: 120px;
+  padding: 1.1rem;
+  border: none;
+  background: transparent;
+  border-radius: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.library-list-card__options.lista-options {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
 }
 
 .library-list-card__icon {
@@ -1499,6 +1513,13 @@ button {
   height: 26px;
 }
 
+.library-list-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-width: 100%;
+}
+
 .library-list-card__name {
   font-weight: 600;
   font-size: 0.95rem;
@@ -1506,6 +1527,169 @@ button {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
+}
+
+.library-list-card__count {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.library-templates-intro {
+  padding: 2.5rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+}
+
+.library-templates-intro h2 {
+  margin: 0 0 0.4rem;
+  color: var(--text);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.library-templates-intro p {
+  margin: 0 0 1.6rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.library-templates-intro .template-grid {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.lista-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.lista-detail__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.lista-detail__back:hover {
+  color: var(--text);
+}
+
+.lista-detail__back svg {
+  width: 18px;
+  height: 18px;
+}
+
+.lista-detail__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.6rem;
+  border-radius: 16px;
+  color: #ffffff;
+}
+
+.lista-detail__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  flex-shrink: 0;
+}
+
+.lista-detail__icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.lista-detail__header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lista-detail__options {
+  flex-shrink: 0;
+}
+
+.lista-options {
+  position: relative;
+}
+
+.lista-options__trigger {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.lista-options__trigger:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.lista-options__trigger svg {
+  width: 16px;
+  height: 16px;
+}
+
+.lista-options__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 150px;
+  padding: 0.35rem;
+  border-radius: 8px;
+  background: #212226;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-strong);
+  z-index: 20;
+}
+
+.lista-options__menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  text-align: left;
+  padding: 0.6rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.lista-options__menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.lista-options__menu-item--danger {
+  color: #ff6b6b;
+}
+
+.lista-options__menu-item--danger:hover {
+  background: rgba(255, 107, 107, 0.12);
+  color: #ff6b6b;
 }
 
 .library-screen__actions {

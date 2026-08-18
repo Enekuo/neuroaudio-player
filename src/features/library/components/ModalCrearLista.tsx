@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent } from 'react'
 import { useCrearLista } from '../hooks/useCrearLista'
-import { LIST_TEMPLATES, CUSTOM_TEMPLATE, type ListTemplate } from '../data/plantillasListas'
-import TemplateIcon from './TemplateIcon'
+import type { ListTemplate } from '../data/plantillasListas'
+import TemplateGrid from './TemplateGrid'
 
 type ModalCrearListaProps = {
   isOpen: boolean
@@ -73,47 +73,7 @@ function ModalCrearLista({ isOpen, onClose, onCreated }: ModalCrearListaProps) {
           <p className="modal-card__subtitle">Elige un estilo para tu nueva lista</p>
         </div>
 
-        <div className="template-grid">
-          {LIST_TEMPLATES.map((template) => (
-            <button
-              key={template.id}
-              type="button"
-              className={`template-card${selectedTemplate?.id === template.id ? ' is-selected' : ''}`}
-              style={{ background: `linear-gradient(135deg, ${template.gradientFrom}, ${template.gradientTo})` }}
-              onClick={() => handleSelectTemplate(template)}
-            >
-              {selectedTemplate?.id === template.id ? (
-                <span className="template-card__check" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              ) : null}
-              <span className="template-card__icon" aria-hidden="true">
-                <TemplateIcon name={template.icon} />
-              </span>
-              <span className="template-card__label">{template.label}</span>
-            </button>
-          ))}
-
-          <button
-            type="button"
-            className={`template-card template-card--custom${selectedTemplate?.id === CUSTOM_TEMPLATE.id ? ' is-selected' : ''}`}
-            onClick={() => handleSelectTemplate(CUSTOM_TEMPLATE)}
-          >
-            {selectedTemplate?.id === CUSTOM_TEMPLATE.id ? (
-              <span className="template-card__check" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
-              </span>
-            ) : null}
-            <span className="template-card__icon" aria-hidden="true">
-              <TemplateIcon name="plus" />
-            </span>
-            <span className="template-card__label">{CUSTOM_TEMPLATE.label}</span>
-          </button>
-        </div>
+        <TemplateGrid selectedId={selectedTemplate?.id} onSelect={handleSelectTemplate} />
 
         <label className="modal-field">
           <span className="modal-field__label">Nombre de la lista</span>

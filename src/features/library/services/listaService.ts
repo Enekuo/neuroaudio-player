@@ -1,4 +1,4 @@
-import { collection, doc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { collection, deleteDoc, doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
 import { db } from '../../../lib/firebase'
 
 type CrearListaParams = {
@@ -18,4 +18,14 @@ export async function crearLista({ uid, name, template }: CrearListaParams) {
   })
 
   return listaRef.id
+}
+
+export async function renombrarLista(listaId: string, name: string) {
+  const listaRef = doc(db, 'listas', listaId)
+  await updateDoc(listaRef, { name })
+}
+
+export async function eliminarLista(listaId: string) {
+  const listaRef = doc(db, 'listas', listaId)
+  await deleteDoc(listaRef)
 }
