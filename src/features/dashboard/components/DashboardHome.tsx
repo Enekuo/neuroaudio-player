@@ -3,10 +3,39 @@ import { useAuth } from '../../auth/context/AuthContext'
 import UserAvatar from '../../auth/components/UserAvatar'
 import { useUserProfile } from '../../auth/hooks/useUserProfile'
 import { getTemplateById } from '../../library/data/plantillasListas'
+import { useUserAudios } from '../../library/hooks/useUserAudios'
 import { useUserListas } from '../../library/hooks/useUserListas'
 import ModalCrearLista from '../../library/components/ModalCrearLista'
 import ModalSubirAudio from '../../library/components/ModalSubirAudio'
 import TemplateIcon from '../../library/components/TemplateIcon'
+
+function AudioStatIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18V6l10-2v12" />
+      <circle cx="7" cy="18" r="2" />
+      <circle cx="17" cy="16" r="2" />
+    </svg>
+  )
+}
+
+function ListasStatIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 6h12" />
+      <path d="M6 12h12" />
+      <path d="M6 18h7" />
+    </svg>
+  )
+}
+
+function FavoritosStatIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  )
+}
 
 const steps = [
   {
@@ -37,28 +66,69 @@ function DashboardHome() {
   const { user } = useAuth()
   const { profile } = useUserProfile()
   const { listas } = useUserListas()
+  const { audios } = useUserAudios()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
 
   const greetingName = profile?.displayNamePref?.trim() || user?.displayName?.split(' ')[0] || null
 
+  // TODO: no hay ningún contador de favoritos en Firestore todavía.
+  // Cuando exista, sustituir este 0 por el dato real (p. ej. useUserFavoritos().totalFavoritos).
+  const totalFavoritos = 0
+
+  const statCards = [
+    {
+      id: 'audios',
+      icon: <AudioStatIcon />,
+      color: '#2680EB',
+      value: audios.length,
+      label: 'Audios',
+      trend: '+12% desde la semana pasada',
+    },
+    {
+      id: 'listas',
+      icon: <ListasStatIcon />,
+      color: '#2E9E5B',
+      value: listas.length,
+      label: 'Listas',
+      trend: '+3 desde la semana pasada',
+    },
+    {
+      id: 'favoritos',
+      icon: <FavoritosStatIcon />,
+      color: '#7C5CD6',
+      value: totalFavoritos,
+      label: 'Favoritos',
+      trend: '+18% desde la semana pasada',
+    },
+  ]
+
   return (
     <section className="dashboard-home-page" aria-label="Inicio de NeuroAudio">
       <div className="dashboard-home-page__content">
         <header className="dashboard-home-page__header">
-          <h1>Inicio</h1>
+          <h1>{greetingName ? `Bienvenido, ${greetingName}` : 'Bienvenido a NeuroAudio'}</h1>
 
           <div className="dashboard-home-page__header-actions">
             <UserAvatar user={user} className="dashboard-home-page__avatar" />
           </div>
         </header>
 
-        <div className="dashboard-home-page__welcome-card">
-          <h2>{greetingName ? `Hola, ${greetingName}` : 'Bienvenido a NeuroAudio'}</h2>
-          <p>
-            Tu espacio para guardar y organizar tus audios de bienestar. Empieza en tres
-            pasos.
-          </p>
+        <div className="dashboard-home-page__stats">
+          {statCards.map((stat) => (
+            <div key={stat.id} className="dashboard-stat-card">
+              <div className="dashboard-stat-card__top">
+                <span className="dashboard-stat-card__icon" style={{ background: stat.color }} aria-hidden="true">
+                  {stat.icon}
+                </span>
+                <div className="dashboard-stat-card__numbers">
+                  <span className="dashboard-stat-card__value">{stat.value}</span>
+                  <span className="dashboard-stat-card__label">{stat.label}</span>
+                </div>
+              </div>
+              <p className="dashboard-stat-card__trend">{stat.trend}</p>
+            </div>
+          ))}
         </div>
 
         <section className="dashboard-home-page__section" aria-labelledby="dashboard-steps-title">

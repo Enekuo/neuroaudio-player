@@ -6,6 +6,7 @@ import LandingPage from './pages/LandingPage'
 import ExplorePage from './pages/ExplorePage'
 import LibraryPage from './features/library/pages/LibraryPage'
 import DashboardHomePage from './features/dashboard/pages/DashboardHomePage'
+import FavoritosPage from './pages/FavoritosPage'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/app" element={<DashboardHomePage />} />
           <Route path="/app/explorar" element={<ExplorePage />} />
           <Route path="/app/biblioteca" element={<LibraryPage />} />
+          <Route path="/app/favoritos" element={<FavoritosPage />} />
         </Route>
       </Route>
     </Routes>
