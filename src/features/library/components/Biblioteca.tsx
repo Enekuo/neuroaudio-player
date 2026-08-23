@@ -88,7 +88,9 @@ function Biblioteca() {
   }
 
   async function handleDelete(audio: LibraryAudio) {
-    const confirmed = window.confirm(`¿Eliminar "${audio.name}"? Esta acción no se puede deshacer.`)
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas eliminar el audio "${audio.name}"? Esta acción no se puede deshacer.`,
+    )
 
     if (!confirmed) {
       return

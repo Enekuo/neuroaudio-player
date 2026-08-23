@@ -4,15 +4,16 @@ import type { User } from 'firebase/auth'
 type UserAvatarProps = {
   user: User | null
   className: string
+  forceInitial?: boolean
 }
 
-function UserAvatar({ user, className }: UserAvatarProps) {
+function UserAvatar({ user, className, forceInitial = false }: UserAvatarProps) {
   const [imageFailed, setImageFailed] = useState(false)
   const name = user?.displayName ?? user?.email ?? 'Mi cuenta'
   const initial = (user?.displayName ?? user?.email ?? '?').charAt(0).toUpperCase()
   const title = user?.email ? `${name} · ${user.email}` : name
 
-  if (user?.photoURL && !imageFailed) {
+  if (user?.photoURL && !imageFailed && !forceInitial) {
     return (
       <img
         src={user.photoURL}

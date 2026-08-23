@@ -37,6 +37,23 @@ function FavoritosStatIcon() {
   )
 }
 
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </svg>
+  )
+}
+
+const filterPills = [
+  { id: 'general', label: 'General' },
+  { id: 'audios', label: 'Audios' },
+  { id: 'listas', label: 'Listas' },
+  { id: 'favoritos', label: 'Favoritos' },
+]
+
 const steps = [
   {
     id: 1,
@@ -54,12 +71,6 @@ const steps = [
     buttonLabel: 'Crear lista',
     action: 'create-list' as const,
   },
-  {
-    id: 3,
-    title: 'Reprodúcelo a tu manera',
-    description: 'Sin anuncios, y programa cuándo empieza.',
-    active: false,
-  },
 ]
 
 function DashboardHome() {
@@ -69,8 +80,11 @@ function DashboardHome() {
   const { audios } = useUserAudios()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
+  const [activeFilter, setActiveFilter] = useState(filterPills[0].id)
 
   const greetingName = profile?.displayNamePref?.trim() || user?.displayName?.split(' ')[0] || null
+  const heroImageSrc =
+    profile?.avatarGender === 'female' ? '/images/woman_listening.png' : '/images/man_listening.png'
 
   // TODO: no hay ningún contador de favoritos en Firestore todavía.
   // Cuando exista, sustituir este 0 por el dato real (p. ej. useUserFavoritos().totalFavoritos).
@@ -83,7 +97,6 @@ function DashboardHome() {
       color: '#2680EB',
       value: audios.length,
       label: 'Audios',
-      trend: '+12% desde la semana pasada',
     },
     {
       id: 'listas',
@@ -91,7 +104,6 @@ function DashboardHome() {
       color: '#2E9E5B',
       value: listas.length,
       label: 'Listas',
-      trend: '+3 desde la semana pasada',
     },
     {
       id: 'favoritos',
@@ -99,19 +111,38 @@ function DashboardHome() {
       color: '#7C5CD6',
       value: totalFavoritos,
       label: 'Favoritos',
-      trend: '+18% desde la semana pasada',
     },
   ]
 
   return (
     <section className="dashboard-home-page" aria-label="Inicio de NeuroAudio">
       <div className="dashboard-home-page__content">
-        <header className="dashboard-home-page__header">
-          <h1>{greetingName ? `Bienvenido, ${greetingName}` : 'Bienvenido a NeuroAudio'}</h1>
+        <div className="dashboard-home-page__topbar">
+          <button type="button" className="dashboard-home-page__menu-button" aria-label="Menú">
+            <MenuIcon />
+          </button>
 
-          <div className="dashboard-home-page__header-actions">
-            <UserAvatar user={user} className="dashboard-home-page__avatar" />
+          <div className="dashboard-home-page__topbar-actions">
+            <UserAvatar user={user} className="dashboard-home-page__topbar-avatar" forceInitial />
           </div>
+        </div>
+
+        <header className="dashboard-home-page__header">
+          <h1>
+            {greetingName ? (
+              <>
+                Bienvenido, <span className="dashboard-home-page__greeting-name">{greetingName}</span>
+              </>
+            ) : (
+              'Bienvenido a NeuroAudio'
+            )}
+          </h1>
+          <img
+            src={heroImageSrc}
+            alt=""
+            aria-hidden="true"
+            className="dashboard-home-page__hero-image"
+          />
         </header>
 
         <div className="dashboard-home-page__stats">
@@ -126,8 +157,20 @@ function DashboardHome() {
                   <span className="dashboard-stat-card__label">{stat.label}</span>
                 </div>
               </div>
-              <p className="dashboard-stat-card__trend">{stat.trend}</p>
             </div>
+          ))}
+        </div>
+
+        <div className="dashboard-home-page__filters">
+          {filterPills.map((pill) => (
+            <button
+              key={pill.id}
+              type="button"
+              className={`dashboard-home-page__filter-pill${activeFilter === pill.id ? ' is-active' : ''}`}
+              onClick={() => setActiveFilter(pill.id)}
+            >
+              {pill.label}
+            </button>
           ))}
         </div>
 

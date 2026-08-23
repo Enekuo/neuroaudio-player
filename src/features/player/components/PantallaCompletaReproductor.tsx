@@ -1,6 +1,5 @@
-import type { ChangeEvent, FormEvent } from 'react'
-import { useAuth } from '../../auth/context/AuthContext'
-import UserAvatar from '../../auth/components/UserAvatar'
+import type { ChangeEvent, CSSProperties, FormEvent } from 'react'
+import LibraryIcon from '../../library/components/LibraryIcon'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
 import RepeatButton from './RepeatButton'
@@ -13,7 +12,6 @@ const WAVEFORM_BARS = Array.from({ length: 48 }, (_, index) => {
 })
 
 function PantallaCompletaReproductor() {
-  const { user } = useAuth()
   const { currentTrack, isPlaying, currentTime, duration, volume, togglePlay, seek, setVolume, collapse } =
     usePlayer()
 
@@ -48,7 +46,9 @@ function PantallaCompletaReproductor() {
           </button>
           <p className="now-playing__eyebrow">Reproduciendo</p>
           <div className="now-playing__header-actions">
-            <UserAvatar user={user} className="now-playing__avatar" />
+            <button type="button" className="now-playing__icon-button" aria-label="Más opciones">
+              <LibraryIcon name="options" />
+            </button>
           </div>
         </header>
 
@@ -76,6 +76,7 @@ function PantallaCompletaReproductor() {
             value={Math.min(currentTime, duration || 0)}
             onChange={handleSeek}
             aria-label="Progreso del audio"
+            style={{ '--progress': `${progressRatio * 100}%` } as CSSProperties}
           />
           <div className="now-playing__times">
             <span>{formatTime(currentTime)}</span>

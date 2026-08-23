@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 
 export type UserProfile = {
   displayNamePref?: string
+  avatarGender?: 'male' | 'female'
 }
 
 export function useUserProfile() {
@@ -25,6 +26,7 @@ export function useUserProfile() {
 
       setProfile({
         displayNamePref: typeof data?.displayNamePref === 'string' ? data.displayNamePref : undefined,
+        avatarGender: data?.avatarGender === 'male' || data?.avatarGender === 'female' ? data.avatarGender : undefined,
       })
       setIsLoading(false)
     })

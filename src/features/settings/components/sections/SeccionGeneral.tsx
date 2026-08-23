@@ -2,7 +2,7 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../../../auth/context/AuthContext'
 import UserAvatar from '../../../auth/components/UserAvatar'
 import { useUserProfile } from '../../../auth/hooks/useUserProfile'
-import { updateDisplayNamePref } from '../../../auth/services/userProfileService'
+import { updateAvatarGenderPref, updateDisplayNamePref } from '../../../auth/services/userProfileService'
 import { applyReducedMotion, getStoredReducedMotion } from '../../utils/reducedMotion'
 import SettingsSwitch from '../SettingsSwitch'
 
@@ -16,12 +16,20 @@ function SeccionGeneral() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [justSaved, setJustSaved] = useState(false)
   const [reduceMotion, setReduceMotion] = useState(() => getStoredReducedMotion())
+  const [avatarGenderPref, setAvatarGenderPref] = useState<'male' | 'female'>('male')
+  const [avatarGenderError, setAvatarGenderError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isNameTouched && profile?.displayNamePref !== undefined) {
       setPreferredName(profile.displayNamePref)
     }
   }, [profile?.displayNamePref, isNameTouched])
+
+  useEffect(() => {
+    if (profile?.avatarGender) {
+      setAvatarGenderPref(profile.avatarGender)
+    }
+  }, [profile?.avatarGender])
 
   const savedPreferredName = profile?.displayNamePref ?? ''
   const isDirty = isNameTouched && preferredName.trim() !== savedPreferredName.trim()
@@ -54,6 +62,23 @@ function SeccionGeneral() {
   function handleToggleReduceMotion(checked: boolean) {
     setReduceMotion(checked)
     applyReducedMotion(checked)
+  }
+
+  async function handleSelectAvatarGender(value: 'male' | 'female') {
+    if (!user || value === avatarGenderPref) {
+      return
+    }
+
+    const previous = avatarGenderPref
+    setAvatarGenderPref(value)
+    setAvatarGenderError(null)
+
+    try {
+      await updateAvatarGenderPref(user.uid, value)
+    } catch {
+      setAvatarGenderPref(previous)
+      setAvatarGenderError('No se pudo guardar. Inténtalo de nuevo.')
+    }
   }
 
   return (
@@ -135,6 +160,35 @@ function SeccionGeneral() {
             </button>
             <button type="button" className="settings-segmented__option is-active" aria-pressed="true">
               Oscuro
+            </button>
+          </div>
+        </div>
+
+        <div className="settings-row">
+          <div>
+            <p className="settings-row__label">Imagen de inicio</p>
+            {avatarGenderError ? (
+              <p className="settings-field__error">{avatarGenderError}</p>
+            ) : (
+              <p className="settings-row__hint">Elige quién aparece en la cabecera de Inicio (solo en móvil).</p>
+            )}
+          </div>
+          <div className="settings-segmented" role="radiogroup" aria-label="Imagen de inicio">
+            <button
+              type="button"
+              className={`settings-segmented__option${avatarGenderPref === 'male' ? ' is-active' : ''}`}
+              aria-pressed={avatarGenderPref === 'male'}
+              onClick={() => handleSelectAvatarGender('male')}
+            >
+              Hombre
+            </button>
+            <button
+              type="button"
+              className={`settings-segmented__option${avatarGenderPref === 'female' ? ' is-active' : ''}`}
+              aria-pressed={avatarGenderPref === 'female'}
+              onClick={() => handleSelectAvatarGender('female')}
+            >
+              Mujer
             </button>
           </div>
         </div>

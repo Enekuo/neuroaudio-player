@@ -217,29 +217,10 @@ function MenuLateral() {
 
       <header className="mobile-topbar">
         <div className="mobile-topbar__brand">
-          <span className="mobile-topbar__brand-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 6h10" />
-              <path d="M6 12h10" />
-              <path d="M6 18h6" />
-            </svg>
-          </span>
-          <span>NeuroAudio</span>
+          <img src="/images/logo_1.png" alt="NeuroAudio" className="mobile-topbar__logo" />
         </div>
 
         <div className="mobile-topbar__actions">
-          <button
-            type="button"
-            className="mobile-topbar__add"
-            onClick={() => setIsUploadModalOpen(true)}
-            aria-label="Añadir audio"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-          </button>
-
           <div className="mobile-topbar__account" ref={mobileAccountRef}>
             <button
               type="button"
@@ -249,7 +230,7 @@ function MenuLateral() {
               aria-expanded={isAccountMenuOpen}
               aria-label="Cuenta"
             >
-              <UserAvatar user={user} className="mobile-topbar__avatar" />
+              <UserAvatar user={user} className="mobile-topbar__avatar" forceInitial />
             </button>
 
             {isAccountMenuOpen ? (
