@@ -19,85 +19,88 @@ function TemplateIcon({ name }: TemplateIconProps) {
     viewBox: '0 0 24 24',
     fill: 'none',
     stroke: 'currentColor',
-    strokeWidth: 1.8,
+    strokeWidth: 1.6,
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
   }
 
   if (name === 'yinyang') {
+    // Loto (Meditación)
     return (
       <svg {...baseProps}>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 3a4.5 4.5 0 0 1 0 9 4.5 4.5 0 0 0 0 9 9 9 0 0 1 0-18Z" />
-        <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
-        <circle cx="12" cy="16.5" r="1" fill="currentColor" stroke="none" />
+        <path d="M12 20.5c-2.7-3.2-2.7-9.6 0-16 2.7 6.4 2.7 12.8 0 16z" />
+        <path d="M12 20.5C7.6 18.4 5 13.9 5 9.4c3.4 1.6 6 5.9 7 11.1z" />
+        <path d="M12 20.5c4.4-2.1 7-6.6 7-11.1-3.4 1.6-6 5.9-7 11.1z" />
+        <path d="M12 20.5c-5.3.3-9.7-2.4-11-6.6 4-.5 8.3 2 11 6.6z" />
+        <path d="M12 20.5c5.3.3 9.7-2.4 11-6.6-4-.5-8.3 2-11 6.6z" />
       </svg>
     )
   }
 
   if (name === 'spiral') {
+    // Diana (Hipnosis)
     return (
       <svg {...baseProps}>
-        <path d="M12 12.5a2 2 0 1 0 -2 -2" />
-        <path d="M12 12.5a4.2 4.2 0 1 1 -4.2 -4.2" />
-        <path d="M12 12.5a6.4 6.4 0 1 0 -6.4 -6.4" />
-        <path d="M12 12.5a8.6 8.6 0 1 1 -8.6 -8.6" />
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="12" r="6.4" />
+        <circle cx="12" cy="12" r="3" />
+        <circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none" />
       </svg>
     )
   }
 
   if (name === 'refresh') {
+    // Cerebro (Reprogramación)
     return (
       <svg {...baseProps}>
-        <path d="M20 11A8 8 0 0 0 6.3 6.3L4 8.6" />
-        <path d="M4 4v4.6h4.6" />
-        <path d="M4 13a8 8 0 0 0 13.7 4.7L20 15.4" />
-        <path d="M20 20v-4.6h-4.6" />
+        <path d="M12 5C10.4 3.2 7.2 3.4 6.3 6 4.3 6.3 3 8 3.4 10c-1.2 1.3-1.1 3.4.4 4.4-.2 2.3 1.6 4 3.7 3.8C8.4 20 10.6 20.6 12 19" />
+        <path d="M12 5c1.6-1.8 4.8-1.6 5.7 1 2 .3 3.3 2 2.9 4 1.2 1.3 1.1 3.4-.4 4.4.2 2.3-1.6 4-3.7 3.8C15.6 20 13.4 20.6 12 19" />
+        <path d="M12 5v14" />
+        <path d="M9 9c1.4.4 2 1.6 1.6 3" />
+        <path d="M15 9c-1.4.4-2 1.6-1.6 3" />
       </svg>
     )
   }
 
   if (name === 'wave-sine') {
+    // Pulso (Subliminales)
     return (
       <svg {...baseProps}>
-        <path d="M2 12c1.2-5 3.3-5 4.5 0s3.3 5 4.5 0 3.3-5 4.5 0 3.3 5 4.5 0" />
+        <path d="M2 12h4.5l1.8-.1L10 4.5l2.6 15L14.9 9l1.6 5.2 1.4-2.2H22" />
       </svg>
     )
   }
 
   if (name === 'om') {
-    return (
-      <svg {...baseProps}>
-        <path d="M4 15a3.2 3.2 0 1 1 3.6 -3.2A3 3 0 1 1 11 15c0 2-2 3-4 3" />
-        <path d="M14 15a3 3 0 1 0 3-4.5c-1.5 0-2.2-1-1.6-2.2" />
-        <path d="M17.5 5.2a1 1 0 1 0 1 -1" />
-        <path d="M19.5 8c-1.3 0-2-1-1.5-2.3" />
-      </svg>
-    )
+    // Mantras: glifo tipográfico, no SVG
+    return <span className="template-card__om">ॐ</span>
   }
 
   if (name === 'moon') {
+    // Luna (Para dormir)
     return (
       <svg {...baseProps}>
-        <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+        <path d="M20.6 15.2A9.2 9.2 0 0 1 8.8 3.4a9.4 9.4 0 1 0 11.8 11.8z" />
       </svg>
     )
   }
 
   if (name === 'wind') {
+    // Nube con gota (Ansiedad)
     return (
       <svg {...baseProps}>
-        <path d="M2 8h11a2.5 2.5 0 1 0-2-4" />
-        <path d="M2 13h15a2.5 2.5 0 1 1-2 4" />
-        <path d="M2 18h9" />
+        <path d="M7.2 16.2h9.6a3.9 3.9 0 0 0 .4-7.8 6.1 6.1 0 0 0-11.5-.3 4 4 0 0 0 1.5 8.1z" />
+        <path d="M12 18.4s-1.7 1.9-1.7 3a1.7 1.7 0 0 0 3.4 0c0-1.1-1.7-3-1.7-3z" />
       </svg>
     )
   }
 
   if (name === 'flame') {
+    // Llama (Motivación)
     return (
       <svg {...baseProps}>
-        <path d="M12 3c1.2 2.8-1.6 4.3-1.6 7.2a3.6 3.6 0 0 0 7.2 0c0-1.4-.6-2.2-.6-2.2s.6 3-1.6 3a1.6 1.6 0 0 1-1.6-1.6c0-1.8 1.6-2.6 1.6-5.4-2.4 1-4.8 3.6-4.8 6.8a5.4 5.4 0 0 0 10.8 0C21.4 6.6 15.6 4.6 12 3Z" />
+        <path d="M13.6 2.3c.5 2.6 2.1 3.9 3.4 5.4 1.4 1.6 2.2 3.4 2.2 5.6a7.2 7.2 0 0 1-14.4 0c0-2.6 1.3-4.4 2.7-5.7.6.9 1.5 1.5 2.4 1.4C11.9 8.7 12.4 5.7 13.6 2.3z" />
+        <path d="M12 21.1c-1.7 0-3-1.2-3-2.8 0-1.6 1.4-2.3 2-3.5.3-.6.4-1.2.3-1.9 1.3.7 2.4 1.8 3.1 3 .4.7.6 1.5.6 2.4 0 1.6-1.3 2.8-3 2.8z" />
       </svg>
     )
   }

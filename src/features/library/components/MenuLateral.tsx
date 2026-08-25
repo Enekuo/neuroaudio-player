@@ -100,14 +100,7 @@ function MenuLateral() {
       <aside className="library-sidebar" aria-label="Menú de biblioteca">
         <div className="library-sidebar__top">
           <div className="library-sidebar__brand">
-            <span className="library-sidebar__brand-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 6h10" />
-                <path d="M6 12h10" />
-                <path d="M6 18h6" />
-              </svg>
-            </span>
-            <span>NeuroAudio</span>
+            <img src="/images/logo_1.png" alt="NeuroAudio" className="library-sidebar__brand-logo" />
           </div>
 
           <nav className="library-sidebar__nav">

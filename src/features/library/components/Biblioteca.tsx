@@ -24,7 +24,7 @@ function Biblioteca() {
   const { listas, isLoading: isLoadingListas, error: listasError } = useUserListas()
   const { playTrack } = usePlayer()
   const { create: createLista, isSaving: isCreatingLista, error: createListaError } = useCrearLista()
-  const [activeTab, setActiveTab] = useState<LibraryTab>('general')
+  const [activeTab, setActiveTab] = useState<LibraryTab>('listas')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -127,20 +127,20 @@ function Biblioteca() {
           <button
             type="button"
             role="tab"
-            aria-selected={activeTab === 'general'}
-            className={`library-tabs__tab${activeTab === 'general' ? ' is-active' : ''}`}
-            onClick={() => setActiveTab('general')}
-          >
-            General
-          </button>
-          <button
-            type="button"
-            role="tab"
             aria-selected={activeTab === 'listas'}
             className={`library-tabs__tab${activeTab === 'listas' ? ' is-active' : ''}`}
             onClick={() => setActiveTab('listas')}
           >
             Listas
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'general'}
+            className={`library-tabs__tab${activeTab === 'general' ? ' is-active' : ''}`}
+            onClick={() => setActiveTab('general')}
+          >
+            General
           </button>
         </div>
 
