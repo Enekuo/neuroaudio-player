@@ -1,10 +1,12 @@
-import { LIST_TEMPLATES, CUSTOM_TEMPLATE, type ListTemplate } from '../data/plantillasListas'
+import { getTemplateById, type LibraryFolder } from '../data/plantillasListas'
 import TemplateIcon from './TemplateIcon'
 
 type TemplateGridProps = {
-  selectedId?: string
+  folders: LibraryFolder[]
+  activeKey?: string | null
   disabled?: boolean
-  onSelect: (template: ListTemplate) => void
+  onOpen: (folder: LibraryFolder) => void
+  onCreateCustom: () => void
 }
 
 const WAVE_POINTS =
@@ -26,66 +28,66 @@ function ChevronIcon() {
   )
 }
 
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 13l4 4L19 7" />
-    </svg>
-  )
-}
-
-function TemplateGrid({ selectedId, disabled, onSelect }: TemplateGridProps) {
+function TemplateGrid({ folders, activeKey, disabled, onOpen, onCreateCustom }: TemplateGridProps) {
   return (
     <div className="template-grid">
-      {LIST_TEMPLATES.map((template) => {
-        const isSelected = selectedId === template.id
+      {folders.map((folder) => {
+        const template = getTemplateById(folder.template)
+        const hasImage = Boolean(template.cardImage)
+        const isActive = folder.key === activeKey
+        const audioLabel = folder.count === 1 ? '1 audio' : `${folder.count} audios`
+
         return (
           <button
-            key={template.id}
+            key={folder.key}
             type="button"
-            className={`template-card${isSelected ? ' is-selected' : ''}`}
-            onClick={() => onSelect(template)}
+            className={`template-card${hasImage ? ' template-card--has-image' : ''}${isActive ? ' is-selected' : ''}`}
+            onClick={() => onOpen(folder)}
             disabled={disabled}
           >
-            <span className="template-card__icon" aria-hidden="true">
-              <TemplateIcon name={template.icon} />
-            </span>
+            {hasImage ? (
+              <>
+                <span
+                  className="template-card__bg"
+                  style={{
+                    backgroundImage: `url(${template.cardImage})`,
+                    ...(template.cardImageSize ? { backgroundSize: `${template.cardImageSize}%` } : {}),
+                    ...(template.cardImagePosition ? { backgroundPosition: template.cardImagePosition } : {}),
+                  }}
+                  aria-hidden="true"
+                />
+                <span className="template-card__bg-overlay" aria-hidden="true" />
+              </>
+            ) : (
+              <span className="template-card__icon" aria-hidden="true">
+                <TemplateIcon name={template.icon} />
+              </span>
+            )}
 
             <div className="template-card__meta">
-              <span className="template-card__label">{template.label}</span>
-              <span className="template-card__count">0 audios</span>
+              <span className="template-card__label">{folder.name}</span>
+              <span className="template-card__count">{audioLabel}</span>
             </div>
 
             <WaveIcon />
 
-            {isSelected ? (
-              <span className="template-card__check" aria-hidden="true">
-                <CheckIcon />
-              </span>
-            ) : (
-              <span className="template-card__chevron" aria-hidden="true">
-                <ChevronIcon />
-              </span>
-            )}
+            <span className="template-card__chevron" aria-hidden="true">
+              <ChevronIcon />
+            </span>
           </button>
         )
       })}
 
       <button
         type="button"
-        className={`template-card template-card--custom${selectedId === CUSTOM_TEMPLATE.id ? ' is-selected' : ''}`}
-        onClick={() => onSelect(CUSTOM_TEMPLATE)}
+        className="template-card template-card--custom"
+        onClick={onCreateCustom}
         disabled={disabled}
       >
-        {selectedId === CUSTOM_TEMPLATE.id ? (
-          <span className="template-card__check" aria-hidden="true">
-            <CheckIcon />
-          </span>
-        ) : null}
         <span className="template-card__icon" aria-hidden="true">
           <TemplateIcon name="plus" />
         </span>
-        <span className="template-card__label">{CUSTOM_TEMPLATE.label}</span>
+        <span className="template-card__label">Nueva lista</span>
       </button>
     </div>
   )

@@ -3,7 +3,6 @@ import LibraryIcon from '../../library/components/LibraryIcon'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
 import RepeatButton from './RepeatButton'
-import SkipButton from './SkipButton'
 
 function BarraComprimida() {
   const { currentTrack, isPlaying, currentTime, duration, volume, togglePlay, setVolume, expand } = usePlayer()
@@ -18,39 +17,25 @@ function BarraComprimida() {
 
   return (
     <footer className="mini-player" aria-label="Reproductor comprimido">
-      <div className="mini-player__left">
-        <div className="mini-player__transport">
-          <SkipButton direction="backward" />
-          <button type="button" aria-label={isPlaying ? 'Pausar' : 'Reproducir'} onClick={togglePlay}>
-            {isPlaying ? (
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <rect x="7" y="6" width="4" height="12" rx="1" />
-                <rect x="13" y="6" width="4" height="12" rx="1" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 6.5v11l9-5.5-9-5.5z" />
-              </svg>
-            )}
-          </button>
-          <SkipButton direction="forward" />
-        </div>
-        <span className="mini-player__time">
-          {formatTime(currentTime)} / {formatTime(duration)}
-        </span>
+      <div className="mini-player__thumb" aria-hidden="true">
+        <LibraryIcon name="music" />
       </div>
 
-      <div className="mini-player__center">
-        <div className="mini-player__thumb" aria-hidden="true">
-          <LibraryIcon name="music" />
+      <div className="mini-player__info">
+        <div className="mini-player__name">
+          <div className="mini-player__name-track">
+            <span>{currentTrack.name}</span>
+            <span aria-hidden="true">{currentTrack.name}</span>
+          </div>
         </div>
-        <div className="mini-player__info">
-          <h4>{currentTrack.name}</h4>
-          <p>Tu audio de NeuroAudio</p>
-        </div>
+        <p>Tu audio de NeuroAudio</p>
       </div>
 
       <div className="mini-player__right">
+        <span className="mini-player__time">
+          {formatTime(currentTime)} / {formatTime(duration)}
+        </span>
+
         <div className="mini-player__volume">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M4 9v6h4l5 4V5L8 9H4Z" />
@@ -80,6 +65,24 @@ function BarraComprimida() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="m18 15-6-6-6 6" />
           </svg>
+        </button>
+
+        <button
+          type="button"
+          className="mini-player__play"
+          aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+          onClick={togglePlay}
+        >
+          {isPlaying ? (
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <rect x="7" y="6" width="4" height="12" rx="1" />
+              <rect x="13" y="6" width="4" height="12" rx="1" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 6.5v11l9-5.5-9-5.5z" />
+            </svg>
+          )}
         </button>
       </div>
     </footer>

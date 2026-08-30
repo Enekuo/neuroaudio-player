@@ -69,7 +69,7 @@ function FilaAudio({ name, duration, isDeleting, onPlay, onDelete }: FilaAudioPr
               aria-expanded={isMenuOpen}
               onClick={() => setIsMenuOpen((value) => !value)}
             >
-              <LibraryIcon name="options" />
+              <LibraryIcon name="options-vertical" />
             </button>
 
             {isMenuOpen ? (

@@ -5,6 +5,7 @@ import MainLayout from './layouts/MainLayout'
 import LandingPage from './pages/LandingPage'
 import ExplorePage from './pages/ExplorePage'
 import LibraryPage from './features/library/pages/LibraryPage'
+import AudiosConjuntosPage from './pages/AudiosConjuntosPage'
 import DashboardHomePage from './features/dashboard/pages/DashboardHomePage'
 import FavoritosPage from './pages/FavoritosPage'
 
@@ -18,6 +19,7 @@ function App() {
           <Route path="/app" element={<DashboardHomePage />} />
           <Route path="/app/explorar" element={<ExplorePage />} />
           <Route path="/app/biblioteca" element={<LibraryPage />} />
+          <Route path="/app/audios-conjuntos" element={<AudiosConjuntosPage />} />
           <Route path="/app/favoritos" element={<FavoritosPage />} />
         </Route>
       </Route>

@@ -7,6 +7,7 @@ export type LibraryLista = {
   id: string
   name: string
   template: string
+  audioIds: string[]
   createdAt: Date
 }
 
@@ -38,6 +39,7 @@ export function useUserListas() {
             id: docSnap.id,
             name: data.name as string,
             template: data.template as string,
+            audioIds: Array.isArray(data.audioIds) ? (data.audioIds as string[]) : [],
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
           }
         })

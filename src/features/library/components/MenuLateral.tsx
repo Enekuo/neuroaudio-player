@@ -6,7 +6,7 @@ import UserAvatar from '../../auth/components/UserAvatar'
 import { useUserProfile } from '../../auth/hooks/useUserProfile'
 import ModalAjustes from '../../settings/components/ModalAjustes'
 import SettingsIcon from '../../settings/components/SettingsIcon'
-import { getTemplateById } from '../data/plantillasListas'
+import { CUSTOM_TEMPLATE_ID, getTemplateById } from '../data/plantillasListas'
 import { useUserListas } from '../hooks/useUserListas'
 import ModalCrearLista from './ModalCrearLista'
 import ModalSubirAudio from './ModalSubirAudio'
@@ -141,16 +141,22 @@ function MenuLateral() {
               <ul className="library-sidebar__lists">
                 {listas.map((lista) => {
                   const template = getTemplateById(lista.template)
+                  // Categorías fijas: la etiqueta visible viene de la plantilla (así "Ansiedad" -> "Visualización"
+                  // sin tocar el id ni el nombre guardado). Listas personalizadas: el nombre elegido por el usuario.
+                  const listaLabel = template.id === CUSTOM_TEMPLATE_ID ? lista.name : template.label
                   return (
                     <li key={lista.id} className="library-sidebar__list-item">
-                      <span
-                        className="library-sidebar__list-icon"
-                        style={{ background: `linear-gradient(135deg, ${template.gradientFrom}, ${template.gradientTo})` }}
-                        aria-hidden="true"
-                      >
-                        <TemplateIcon name={template.icon} />
+                      <span className="library-sidebar__list-icon" aria-hidden="true">
+                        {template.cardImage ? (
+                          <span
+                            className="library-sidebar__list-icon-img"
+                            style={{ backgroundImage: `url(${template.cardImage})` }}
+                          />
+                        ) : (
+                          <TemplateIcon name={template.icon} />
+                        )}
                       </span>
-                      <span className="library-sidebar__list-name">{lista.name}</span>
+                      <span className="library-sidebar__list-name">{listaLabel}</span>
                     </li>
                   )
                 })}

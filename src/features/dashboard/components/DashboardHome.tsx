@@ -1,13 +1,17 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import UserAvatar from '../../auth/components/UserAvatar'
 import { useUserProfile } from '../../auth/hooks/useUserProfile'
-import { getTemplateById } from '../../library/data/plantillasListas'
+import type { LibraryFolder } from '../../library/data/plantillasListas'
+import { useLibraryFolders } from '../../library/hooks/useLibraryFolders'
 import { useUserAudios } from '../../library/hooks/useUserAudios'
 import { useUserListas } from '../../library/hooks/useUserListas'
+import { anadirAudioALista, eliminarLista, quitarAudioDeLista, renombrarLista } from '../../library/services/listaService'
 import ModalCrearLista from '../../library/components/ModalCrearLista'
 import ModalSubirAudio from '../../library/components/ModalSubirAudio'
-import TemplateIcon from '../../library/components/TemplateIcon'
+import PanelAnadirAudios from '../../library/components/PanelAnadirAudios'
+import TemplateGrid from '../../library/components/TemplateGrid'
 
 function AudioStatIcon() {
   return (
@@ -47,11 +51,23 @@ function MenuIcon() {
   )
 }
 
+function GiftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="9" width="18" height="12" rx="1.5" />
+      <path d="M3 13h18" />
+      <path d="M12 9v12" />
+      <path d="M12 9c-1.5-3.5-4-5-5.5-3.7C5 6.6 5.7 9 12 9Z" />
+      <path d="M12 9c1.5-3.5 4-5 5.5-3.7C19 6.6 18.3 9 12 9Z" />
+    </svg>
+  )
+}
+
 const filterPills = [
-  { id: 'general', label: 'General' },
-  { id: 'audios', label: 'Audios' },
-  { id: 'listas', label: 'Listas' },
-  { id: 'favoritos', label: 'Favoritos' },
+  { id: 'inicio', label: 'Inicio', to: '/app' },
+  { id: 'listas', label: 'Listas', to: '/app/biblioteca?tab=listas' },
+  { id: 'audios', label: 'Audios', to: '/app/biblioteca?tab=general' },
+  { id: 'favoritos', label: 'Favoritos', to: '/app/favoritos' },
 ]
 
 const steps = [
@@ -74,13 +90,87 @@ const steps = [
 ]
 
 function DashboardHome() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { profile } = useUserProfile()
   const { listas } = useUserListas()
   const { audios } = useUserAudios()
+  const { folders } = useLibraryFolders()
+  const [isInviteBannerVisible, setIsInviteBannerVisible] = useState(true)
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
   const [activeFilter, setActiveFilter] = useState(filterPills[0].id)
+  const [openFolderKey, setOpenFolderKey] = useState<string | null>(null)
+  const [listaActionError, setListaActionError] = useState<string | null>(null)
+
+  const openFolder = folders.find((folder) => folder.key === openFolderKey) ?? null
+
+  function handleToggleFolder(folder: LibraryFolder) {
+    setListaActionError(null)
+    setOpenFolderKey((current) => (current === folder.key ? null : folder.key))
+  }
+
+  function handleCloseFolder() {
+    setListaActionError(null)
+    setOpenFolderKey(null)
+  }
+
+  async function handleToggleAudioEnLista(folder: LibraryFolder, audioId: string, incluir: boolean) {
+    if (!user) {
+      return
+    }
+
+    setListaActionError(null)
+
+    try {
+      if (incluir) {
+        await anadirAudioALista(folder.listaId, audioId, {
+          uid: user.uid,
+          name: folder.name,
+          template: folder.template,
+        })
+      } else {
+        await quitarAudioDeLista(folder.listaId, audioId)
+      }
+    } catch {
+      setListaActionError('No se pudo actualizar la lista. Inténtalo de nuevo.')
+    }
+  }
+
+  async function handleRenameLista(folder: LibraryFolder) {
+    const newName = window.prompt('Nuevo nombre de la lista', folder.name)?.trim()
+
+    if (!newName || newName === folder.name) {
+      return
+    }
+
+    setListaActionError(null)
+
+    try {
+      await renombrarLista(folder.listaId, newName)
+    } catch {
+      setListaActionError('No se pudo renombrar la lista. Inténtalo de nuevo.')
+    }
+  }
+
+  async function handleDeleteLista(folder: LibraryFolder) {
+    const confirmed = window.confirm(`¿Eliminar la lista "${folder.name}"? Esta acción no se puede deshacer.`)
+
+    if (!confirmed) {
+      return
+    }
+
+    setListaActionError(null)
+
+    try {
+      await eliminarLista(folder.listaId)
+      if (openFolderKey === folder.key) {
+        setOpenFolderKey(null)
+      }
+    } catch {
+      setListaActionError('No se pudo eliminar la lista. Inténtalo de nuevo.')
+    }
+  }
 
   const greetingName = profile?.displayNamePref?.trim() || user?.displayName?.split(' ')[0] || null
   const heroImageSrc =
@@ -145,6 +235,34 @@ function DashboardHome() {
           />
         </header>
 
+        {isInviteBannerVisible ? (
+          <div className="dashboard-invite-banner">
+            <span className="dashboard-invite-banner__icon" aria-hidden="true">
+              <GiftIcon />
+            </span>
+
+            <div className="dashboard-invite-banner__text">
+              <p className="dashboard-invite-banner__title">Invita a un amigo y consigue 2 meses gratis</p>
+              <p className="dashboard-invite-banner__subtitle">
+                Cuando tu amigo se suscriba por primera vez, tú ganas 2 meses de NeuroAudio gratis.
+              </p>
+            </div>
+
+            <div className="dashboard-invite-banner__actions">
+              <button type="button" className="dashboard-invite-banner__invite">
+                Invitar
+              </button>
+              <button
+                type="button"
+                className="dashboard-invite-banner__close"
+                onClick={() => setIsInviteBannerVisible(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         <div className="dashboard-home-page__stats">
           {statCards.map((stat) => (
             <div key={stat.id} className="dashboard-stat-card">
@@ -167,7 +285,12 @@ function DashboardHome() {
               key={pill.id}
               type="button"
               className={`dashboard-home-page__filter-pill${activeFilter === pill.id ? ' is-active' : ''}`}
-              onClick={() => setActiveFilter(pill.id)}
+              onClick={() => {
+                setActiveFilter(pill.id)
+                if (pill.id !== 'inicio') {
+                  navigate(pill.to)
+                }
+              }}
             >
               {pill.label}
             </button>
@@ -211,44 +334,34 @@ function DashboardHome() {
           </div>
         </section>
 
-        <section className="dashboard-home-page__section" aria-labelledby="dashboard-lists-title">
-          <p className="dashboard-home-page__section-label">TUS LISTAS</p>
-          {listas.length === 0 ? (
-            <button
-              type="button"
-              className="dashboard-empty-lists-panel"
-              onClick={() => setIsCreateListModalOpen(true)}
-            >
-              <div className="dashboard-empty-lists-panel__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5v14" />
-                  <path d="M5 12h14" />
-                </svg>
-              </div>
-              <div>
-                <h3>Aún no tienes listas</h3>
-                <p>Crea la primera para empezar a organizar tus audios.</p>
-              </div>
-            </button>
-          ) : (
-            <div className="dashboard-home-page__lists-grid">
-              {listas.map((lista) => {
-                const template = getTemplateById(lista.template)
-                return (
-                  <div
-                    key={lista.id}
-                    className="dashboard-list-card"
-                    style={{ background: `linear-gradient(135deg, ${template.gradientFrom}, ${template.gradientTo})` }}
-                  >
-                    <span className="dashboard-list-card__icon" aria-hidden="true">
-                      <TemplateIcon name={template.icon} />
-                    </span>
-                    <span className="dashboard-list-card__name">{lista.name}</span>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+        <section
+          className="dashboard-home-page__section dashboard-home-page__lists-section"
+          aria-labelledby="dashboard-lists-title"
+        >
+          <p className="dashboard-home-page__section-label" id="dashboard-lists-title">
+            TUS LISTAS
+          </p>
+
+          <div className="library-templates-intro">
+            {openFolder ? (
+              <PanelAnadirAudios
+                folder={openFolder}
+                audios={audios}
+                error={listaActionError}
+                onToggleAudio={(audioId, incluir) => handleToggleAudioEnLista(openFolder, audioId, incluir)}
+                onClose={handleCloseFolder}
+                onRename={openFolder.isCustom ? () => handleRenameLista(openFolder) : undefined}
+                onDelete={openFolder.isCustom ? () => handleDeleteLista(openFolder) : undefined}
+              />
+            ) : null}
+
+            <TemplateGrid
+              folders={folders}
+              activeKey={openFolderKey}
+              onOpen={handleToggleFolder}
+              onCreateCustom={() => setIsCreateListModalOpen(true)}
+            />
+          </div>
         </section>
       </div>
 

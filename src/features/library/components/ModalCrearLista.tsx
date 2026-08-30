@@ -1,7 +1,6 @@
 import { useState, type ChangeEvent } from 'react'
+import { CUSTOM_TEMPLATE_ID } from '../data/plantillasListas'
 import { useCrearLista } from '../hooks/useCrearLista'
-import type { ListTemplate } from '../data/plantillasListas'
-import TemplateGrid from './TemplateGrid'
 
 type ModalCrearListaProps = {
   isOpen: boolean
@@ -10,51 +9,37 @@ type ModalCrearListaProps = {
 }
 
 function ModalCrearLista({ isOpen, onClose, onCreated }: ModalCrearListaProps) {
-  const [selectedTemplate, setSelectedTemplate] = useState<ListTemplate | null>(null)
   const [name, setName] = useState('')
-  const [isNameTouched, setIsNameTouched] = useState(false)
   const { create, isSaving, error } = useCrearLista()
 
   if (!isOpen) {
     return null
   }
 
-  const canSubmit = Boolean(selectedTemplate) && name.trim().length > 0 && !isSaving
+  const canSubmit = name.trim().length > 0 && !isSaving
 
   function resetAndClose() {
     if (isSaving) {
       return
     }
-    setSelectedTemplate(null)
     setName('')
-    setIsNameTouched(false)
     onClose()
   }
 
-  function handleSelectTemplate(template: ListTemplate) {
-    setSelectedTemplate(template)
-    if (!isNameTouched) {
-      setName(template.label)
-    }
-  }
-
   function handleNameChange(event: ChangeEvent<HTMLInputElement>) {
-    setIsNameTouched(true)
     setName(event.target.value)
   }
 
   async function handleSubmit() {
-    if (!selectedTemplate || !canSubmit) {
+    if (!canSubmit) {
       return
     }
 
-    const success = await create(name.trim(), selectedTemplate.id)
+    const success = await create(name.trim(), CUSTOM_TEMPLATE_ID)
 
     if (success) {
       onCreated?.()
-      setSelectedTemplate(null)
       setName('')
-      setIsNameTouched(false)
       onClose()
     }
   }
@@ -62,7 +47,7 @@ function ModalCrearLista({ isOpen, onClose, onCreated }: ModalCrearListaProps) {
   return (
     <div className="modal-overlay" role="presentation" onClick={resetAndClose}>
       <div
-        className="modal-card modal-card--lista"
+        className="modal-card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-crear-lista-title"
@@ -70,10 +55,8 @@ function ModalCrearLista({ isOpen, onClose, onCreated }: ModalCrearListaProps) {
       >
         <div>
           <h2 id="modal-crear-lista-title">Crear lista</h2>
-          <p className="modal-card__subtitle">Elige un estilo para tu nueva lista</p>
+          <p className="modal-card__subtitle">Dale un nombre a tu nueva lista</p>
         </div>
-
-        <TemplateGrid selectedId={selectedTemplate?.id} onSelect={handleSelectTemplate} />
 
         <label className="modal-field">
           <span className="modal-field__label">Nombre de la lista</span>
@@ -83,6 +66,7 @@ function ModalCrearLista({ isOpen, onClose, onCreated }: ModalCrearListaProps) {
             placeholder="Ej: Meditación para dormir"
             value={name}
             onChange={handleNameChange}
+            autoFocus
           />
         </label>
 

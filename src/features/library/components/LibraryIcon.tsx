@@ -1,5 +1,5 @@
 type LibraryIconProps = {
-  name: 'moon' | 'cloud' | 'spark' | 'wave' | 'music' | 'clock' | 'plus' | 'options'
+  name: 'moon' | 'cloud' | 'spark' | 'wave' | 'music' | 'clock' | 'plus' | 'options' | 'options-vertical'
 }
 
 function LibraryIcon({ name }: LibraryIconProps) {
@@ -69,6 +69,16 @@ function LibraryIcon({ name }: LibraryIconProps) {
         <circle cx="5" cy="12" r="1.7" />
         <circle cx="12" cy="12" r="1.7" />
         <circle cx="19" cy="12" r="1.7" />
+      </svg>
+    )
+  }
+
+  if (name === 'options-vertical') {
+    return (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="12" cy="5" r="1.7" />
+        <circle cx="12" cy="12" r="1.7" />
+        <circle cx="12" cy="19" r="1.7" />
       </svg>
     )
   }
