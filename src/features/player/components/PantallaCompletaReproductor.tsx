@@ -15,7 +15,10 @@ function PantallaCompletaReproductor() {
   const { currentTrack, isPlaying, currentTime, duration, volume, togglePlay, seek, setVolume, collapse } =
     usePlayer()
 
-  const remaining = Math.max(0, duration - currentTime)
+  // Cuenta atrás basada en los mismos segundos enteros que ya muestra el tiempo transcurrido
+  // (floor de ambos), para que el "-0:00" llegue exactamente cuando el número de la izquierda
+  // deja de subir, en vez de un segundo antes por redondeos independientes.
+  const remaining = Math.max(0, Math.floor(duration) - Math.floor(currentTime))
   const progressRatio = duration > 0 ? currentTime / duration : 0
 
   function handleSeek(event: ChangeEvent<HTMLInputElement>) {

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { LibraryAudio } from '../hooks/useUserAudios'
 import { formatTime } from '../utils/formatTime'
 import LibraryIcon from './LibraryIcon'
+import MiniReproductorConjunto from './MiniReproductorConjunto'
 
 const MAX_SIMULTANEOUS = 2
 
@@ -28,39 +29,30 @@ function PauseIcon() {
 }
 
 /**
- * Pestaña "Audios conjuntos": permite tener hasta 2 audios sonando a la vez, con sus
- * propios elementos <audio> independientes del reproductor global (PlayerContext/mini-player).
- * Si se pide un 3er audio con 2 ya sonando, se para el más antiguo de los dos y entra el nuevo.
+ * Pestaña "Audios conjuntos": permite tener hasta 2 audios sonando a la vez, cada uno con su
+ * propio reproductor (MiniReproductorConjunto -> su propio <audio>), totalmente aparte del
+ * reproductor global (PlayerContext/mini-player/now-playing).
+ *
+ * `playingIds` solo dice qué 2 audios tienen "hueco" asignado. El play/pausa real, progreso y
+ * volumen de cada uno vive dentro de su propio MiniReproductorConjunto; al quitar un id de aquí
+ * (fila, límite de 2, o fin natural del audio) ese componente se desmonta y su <audio> para solo.
+ * Si se pide un 3er audio con los 2 huecos ocupados, se libera el más antiguo y entra el nuevo.
  */
 function AudiosConjuntos({ audios, isLoading }: AudiosConjuntosProps) {
   const [playingIds, setPlayingIds] = useState<string[]>([])
-  const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map())
-
-  // Al salir de esta pestaña (o de Biblioteca), para todo lo que estuviera sonando aquí.
-  useEffect(() => {
-    return () => {
-      audioElementsRef.current.forEach((el) => el.pause())
-      audioElementsRef.current.clear()
-    }
-  }, [])
 
   function handleEnded(audioId: string) {
-    audioElementsRef.current.delete(audioId)
     setPlayingIds((current) => current.filter((id) => id !== audioId))
   }
 
-  function togglePlay(audio: LibraryAudio) {
+  function toggleSlot(audio: LibraryAudio) {
     setPlayingIds((current) => {
       if (current.includes(audio.id)) {
-        audioElementsRef.current.get(audio.id)?.pause()
-        audioElementsRef.current.delete(audio.id)
         return current.filter((id) => id !== audio.id)
       }
 
       if (current.length >= MAX_SIMULTANEOUS) {
-        const [oldestId, ...rest] = current
-        audioElementsRef.current.get(oldestId)?.pause()
-        audioElementsRef.current.delete(oldestId)
+        const [, ...rest] = current
         return [...rest, audio.id]
       }
 
@@ -84,11 +76,23 @@ function AudiosConjuntos({ audios, isLoading }: AudiosConjuntosProps) {
     )
   }
 
+  const playingAudios = playingIds
+    .map((id) => audios.find((audio) => audio.id === id))
+    .filter((audio): audio is LibraryAudio => Boolean(audio))
+
   return (
     <div className="library-audios-conjuntos">
       <p className="library-audios-conjuntos__hint">
         Puedes tener hasta 2 audios sonando a la vez ({playingIds.length}/2 ahora).
       </p>
+
+      {playingAudios.length > 0 ? (
+        <div className="conjunto-players">
+          {playingAudios.map((audio) => (
+            <MiniReproductorConjunto key={audio.id} audio={audio} onEnded={() => handleEnded(audio.id)} />
+          ))}
+        </div>
+      ) : null}
 
       <div className="library-section__list">
         {audios.map((audio) => {
@@ -99,7 +103,7 @@ function AudiosConjuntos({ audios, isLoading }: AudiosConjuntosProps) {
               <button
                 type="button"
                 className="library-audio-row__main"
-                onClick={() => togglePlay(audio)}
+                onClick={() => toggleSlot(audio)}
                 aria-pressed={isPlaying}
               >
                 <div className="library-audio-row__thumb" aria-hidden="true">
@@ -115,28 +119,13 @@ function AudiosConjuntos({ audios, isLoading }: AudiosConjuntosProps) {
                 <button
                   type="button"
                   className="library-audios-conjuntos__toggle"
-                  onClick={() => togglePlay(audio)}
-                  aria-label={isPlaying ? `Pausar ${audio.name}` : `Reproducir ${audio.name}`}
+                  onClick={() => toggleSlot(audio)}
+                  aria-label={isPlaying ? `Quitar ${audio.name} del reproductor conjunto` : `Reproducir ${audio.name}`}
                   aria-pressed={isPlaying}
                 >
                   {isPlaying ? <PauseIcon /> : <PlayIcon />}
                 </button>
               </div>
-
-              {isPlaying ? (
-                <audio
-                  ref={(el) => {
-                    if (el) {
-                      audioElementsRef.current.set(audio.id, el)
-                    } else {
-                      audioElementsRef.current.delete(audio.id)
-                    }
-                  }}
-                  src={audio.url}
-                  autoPlay
-                  onEnded={() => handleEnded(audio.id)}
-                />
-              ) : null}
             </div>
           )
         })}
