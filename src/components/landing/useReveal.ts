@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 /**
  * Da un ref + una clase para animar la entrada de un elemento cuando aparece en pantalla al
@@ -35,7 +35,9 @@ export function useReveal<T extends HTMLElement>(delay = 0) {
   }, [])
 
   const className = `na-reveal${isVisible ? ' is-visible' : ''}`
-  const style = delay ? { '--reveal-delay': `${delay}ms` } : undefined
+  const style: CSSProperties | undefined = delay
+    ? ({ '--reveal-delay': `${delay}ms` } as CSSProperties)
+    : undefined
 
   return { ref, isVisible, className, style }
 }
