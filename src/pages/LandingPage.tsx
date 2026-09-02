@@ -1,18 +1,14 @@
-import Header from '../components/landing/Header'
 import HeroSection from '../components/landing/HeroSection'
-import TrustedBar from '../components/landing/TrustedBar'
-import PlansSection from '../components/landing/PlansSection'
+import Faq from '../components/landing/Faq'
+import Pricing from '../components/landing/Pricing'
 import Footer from '../components/landing/Footer'
 
 function LandingPage() {
   return (
-    <div className="landing-page">
-      <Header />
-      <main className="landing-page__content">
-        <HeroSection />
-        <TrustedBar />
-        <PlansSection />
-      </main>
+    <div className="landing-root">
+      <HeroSection />
+      <Faq />
+      <Pricing />
       <Footer />
     </div>
   )
