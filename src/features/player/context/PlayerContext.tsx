@@ -88,7 +88,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    const handleTimeUpdate = () => setCurrentTime(audioEl.currentTime)
+    const handleTimeUpdate = () => {
+      setCurrentTime(audioEl.currentTime)
+
+      if ('mediaSession' in navigator && Number.isFinite(audioEl.duration) && audioEl.duration > 0) {
+        try {
+          navigator.mediaSession.setPositionState({
+            duration: audioEl.duration,
+            position: Math.min(audioEl.currentTime, audioEl.duration),
+            playbackRate: audioEl.playbackRate,
+          })
+        } catch {
+          // el navegador puede rechazar valores no soportados; no es crítico
+        }
+      }
+    }
     const handleLoadedMetadata = () => setDuration(audioEl.duration || 0)
     const handlePlay = () => setIsPlaying(true)
     const handlePause = () => setIsPlaying(false)
@@ -147,6 +161,34 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     audioEl.play().catch(() => setIsPlaying(false))
   }, [currentTrack])
+
+  // Media Session: declara la pista activa ante el sistema operativo/navegador
+  // para que la reproducción sobreviva en segundo plano y aparezcan los
+  // controles en la pantalla de bloqueo.
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) {
+      return
+    }
+
+    if (!currentTrack) {
+      navigator.mediaSession.metadata = null
+      return
+    }
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentTrack.name,
+      artist: 'NeuroAudio',
+      artwork: [{ src: '/images/logo_1.png', sizes: '512x512', type: 'image/png' }],
+    })
+  }, [currentTrack])
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) {
+      return
+    }
+
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'
+  }, [isPlaying])
 
   const playTrack = useCallback((track: AudioTrack, newQueue?: AudioTrack[]) => {
     const list = newQueue ?? queueRef.current
@@ -221,6 +263,32 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       return previousIndex >= 0 ? previousIndex : prevIndex
     })
   }, [])
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) {
+      return
+    }
+
+    navigator.mediaSession.setActionHandler('play', () => {
+      audioRef.current?.play().catch(() => {})
+    })
+    navigator.mediaSession.setActionHandler('pause', () => {
+      audioRef.current?.pause()
+    })
+    navigator.mediaSession.setActionHandler('seekbackward', () => skip(-10))
+    navigator.mediaSession.setActionHandler('seekforward', () => skip(10))
+    navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious())
+    navigator.mediaSession.setActionHandler('nexttrack', () => playNext())
+
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null)
+      navigator.mediaSession.setActionHandler('pause', null)
+      navigator.mediaSession.setActionHandler('seekbackward', null)
+      navigator.mediaSession.setActionHandler('seekforward', null)
+      navigator.mediaSession.setActionHandler('previoustrack', null)
+      navigator.mediaSession.setActionHandler('nexttrack', null)
+    }
+  }, [skip, playPrevious, playNext])
 
   const expand = useCallback(() => setIsExpanded(true), [])
   const collapse = useCallback(() => setIsExpanded(false), [])

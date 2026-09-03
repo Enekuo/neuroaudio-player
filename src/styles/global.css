@@ -1502,6 +1502,112 @@ textarea,
   .dashboard-home-page__stats {
     margin-top: 72px;
   }
+
+  /* ===== Rediseño visual de Inicio (solo escritorio) ===== */
+
+  /* El contenido ya no se estira sin límite en pantallas anchas: se centra en una
+     columna cómoda de leer, y respira más entre secciones. */
+  .dashboard-home-page__content {
+    max-width: 1180px;
+    margin: 0 auto;
+    gap: 2.75rem;
+  }
+
+  .dashboard-home-page__header h1 {
+    font-size: 34px;
+    letter-spacing: -0.4px;
+  }
+
+  /* Banner de invitación: degradado + resplandor sutil en vez de un color plano,
+     radio de esquina unificado con el resto de tarjetas (16px). */
+  .dashboard-invite-banner {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #141a30 0%, #0d1120 100%);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+  }
+
+  .dashboard-invite-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(460px 200px at 88% 0%, rgba(52, 97, 255, 0.16), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Tarjetas de estadísticas: degradado + sombra + ligera elevación al pasar el ratón,
+     mismo radio de 16px que el resto de tarjetas de la página. */
+  .dashboard-stat-card {
+    border-radius: 16px;
+    background: linear-gradient(160deg, #0c0f19 0%, #050609 100%);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  }
+
+  .dashboard-stat-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.4);
+  }
+
+  .dashboard-stat-card__icon {
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.03);
+  }
+
+  /* Etiquetas de sección: un puntito de acento en vez de solo texto suelto, para que
+     pesen un poco más y marquen mejor el ritmo de la página. */
+  .dashboard-home-page__section-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+  }
+
+  .dashboard-home-page__section-label::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #0047ff;
+  }
+
+  /* Tarjetas de "Primeros pasos": degradado + sombra + elevación, y una línea que
+     conecta los círculos numerados para que se lean como una secuencia. */
+  .dashboard-step-card {
+    position: relative;
+    border-radius: 16px;
+    background: linear-gradient(160deg, #0d0f18 0%, #08090d 100%);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  }
+
+  .dashboard-step-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .dashboard-step-card:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 34px;
+    top: 100%;
+    width: 2px;
+    height: 0.75rem;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .dashboard-step-card__button {
+    box-shadow: 0 6px 16px rgba(0, 71, 255, 0.25);
+    transition: background-color 140ms ease, transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .dashboard-step-card__button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0, 71, 255, 0.35);
+  }
+
 }
 
 .dashboard-home-page__filters {
@@ -1616,9 +1722,16 @@ textarea,
   font-size: 12px;
 }
 
-/* Sección "Tus listas" del Inicio: solo en móvil (en escritorio ya está Mi biblioteca en el sidebar) */
+/* Sección "Tus listas" del Inicio: oculta por defecto, se muestra en móvil (más abajo)
+   y también en escritorio (regla al final del archivo) para no dejar hueco vacío. */
 .dashboard-home-page__lists-section {
   display: none;
+}
+
+@media (min-width: 641px) {
+  .dashboard-home-page__lists-section {
+    display: flex;
+  }
 }
 
 .dashboard-home-page__steps {
