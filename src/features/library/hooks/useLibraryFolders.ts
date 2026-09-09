@@ -41,7 +41,9 @@ export function useLibraryFolders() {
     })
 
     const customFolders = listas
-      .filter((lista) => !fixedIds.has(lista.id))
+      // Las playlists (template 'playlist') no son carpetas: se gestionan en
+      // "Audios conjuntos".
+      .filter((lista) => !fixedIds.has(lista.id) && lista.template !== 'playlist')
       .map((lista): LibraryFolder => ({
         key: lista.id,
         listaId: lista.id,

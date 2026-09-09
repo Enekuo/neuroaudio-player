@@ -48,12 +48,36 @@ const navigationItems = [
     label: 'Buscar',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="6" />
-        <path d="m20 20-4.2-4.2" />
+        <rect x="2" y="4" width="20" height="16" rx="2.6" />
+        <path d="M2 8.5h20" />
+        <path d="M4.8 6.25h.01M7 6.25h.01" />
+        <circle cx="10.5" cy="14" r="3.6" />
+        <path d="M6.9 14h7.2" />
+        <path d="M10.5 10.4c2 2 2 5.2 0 7.2c-2-2-2-5.2 0-7.2" />
+        <circle cx="18.5" cy="18" r="2.3" />
+        <path d="M18.5 14.9v1M18.5 21.1v1M15.4 18h1M21.6 18h1M16.3 15.8l.7.7M20 19.5l.7.7M16.3 20.2l.7-.7M20 16.5l.7-.7" />
+      </svg>
+    ),
+  },
+  {
+    to: '/app/habitos',
+    label: 'Hábitos',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 6h11" />
+        <path d="M9 12h11" />
+        <path d="M9 18h11" />
+        <path d="m3.5 6 1.2 1.2L7 5" />
+        <path d="m3.5 12 1.2 1.2L7 11" />
+        <path d="m3.5 18 1.2 1.2L7 17" />
       </svg>
     ),
   },
 ]
+
+// La barra inferior (móvil) no lleva "Buscar": ahí se accede desde la lupa de la
+// cabecera de Inicio. En el sidebar (escritorio) sí se mantiene.
+const bottomNavItems = navigationItems.filter((item) => item.to !== '/app/explorar')
 
 function MenuLateral() {
   const { user } = useAuth()
@@ -65,7 +89,6 @@ function MenuLateral() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const sidebarAccountRef = useRef<HTMLDivElement>(null)
-  const mobileAccountRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!isAccountMenuOpen) {
@@ -73,11 +96,7 @@ function MenuLateral() {
     }
 
     function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node
-      const isInsideSidebar = sidebarAccountRef.current?.contains(target)
-      const isInsideMobile = mobileAccountRef.current?.contains(target)
-
-      if (!isInsideSidebar && !isInsideMobile) {
+      if (!sidebarAccountRef.current?.contains(event.target as Node)) {
         setIsAccountMenuOpen(false)
       }
     }
@@ -214,54 +233,11 @@ function MenuLateral() {
         </div>
       </aside>
 
-      <header className="mobile-topbar">
-        <div className="mobile-topbar__brand">
-          <img src="/images/logo_1.png" alt="NeuroAudio" className="mobile-topbar__logo" />
-        </div>
-
-        <div className="mobile-topbar__actions">
-          <div className="mobile-topbar__account" ref={mobileAccountRef}>
-            <button
-              type="button"
-              className="mobile-topbar__avatar-button"
-              onClick={() => setIsAccountMenuOpen((value) => !value)}
-              aria-haspopup="true"
-              aria-expanded={isAccountMenuOpen}
-              aria-label="Cuenta"
-            >
-              <UserAvatar user={user} className="mobile-topbar__avatar" forceInitial />
-            </button>
-
-            {isAccountMenuOpen ? (
-              <div className="mobile-topbar__menu" role="menu">
-                <p className="mobile-topbar__menu-name">{displayName}</p>
-                {user?.email ? <p className="mobile-topbar__menu-email">{user.email}</p> : null}
-                <button
-                  type="button"
-                  className="mobile-topbar__menu-item"
-                  role="menuitem"
-                  onClick={handleOpenSettings}
-                >
-                  <SettingsIcon name="settings" />
-                  Ajustes
-                </button>
-                <button
-                  type="button"
-                  className="mobile-topbar__menu-item"
-                  role="menuitem"
-                  onClick={handleSignOut}
-                >
-                  <SettingsIcon name="logout" />
-                  Cerrar sesión
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </header>
+      {/* El icono de cuenta móvil solo aparece en Inicio, y lo pinta DashboardHome
+          dentro de su cabecera. El resto de páginas no lo llevan. */}
 
       <nav className="bottom-nav" aria-label="Navegación principal">
-        {navigationItems.map((item) => (
+        {bottomNavItems.map((item) => (
           <NavLink
             key={item.to}
             end

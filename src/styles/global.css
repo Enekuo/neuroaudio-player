@@ -23,7 +23,7 @@
   --shadow: 0 12px 30px rgba(0, 0, 0, 0.23);
   --shadow-strong: 0 24px 60px rgba(0, 0, 0, 0.32);
   --topbar-h: 40px;
-  --bottomnav-h: 64px;
+  --bottomnav-h: 72px;
   --miniplayer-h: 64px;
   scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
   scrollbar-width: thin;
@@ -159,7 +159,6 @@ textarea,
   min-height: 0;
 }
 
-.mobile-topbar,
 .bottom-nav {
   display: none;
 }
@@ -485,24 +484,6 @@ textarea,
   color: var(--text);
 }
 
-.mobile-topbar__brand {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1.3rem;
-  font-weight: 500;
-  color: #ffffff;
-  min-width: 0;
-}
-
-.mobile-topbar__logo {
-  height: 72px;
-  width: auto;
-  flex-shrink: 0;
-  margin-left: 12px;
-  margin-top: -1px;
-}
-
 .mobile-topbar__actions {
   display: flex;
   align-items: center;
@@ -512,7 +493,6 @@ textarea,
 
 .mobile-topbar__account {
   position: relative;
-  margin-top: 11px;
 }
 
 .mobile-topbar__avatar-button {
@@ -522,20 +502,15 @@ textarea,
   cursor: pointer;
   display: grid;
   place-items: center;
+  width: 40px;
+  height: 40px;
 }
 
-.mobile-topbar__avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #0029b3;
-  color: #ffffff;
-  font-weight: 600;
-  font-size: 0.85rem;
-  display: grid;
-  place-items: center;
-  object-fit: cover;
-  overflow: hidden;
+.mobile-topbar__account-icon {
+  width: 26px;
+  height: 32px;
+  color: var(--text-secondary);
+  margin-right: 10px;
 }
 
 .mobile-topbar__menu {
@@ -605,9 +580,9 @@ textarea,
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
+  gap: 0.28rem;
   text-decoration: none;
-  color: #8b93ab;
+  color: #d5d8df;
   padding: 0.3rem 0.2rem;
 }
 
@@ -617,12 +592,12 @@ textarea,
 }
 
 .bottom-nav__icon svg {
-  width: 22px;
-  height: 22px;
+  width: 25px;
+  height: 25px;
 }
 
 .bottom-nav__label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1311,6 +1286,87 @@ textarea,
   padding: 2rem;
 }
 
+/* ===== Página de Premium (planes/suscripción) ===== */
+.premium-page {
+  width: min(680px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  padding: 2.5rem 2rem 3rem;
+}
+
+.premium-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.premium-page__badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(242, 193, 78, 0.12);
+  color: #f2c14e;
+  margin-bottom: 0.35rem;
+}
+
+.premium-page__badge svg {
+  width: 28px;
+  height: 28px;
+}
+
+.premium-page__subtitle {
+  margin: 0;
+  max-width: 460px;
+  color: #a8bdd4;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.premium-page__plans {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(38, 97, 235, 0.1), rgba(10, 10, 11, 0.45));
+  box-shadow: var(--shadow);
+}
+
+.premium-page__plans-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.premium-page__back {
+  align-self: flex-start;
+  color: #5b8bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.premium-page__back:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .premium-page {
+    padding: 1.5rem 1rem 4rem;
+    gap: 1.4rem;
+  }
+
+  .premium-page__plans {
+    min-height: 180px;
+    padding: 2rem 1rem;
+  }
+}
+
 .dashboard-home {
   width: 100%;
   min-height: 100%;
@@ -1395,6 +1451,20 @@ textarea,
   color: #f5f6fa;
 }
 
+/* "NeuroAudio" como título de la cabecera de Inicio (solo móvil). */
+.dashboard-home-page__title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboard-home-page__brand {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #f5f6fa;
+}
+
 .dashboard-home-page__hero-image {
   display: none;
 }
@@ -1403,20 +1473,68 @@ textarea,
   color: #5b8bff;
 }
 
+.dashboard-home-page__greeting-mobile {
+  display: none;
+}
+
+/* Botón de buscar, a la izquierda de la corona en la cabecera. */
+.dashboard-home-page__search {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.dashboard-home-page__search svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Corona de acceso a Premium, junto al icono de cuenta de la cabecera. */
+.dashboard-home-page__premium {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: #f2c14e;
+  text-decoration: none;
+}
+
+.dashboard-home-page__premium svg {
+  width: 26px;
+  height: 26px;
+}
+
 .dashboard-invite-banner {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
-  gap: 16px;
-  background: #12172a;
+  gap: 14px;
+  background: linear-gradient(135deg, #141a30 0%, #0d1120 100%);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 14px;
-  padding: 18px 22px;
+  border-radius: 20px;
+  padding: 14px 18px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+}
+
+.dashboard-invite-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(460px 200px at 88% 0%, rgba(52, 97, 255, 0.16), transparent 70%);
+  pointer-events: none;
 }
 
 .dashboard-invite-banner__icon {
+  position: relative;
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -1425,11 +1543,12 @@ textarea,
 }
 
 .dashboard-invite-banner__icon svg {
-  width: 22px;
-  height: 22px;
+  width: 19px;
+  height: 19px;
 }
 
 .dashboard-invite-banner__text {
+  position: relative;
   flex: 1;
   min-width: 0;
 }
@@ -1438,30 +1557,37 @@ textarea,
   margin: 0;
   color: #ffffff;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dashboard-invite-banner__subtitle {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dashboard-invite-banner__actions {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-shrink: 0;
 }
 
 .dashboard-invite-banner__invite {
   border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
+  border-radius: 999px;
+  padding: 8px 18px;
   background: #22c55e;
   color: #ffffff;
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 700;
+  font-size: 13px;
   cursor: pointer;
   transition: background-color 140ms ease;
 }
@@ -1474,7 +1600,7 @@ textarea,
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 12.5px;
   cursor: pointer;
   padding: 6px 2px;
   transition: color 140ms ease;
@@ -1482,6 +1608,61 @@ textarea,
 
 .dashboard-invite-banner__close:hover {
   color: #ffffff;
+}
+
+/* ===== Carrusel de promos de Inicio =====
+   En escritorio el contenedor es transparente (display: contents) y la tarjeta
+   "Discover weekly" queda oculta: la vista de escritorio no cambia nada.
+   El comportamiento de carrusel (deslizar al lado) se activa solo en móvil. */
+.dashboard-promo-carousel {
+  display: contents;
+}
+
+.dashboard-discover-card {
+  position: relative;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 158px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: linear-gradient(255deg, #b78ee4 0%, #c8a2ea 52%, #d8bef2 100%);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+}
+
+.dashboard-discover-card__body {
+  position: relative;
+  z-index: 2;
+  max-width: 66%;
+}
+
+.dashboard-discover-card__title {
+  margin: 0;
+  color: #1a1030;
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.2px;
+}
+
+.dashboard-discover-card__subtitle {
+  margin: 6px 0 0;
+  color: rgba(26, 16, 48, 0.72);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+.dashboard-discover-card__image {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  width: 56%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 42%);
+  mask-image: linear-gradient(to right, transparent, #000 42%);
 }
 
 .dashboard-home-page__stats {
@@ -1496,6 +1677,13 @@ textarea,
      ocupaba esa fila (36px de alto + 36px del gap) para que las tarjetas/pasos de
      debajo se queden en la misma posición que tenían antes. */
   .dashboard-home-page__topbar {
+    display: none;
+  }
+
+  /* El título "NeuroAudio" + la corona + el icono de cuenta de la cabecera son
+     solo para móvil (en escritorio la cuenta está en la barra lateral y la
+     cabecera muestra el saludo "Bienvenido, ..."). */
+  .dashboard-home-page__title-row {
     display: none;
   }
 
@@ -1516,24 +1704,6 @@ textarea,
   .dashboard-home-page__header h1 {
     font-size: 34px;
     letter-spacing: -0.4px;
-  }
-
-  /* Banner de invitación: degradado + resplandor sutil en vez de un color plano,
-     radio de esquina unificado con el resto de tarjetas (16px). */
-  .dashboard-invite-banner {
-    position: relative;
-    overflow: hidden;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #141a30 0%, #0d1120 100%);
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
-  }
-
-  .dashboard-invite-banner::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(460px 200px at 88% 0%, rgba(52, 97, 255, 0.16), transparent 70%);
-    pointer-events: none;
   }
 
   /* Tarjetas de estadísticas: degradado + sombra + ligera elevación al pasar el ratón,
@@ -1622,27 +1792,48 @@ textarea,
   display: none;
 }
 
+/* Superficie de cristal oscuro translúcido: deja pasar muy ligeramente el fondo
+   real de la web (gradiente de .app-shell) a través de backdrop-filter, con un
+   degradado interno de luminosidad, borde casi invisible, highlight superior y
+   una sombra suave. Efecto muy discreto, no glassmorphism marcado. */
 .dashboard-home-page__filter-pill {
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
   padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #c7ccd6;
+  background-color: rgba(255, 255, 255, 0.04);
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.055) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  -webkit-backdrop-filter: blur(8px) saturate(125%);
+  backdrop-filter: blur(8px) saturate(125%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 2px 6px rgba(0, 0, 0, 0.22);
+  color: #dfe1e7;
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .dashboard-home-page__filter-pill:hover {
+  background-color: rgba(255, 255, 255, 0.075);
+  border-color: rgba(255, 255, 255, 0.16);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .dashboard-home-page__filter-pill.is-active {
-  background: #0047ff;
-  border-color: #0047ff;
+  background-color: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.28);
   color: #ffffff;
 }
 
@@ -1720,6 +1911,21 @@ textarea,
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-size: 12px;
+}
+
+/* Títulos de sección de contenido del Inicio ("Tus listas", "Todos los audios"). */
+.dashboard-home-page__section-heading {
+  margin: 0;
+  color: #f0f1f3;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.dashboard-home-page__section-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 /* Sección "Tus listas" del Inicio: oculta por defecto, se muestra en móvil (más abajo)
@@ -1950,6 +2156,72 @@ textarea,
 .library-tabs__tab.is-active {
   color: var(--text);
   border-bottom-color: #0047ff;
+}
+
+/* ===== Página "Hábitos" (esqueleto) ===== */
+.habitos-page {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
+.habitos-page__content {
+  flex: 1;
+  width: 100%;
+  padding: 2rem 2rem 7rem;
+}
+
+.habitos-page__content .page__title {
+  margin-bottom: 1.4rem;
+}
+
+/* Las 4 pestañas usan el mismo estilo que las de la biblioteca (.library-tabs);
+   aquí solo se permite el desplazamiento horizontal si no caben en pantallas
+   estrechas, sin perder el aspecto. */
+.habitos-page .library-tabs {
+  gap: 1.1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.habitos-page .library-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.habitos-page .library-tabs__tab {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.habitos-page__panel {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(38, 97, 235, 0.1), rgba(10, 10, 11, 0.45));
+  box-shadow: var(--shadow);
+}
+
+.habitos-page__placeholder {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  .habitos-page__content {
+    padding: 1rem 1rem 6rem;
+  }
+
+  .habitos-page__panel {
+    min-height: 200px;
+    padding: 2.5rem 1rem;
+  }
 }
 
 .library-lists-grid {
@@ -2300,6 +2572,11 @@ textarea,
   font-weight: 700;
 }
 
+/* El título "Mis audios" solo se muestra en móvil (en escritorio: "Tu biblioteca"). */
+.library-screen__title-movil {
+  display: none;
+}
+
 .library-screen__avatar {
   width: 40px;
   height: 40px;
@@ -2599,6 +2876,282 @@ textarea,
   margin: 0 0 0.9rem;
   color: var(--text-secondary);
   font-size: 0.85rem;
+}
+
+/* ===== Playlists dentro de "Audios conjuntos" ===== */
+.playlists-conjunto {
+  margin-bottom: 1.6rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.playlists-conjunto__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.playlists-conjunto__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.playlists-conjunto__new {
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  background: rgba(0, 71, 255, 0.14);
+  color: #6aaeff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.playlists-conjunto__new:hover {
+  background: rgba(0, 71, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.playlists-conjunto__empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.playlists-conjunto__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.playlist-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  background: #0a0a0b;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.playlist-row__play {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #0047ff;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.playlist-row__play:hover {
+  background: #1a5cff;
+}
+
+.playlist-row__play svg {
+  width: 18px;
+  height: 18px;
+  margin-left: 1px;
+}
+
+.playlist-row__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.playlist-row__name {
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-row__count {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.playlist-row__delete {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+}
+
+.playlist-row__delete svg {
+  width: 16px;
+  height: 16px;
+}
+
+.playlist-row__delete:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* --- Creador de playlist --- */
+.playlist-creator {
+  margin-bottom: 0.9rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(38, 97, 235, 0.08), rgba(10, 10, 11, 0.5));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.playlist-creator__name {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.playlist-creator__name:focus-visible {
+  outline: 2px solid #0047ff;
+  outline-offset: 1px;
+}
+
+.playlist-creator__hint {
+  margin: 0.7rem 0 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.playlist-creator__empty {
+  margin: 0.5rem 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.playlist-creator__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.playlist-creator__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.playlist-creator__item.is-selected {
+  color: var(--text);
+  border-color: rgba(0, 71, 255, 0.55);
+  background: rgba(0, 71, 255, 0.12);
+}
+
+.playlist-creator__badge {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.playlist-creator__item.is-selected .playlist-creator__badge {
+  background: #0047ff;
+}
+
+.playlist-creator__item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-creator__item-time {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.playlist-creator__error {
+  margin: 0.6rem 0 0;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+}
+
+.playlist-creator__actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.playlist-creator__save {
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.3rem;
+  background: #0047ff;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.playlist-creator__save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.playlist-creator__cancel {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  cursor: pointer;
+  padding: 0.5rem 0.4rem;
+}
+
+.playlist-creator__cancel:hover {
+  color: var(--text);
 }
 
 .library-audios-conjuntos__toggle {
@@ -3253,8 +3806,8 @@ textarea,
 
 .repeat-control__badge {
   position: absolute;
-  top: -4px;
-  right: -6px;
+  top: -9px;
+  right: -11px;
   min-width: 15px;
   height: 15px;
   padding: 0 3px;
@@ -3466,11 +4019,27 @@ textarea,
 
 @media (max-width: 640px) {
   body {
-    background-color: #000412;
-    background-image: url('/images/starry-sky.png');
-    background-repeat: repeat-y;
-    background-size: 100% auto;
-    background-position: top center;
+    background-color: #000000;
+    background-image: none;
+  }
+
+  /* Fondo móvil: negro puro con un degradado azul petróleo muy oscuro concentrado
+     en la esquina superior derecha que se desvanece en diagonal hacia el negro.
+     Va en .app-shell porque tiene altura exacta de viewport (100dvh), así el
+     degradado queda anclado a la pantalla y no se estira con el scroll. */
+  .app-shell {
+    background-color: #000000;
+    background-image: linear-gradient(
+      18.3deg,
+      #000000 0%,
+      #000000 64%,
+      #03090f 72%,
+      #05121f 80%,
+      #06233a 88%,
+      #05304d 95%,
+      #06375b 100%
+    );
+    background-repeat: no-repeat;
   }
 
   .app-shell--library {
@@ -3483,26 +4052,10 @@ textarea,
     display: none;
   }
 
-  .app-shell,
   .content-area,
   .dashboard-home-page,
   .library-screen {
     background: transparent;
-  }
-
-  .mobile-topbar {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: var(--topbar-h);
-    padding: 0 1rem;
-    background: transparent;
-    border-bottom: none;
-    z-index: 60;
   }
 
   .bottom-nav {
@@ -3522,8 +4075,7 @@ textarea,
   .content-area {
     grid-column: 1;
     grid-row: 1;
-    margin-top: var(--topbar-h);
-    height: calc(100dvh - var(--topbar-h) - var(--bottomnav-h));
+    height: calc(100dvh - var(--bottomnav-h));
   }
 
   .content-area__scroll {
@@ -3537,7 +4089,7 @@ textarea,
 
   .now-playing {
     position: fixed;
-    top: var(--topbar-h);
+    top: 0;
     left: 0;
     right: 0;
     bottom: var(--bottomnav-h);
@@ -3568,7 +4120,7 @@ textarea,
   }
 
   .dashboard-home-page__content {
-    padding: 2rem 14px 6rem;
+    padding: 1rem 14px 6rem;
   }
 
   .dashboard-home-page__topbar {
@@ -3576,71 +4128,204 @@ textarea,
   }
 
   .dashboard-invite-banner {
-    flex-wrap: wrap;
-    padding: 16px;
+    padding: 12px 14px;
+    gap: 10px;
   }
 
-  .dashboard-invite-banner__text {
-    flex-basis: calc(100% - 60px);
+  .dashboard-invite-banner__icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .dashboard-invite-banner__icon svg {
+    width: 17px;
+    height: 17px;
   }
 
   .dashboard-invite-banner__actions {
-    flex-basis: 100%;
-    justify-content: space-between;
-    margin-top: 4px;
+    gap: 8px;
+  }
+
+  .dashboard-invite-banner__invite {
+    padding: 7px 14px;
+    font-size: 12.5px;
+  }
+
+  .dashboard-invite-banner__close {
+    font-size: 11.5px;
+    padding: 6px 0;
   }
 
   .dashboard-home-page__filters {
     display: flex;
     justify-content: center;
+    order: -30;
+  }
+
+  .dashboard-home-page__header {
+    order: -40;
+    padding-left: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  /* Fila del título: "NeuroAudio" a la izquierda y los dos botones (corona +
+     cuenta) a la derecha, a la misma altura del título. El saludo va debajo. */
+  .dashboard-home-page__title-row {
+    justify-content: space-between;
+  }
+
+  /* Corona (Premium) + icono de cuenta, dentro de la cabecera (flujo normal), a
+     la altura del título. Bajan con el scroll como el resto. */
+  .dashboard-home-page__header-actions {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .dashboard-home-page__header .mobile-topbar__account {
+    flex-shrink: 0;
+  }
+
+  /* Carrusel de promos (solo móvil): la tarjeta de invitar y "Discover weekly"
+     van en fila y se deslizan de lado. No caben las dos a la vez en pantalla:
+     hay que arrastrar para ver la segunda. */
+  .dashboard-promo-carousel {
+    display: flex;
+    order: -20;
+    gap: 12px;
+    align-items: stretch;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* full-bleed: las tarjetas llegan al borde de la pantalla al desplazar */
+    margin: 0 -14px;
+    padding: 0 14px;
+  }
+
+  .dashboard-promo-carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dashboard-promo-carousel > * {
+    flex: 0 0 87%;
+    scroll-snap-align: start;
+  }
+
+  /* si el usuario cerró la tarjeta de invitar, la que queda ocupa todo el ancho */
+  .dashboard-promo-carousel > :only-child {
+    flex-basis: 100%;
+  }
+
+  .dashboard-discover-card {
+    display: flex;
+  }
+
+  /* Dentro del carrusel, la tarjeta de invitar pasa a formato "póster"
+     (vertical) para tener el mismo tamaño y redondez que "Discover weekly". */
+  .dashboard-promo-carousel .dashboard-invite-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    padding: 18px 20px;
+    border-radius: 22px;
+  }
+
+  .dashboard-promo-carousel .dashboard-invite-banner__icon {
+    display: none;
+  }
+
+  .dashboard-promo-carousel .dashboard-invite-banner__text {
+    flex: none;
+  }
+
+  .dashboard-promo-carousel .dashboard-invite-banner__title {
+    font-size: 15px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .dashboard-promo-carousel .dashboard-invite-banner__subtitle {
+    font-size: 11.5px;
+    line-height: 1.35;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .dashboard-promo-carousel .dashboard-invite-banner__actions {
+    align-self: stretch;
+    justify-content: space-between;
+    margin-top: 16px;
+  }
+
+  .dashboard-home-page__stats {
+    order: -10;
   }
 
   .dashboard-home-page__filter-pill {
-    padding: 8px 16px;
-    font-size: 0.85rem;
+    padding: 7px 14px;
+    font-size: 0.9rem;
   }
 
   .dashboard-home-page__lists-section {
     display: flex;
   }
 
-  .dashboard-home-page__header {
-    min-height: 96px;
-  }
-
   .dashboard-home-page__header h1 {
-    position: relative;
-    z-index: 1;
-    max-width: calc(42% - 16.6px);
-    font-size: 26px;
-    margin-top: -16px;
-    margin-left: 22px;
+    max-width: 100%;
+    font-size: 18px;
   }
 
-  .dashboard-home-page__hero-image {
-    /* === Ajustes de la imagen de cabecera (móvil) === */
-    --hero-img-width: calc(56% - 16.2px);      /* tamaño: súbelo o bájalo */
-    --hero-img-right: 14px;      /* mover horizontal: + = mas hacia dentro, - = mas hacia el borde */
-    --hero-img-top: -20px;        /* mover vertical: + hacia abajo */
-    --hero-img-opacity: 1;      /* transparencia si hiciera falta */
+  .dashboard-home-page__greeting-desktop {
+    display: none;
+  }
 
-    display: block;
-    position: absolute;
-    top: var(--hero-img-top);
-    right: var(--hero-img-right);
-    width: var(--hero-img-width);
-    height: auto;
-    opacity: var(--hero-img-opacity);
-    pointer-events: none;
-    z-index: 0;
+  .dashboard-home-page__greeting-mobile {
+    display: inline;
+    /* Solo el saludo "Hola, [nombre]" en móvil usa Instrument Serif itálica.
+       La fuente ya se carga desde index.html. */
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
   }
 
   .library-screen__content {
     padding: 1rem 1rem 6rem;
   }
 
+  /* Móvil: se muestra el título "Mis audios" arriba del todo (sin el avatar,
+     que en móvil vive solo en Inicio). */
   .library-screen__header {
+    display: flex;
+    margin-bottom: 1rem;
+  }
+
+  .library-screen__actions {
     display: none;
+  }
+
+  .library-screen__title-desktop {
+    display: none;
+  }
+
+  .library-screen__title-movil {
+    display: inline;
+  }
+
+  .library-screen__header h1 {
+    font-size: 26px;
+    font-weight: 700;
   }
 
   .library-section__grid {
@@ -3649,6 +4334,25 @@ textarea,
 
   .library-audio-row {
     padding: 0.55rem 0.75rem;
+  }
+
+  /* Pestaña General (biblioteca): lista limpia estilo app de música. Cada audio
+     deja de ser una tarjeta (sin caja, sin borde ni fondo) y pasa a ser una fila
+     sobre el fondo, con una línea fina y sutil como único separador. */
+  .library-section__list--plana {
+    gap: 0;
+  }
+
+  .library-section__list--plana .library-audio-row {
+    padding: 0.75rem 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .library-section__list--plana .library-audio-row:last-child {
+    border-bottom: none;
   }
 
   .mini-player {

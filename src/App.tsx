@@ -8,6 +8,8 @@ import LibraryPage from './features/library/pages/LibraryPage'
 import AudiosConjuntosPage from './pages/AudiosConjuntosPage'
 import DashboardHomePage from './features/dashboard/pages/DashboardHomePage'
 import FavoritosPage from './pages/FavoritosPage'
+import PremiumPage from './pages/PremiumPage'
+import HabitosPage from './pages/HabitosPage'
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
           <Route path="/app/biblioteca" element={<LibraryPage />} />
           <Route path="/app/audios-conjuntos" element={<AudiosConjuntosPage />} />
           <Route path="/app/favoritos" element={<FavoritosPage />} />
+          <Route path="/app/premium" element={<PremiumPage />} />
+          <Route path="/app/habitos" element={<HabitosPage />} />
         </Route>
       </Route>
     </Routes>

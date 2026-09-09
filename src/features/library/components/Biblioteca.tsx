@@ -137,7 +137,10 @@ function Biblioteca() {
       <div className="library-screen__content">
         <header className="library-screen__header">
           <div>
-            <h1>Tu biblioteca</h1>
+            <h1>
+              <span className="library-screen__title-desktop">Tu biblioteca</span>
+              <span className="library-screen__title-movil">Mis audios</span>
+            </h1>
           </div>
 
           <div className="library-screen__actions">
@@ -198,7 +201,7 @@ function Biblioteca() {
               </div>
             </div>
           ) : (
-            <div className="library-section__list">
+            <div className="library-section__list library-section__list--plana">
               {audios.map((audio) => (
                 <FilaAudio
                   key={audio.id}

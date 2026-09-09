@@ -79,3 +79,12 @@ export async function quitarAudioDeLista(listaId: string, audioId: string) {
   const listaRef = doc(db, 'listas', listaId)
   await updateDoc(listaRef, { audioIds: arrayRemove(audioId) })
 }
+
+/**
+ * Guarda el array completo de audios de una lista respetando el orden dado.
+ * Se usa para las playlists (el orden de la cola importa).
+ */
+export async function guardarAudiosDeLista(listaId: string, audioIds: string[]) {
+  const listaRef = doc(db, 'listas', listaId)
+  await updateDoc(listaRef, { audioIds })
+}

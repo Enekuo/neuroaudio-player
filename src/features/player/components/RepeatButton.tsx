@@ -34,7 +34,8 @@ function CheckIcon() {
 }
 
 function RepeatButton({ triggerClassName }: RepeatButtonProps) {
-  const { repeatMode, repeatTimes, setRepeatOff, setRepeatInfinite, applyRepeatTimes } = usePlayer()
+  const { repeatMode, repeatTimes, repeatCount, setRepeatOff, setRepeatInfinite, applyRepeatTimes } =
+    usePlayer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [pendingTimes, setPendingTimes] = useState(repeatTimes)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -102,7 +103,9 @@ function RepeatButton({ triggerClassName }: RepeatButtonProps) {
         onClick={() => setIsMenuOpen((value) => !value)}
       >
         <RepeatIcon />
-        {repeatMode === 'times' ? <span className="repeat-control__badge">{repeatTimes}</span> : null}
+        {repeatMode === 'times' ? (
+          <span className="repeat-control__badge">{repeatTimes - repeatCount}</span>
+        ) : null}
       </button>
 
       {isMenuOpen ? (

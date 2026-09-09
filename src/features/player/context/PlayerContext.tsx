@@ -124,13 +124,35 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             audioEl.play().catch(() => setIsPlaying(false))
             return nextCount
           }
+          // Terminadas todas las repeticiones: se limpia todo. El audio sale de
+          // la pantalla (deja de haber pista actual) y la repetición se apaga,
+          // así el número de repeticiones desaparece.
+          audioEl.pause()
+          audioEl.currentTime = 0
+          loadedTrackIdRef.current = null
           setIsPlaying(false)
+          setRepeatMode('off')
+          setCurrentIndex(null)
+          setIsExpanded(false)
           return 0
         })
         return
       }
 
-      setIsPlaying(false)
+      // Sin repetición: avance automático tipo playlist. Si hay una pista siguiente
+      // en la cola, se reproduce; si era la última, se detiene.
+      setCurrentIndex((prevIndex) => {
+        if (prevIndex === null) {
+          setIsPlaying(false)
+          return prevIndex
+        }
+        const nextIndex = prevIndex + 1
+        if (nextIndex < queueRef.current.length) {
+          return nextIndex
+        }
+        setIsPlaying(false)
+        return prevIndex
+      })
     }
 
     audioEl.addEventListener('timeupdate', handleTimeUpdate)

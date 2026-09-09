@@ -3,6 +3,7 @@ import type { LibraryAudio } from '../hooks/useUserAudios'
 import { formatTime } from '../utils/formatTime'
 import LibraryIcon from './LibraryIcon'
 import MiniReproductorConjunto from './MiniReproductorConjunto'
+import PlaylistsConjunto from './PlaylistsConjunto'
 
 const MAX_SIMULTANEOUS = 2
 
@@ -82,6 +83,8 @@ function AudiosConjuntos({ audios, isLoading }: AudiosConjuntosProps) {
 
   return (
     <div className="library-audios-conjuntos">
+      <PlaylistsConjunto audios={audios} />
+
       <p className="library-audios-conjuntos__hint">
         Puedes tener hasta 2 audios sonando a la vez ({playingIds.length}/2 ahora).
       </p>
