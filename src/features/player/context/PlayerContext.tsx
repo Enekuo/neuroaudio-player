@@ -29,7 +29,7 @@ type PlayerContextValue = {
   repeatMode: RepeatMode
   repeatTimes: number
   repeatCount: number
-  playTrack: (track: AudioTrack, queue?: AudioTrack[]) => void
+  playTrack: (track: AudioTrack, queue?: AudioTrack[], options?: { autoAdvance?: boolean }) => void
   togglePlay: () => void
   seek: (time: number) => void
   skip: (seconds: number) => void
@@ -63,12 +63,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const repeatModeRef = useRef<RepeatMode>('off')
   const repeatTimesRef = useRef(5)
+  const currentIndexRef = useRef<number | null>(null)
+  // Solo true cuando la cola activa es una playlist (Audios conjuntos >
+  // Playlists). Es el ÚNICO caso de toda la web en el que, al terminar un
+  // audio, debe empezar a sonar directamente el siguiente de la cola.
+  const autoAdvanceRef = useRef(false)
 
   const currentTrack = currentIndex !== null ? (queue[currentIndex] ?? null) : null
 
   useEffect(() => {
     queueRef.current = queue
   }, [queue])
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex
+  }, [currentIndex])
 
   useEffect(() => {
     repeatModeRef.current = repeatMode
@@ -110,6 +119,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const handleEnded = () => {
       const mode = repeatModeRef.current
 
+      // TEMPORAL: log de depuración para el bug de repeticiones cortadas al
+      // bloquear pantalla en móvil. Quitar cuando se resuelva.
+      console.log(
+        `[NeuroAudio][ended] mode=${mode} visibility=${document.visibilityState} at=${new Date().toISOString()}`,
+      )
+
       if (mode === 'infinite') {
         audioEl.currentTime = 0
         audioEl.play().catch(() => setIsPlaying(false))
@@ -119,6 +134,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       if (mode === 'times') {
         setRepeatCount((prevCount) => {
           const nextCount = prevCount + 1
+
+          // TEMPORAL: mismo log de depuración, aquí con el número de repetición.
+          console.log(`[NeuroAudio][ended] repetición ${nextCount} de ${repeatTimesRef.current}`)
+
           if (nextCount < repeatTimesRef.current) {
             audioEl.currentTime = 0
             audioEl.play().catch(() => setIsPlaying(false))
@@ -134,25 +153,48 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           setRepeatMode('off')
           setCurrentIndex(null)
           setIsExpanded(false)
+
+          // Se actualiza Media Session aquí mismo, de forma síncrona: si se
+          // dejara solo en manos del efecto que observa `isPlaying`, en este
+          // punto (justo al recibir "ended") el estado previo seguía siendo
+          // 'playing' y el cambio a false podía llegar demasiado tarde (o no
+          // producir un re-render, si ya estaba en false por una pausa nativa
+          // previa). Sin esto, la notificación se queda "colgada" en play.
+          if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = 'none'
+            navigator.mediaSession.setPositionState()
+          }
+
           return 0
         })
         return
       }
 
-      // Sin repetición: avance automático tipo playlist. Si hay una pista siguiente
-      // en la cola, se reproduce; si era la última, se detiene.
-      setCurrentIndex((prevIndex) => {
-        if (prevIndex === null) {
-          setIsPlaying(false)
-          return prevIndex
-        }
-        const nextIndex = prevIndex + 1
+      // Sin repetición: por defecto se para, no avanza a la siguiente pista de
+      // la cola automáticamente (el usuario puede elegir otra a mano). ÚNICA
+      // excepción de toda la web: si la cola es una playlist (autoAdvanceRef,
+      // activado solo desde PlaylistsConjunto vía playTrack(..., { autoAdvance
+      // : true })), sí pasa directamente al siguiente audio de la cola.
+      if (autoAdvanceRef.current && currentIndexRef.current !== null) {
+        const nextIndex = currentIndexRef.current + 1
         if (nextIndex < queueRef.current.length) {
-          return nextIndex
+          setCurrentIndex(nextIndex)
+          return
         }
-        setIsPlaying(false)
-        return prevIndex
-      })
+      }
+
+      audioEl.pause()
+      audioEl.currentTime = 0
+      setIsPlaying(false)
+
+      // La pista sigue "cargada" (se ve en el mini-player, en pausa en 0), así
+      // que aquí no procede 'none' (implicaría que no hay nada cargado) sino
+      // 'paused'. Igual que en la rama de arriba, se hace de forma síncrona
+      // para que la notificación no se quede colgada mostrando "reproduciendo".
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused'
+        navigator.mediaSession.setPositionState()
+      }
     }
 
     audioEl.addEventListener('timeupdate', handleTimeUpdate)
@@ -193,7 +235,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
 
     if (!currentTrack) {
+      // Sin pista cargada: la notificación no debe quedar activa bajo ningún
+      // camino que vacíe currentTrack (aquí queda como red de seguridad además
+      // del ajuste síncrono que ya se hace en handleEnded).
       navigator.mediaSession.metadata = null
+      navigator.mediaSession.playbackState = 'none'
+      navigator.mediaSession.setPositionState()
       return
     }
 
@@ -212,13 +259,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'
   }, [isPlaying])
 
-  const playTrack = useCallback((track: AudioTrack, newQueue?: AudioTrack[]) => {
+  const playTrack = useCallback((track: AudioTrack, newQueue?: AudioTrack[], options?: { autoAdvance?: boolean }) => {
     const list = newQueue ?? queueRef.current
     const index = list.findIndex((item) => item.id === track.id)
 
     if (newQueue) {
       setQueue(newQueue)
     }
+
+    // Se fija explícitamente en cada llamada (nunca se hereda de la
+    // reproducción anterior): si no se pasa `autoAdvance: true`, queda en
+    // false, tal cual pide "en toda la web" salvo desde una playlist.
+    autoAdvanceRef.current = options?.autoAdvance ?? false
 
     setCurrentIndex(index === -1 ? 0 : index)
     setIsExpanded(true)
@@ -297,10 +349,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     navigator.mediaSession.setActionHandler('pause', () => {
       audioRef.current?.pause()
     })
+    // Botones laterales de la notificación/pantalla de bloqueo: deben avanzar y
+    // retroceder 10s dentro del audio actual, igual que los botones +10s/-10s de
+    // la web (misma función `skip`, sin duplicar lógica). Se ignora cualquier
+    // seekOffset que sugiera el sistema: el salto queda fijo en 10s.
     navigator.mediaSession.setActionHandler('seekbackward', () => skip(-10))
     navigator.mediaSession.setActionHandler('seekforward', () => skip(10))
-    navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious())
-    navigator.mediaSession.setActionHandler('nexttrack', () => playNext())
+
+    // Algunos dispositivos móviles solo pintan flechas laterales en la
+    // notificación cuando hay handlers de 'previoustrack'/'nexttrack' (ignoran
+    // seekbackward/seekforward a efectos visuales). Para que las flechas
+    // aparezcan pero sigan haciendo ±10s (nunca cambiar de pista), se registran
+    // aquí apuntando también a `skip`, no a playPrevious/playNext.
+    navigator.mediaSession.setActionHandler('previoustrack', () => skip(-10))
+    navigator.mediaSession.setActionHandler('nexttrack', () => skip(10))
 
     return () => {
       navigator.mediaSession.setActionHandler('play', null)
@@ -310,7 +372,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       navigator.mediaSession.setActionHandler('previoustrack', null)
       navigator.mediaSession.setActionHandler('nexttrack', null)
     }
-  }, [skip, playPrevious, playNext])
+  }, [skip])
 
   const expand = useCallback(() => setIsExpanded(true), [])
   const collapse = useCallback(() => setIsExpanded(false), [])

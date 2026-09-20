@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { usePlayer } from '../context/PlayerContext'
+import { usePlayer, type RepeatMode } from '../context/PlayerContext'
 
 type RepeatButtonProps = {
   triggerClassName?: string
@@ -37,6 +37,10 @@ function RepeatButton({ triggerClassName }: RepeatButtonProps) {
   const { repeatMode, repeatTimes, repeatCount, setRepeatOff, setRepeatInfinite, applyRepeatTimes } =
     usePlayer()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  // Selección todavía no confirmada dentro del panel: se ve resaltada en azul al
+  // tocar una opción, pero no se aplica de verdad hasta pulsar "Aplicar". Si se
+  // cierra el panel sin aplicar (tocando fuera), se descarta y no cambia nada.
+  const [pendingMode, setPendingMode] = useState<RepeatMode>(repeatMode)
   const [pendingTimes, setPendingTimes] = useState(repeatTimes)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -45,6 +49,7 @@ function RepeatButton({ triggerClassName }: RepeatButtonProps) {
       return
     }
 
+    setPendingMode(repeatMode)
     setPendingTimes(repeatTimes)
 
     function handleClickOutside(event: MouseEvent) {
@@ -58,27 +63,25 @@ function RepeatButton({ triggerClassName }: RepeatButtonProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMenuOpen])
 
-  function handleSelectOff() {
-    setRepeatOff()
-    setIsMenuOpen(false)
-  }
-
-  function handleSelectInfinite() {
-    setRepeatInfinite()
-    setIsMenuOpen(false)
-  }
-
-  function handleApplyTimes() {
-    applyRepeatTimes(pendingTimes)
+  function handleApply() {
+    if (pendingMode === 'off') {
+      setRepeatOff()
+    } else if (pendingMode === 'infinite') {
+      setRepeatInfinite()
+    } else {
+      applyRepeatTimes(pendingTimes)
+    }
     setIsMenuOpen(false)
   }
 
   function handleStep(delta: number) {
+    setPendingMode('times')
     setPendingTimes((value) => Math.min(99, Math.max(1, value + delta)))
   }
 
   function handleTimesInputChange(event: ChangeEvent<HTMLInputElement>) {
     const raw = Number(event.target.value)
+    setPendingMode('times')
     if (Number.isNaN(raw)) {
       return
     }
@@ -120,30 +123,36 @@ function RepeatButton({ triggerClassName }: RepeatButtonProps) {
           <button
             type="button"
             role="menuitemradio"
-            aria-checked={repeatMode === 'off'}
-            className={`repeat-menu__option${repeatMode === 'off' ? ' is-selected' : ''}`}
-            onClick={handleSelectOff}
+            aria-checked={pendingMode === 'off'}
+            className={`repeat-menu__option${pendingMode === 'off' ? ' is-selected' : ''}`}
+            onClick={() => setPendingMode('off')}
           >
             <span>No repetir</span>
-            {repeatMode === 'off' ? <CheckIcon /> : null}
+            {pendingMode === 'off' ? <CheckIcon /> : null}
           </button>
 
           <button
             type="button"
             role="menuitemradio"
-            aria-checked={repeatMode === 'infinite'}
-            className={`repeat-menu__option${repeatMode === 'infinite' ? ' is-selected' : ''}`}
-            onClick={handleSelectInfinite}
+            aria-checked={pendingMode === 'infinite'}
+            className={`repeat-menu__option${pendingMode === 'infinite' ? ' is-selected' : ''}`}
+            onClick={() => setPendingMode('infinite')}
           >
             <span>Repetir siempre (bucle)</span>
-            {repeatMode === 'infinite' ? <CheckIcon /> : null}
+            {pendingMode === 'infinite' ? <CheckIcon /> : null}
           </button>
 
-          <div className={`repeat-menu__times${repeatMode === 'times' ? ' is-selected' : ''}`}>
-            <div className="repeat-menu__times-label">
+          <div className={`repeat-menu__times${pendingMode === 'times' ? ' is-selected' : ''}`}>
+            <button
+              type="button"
+              role="menuitemradio"
+              aria-checked={pendingMode === 'times'}
+              className="repeat-menu__times-label"
+              onClick={() => setPendingMode('times')}
+            >
               <span>Repetir un número de veces</span>
-              {repeatMode === 'times' ? <CheckIcon /> : null}
-            </div>
+              {pendingMode === 'times' ? <CheckIcon /> : null}
+            </button>
 
             <div className="repeat-menu__stepper">
               <button
@@ -175,11 +184,11 @@ function RepeatButton({ triggerClassName }: RepeatButtonProps) {
                 +
               </button>
             </div>
-
-            <button type="button" className="repeat-menu__apply" onClick={handleApplyTimes}>
-              Aplicar
-            </button>
           </div>
+
+          <button type="button" className="repeat-menu__apply" onClick={handleApply}>
+            Aplicar
+          </button>
         </div>
       ) : null}
     </div>

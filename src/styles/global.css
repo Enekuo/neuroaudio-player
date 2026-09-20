@@ -77,6 +77,24 @@ html {
   scroll-behavior: auto !important;
 }
 
+/* Transición discreta al cambiar de pestaña (tocando arriba o con swipe): un
+   fundido muy corto en vez de un salto seco. Se reinicia solo porque el panel se
+   remonta con key={pestaña activa}. Respeta .reduce-motion como el resto de la app. */
+.tab-swipe-panel {
+  animation: tab-swipe-fade 180ms ease;
+}
+
+@keyframes tab-swipe-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -580,10 +598,10 @@ textarea,
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.28rem;
+  gap: 0.22rem;
   text-decoration: none;
-  color: #d5d8df;
-  padding: 0.3rem 0.2rem;
+  color: #6b6e76;
+  padding: 0.25rem 0.2rem;
 }
 
 .bottom-nav__icon {
@@ -592,12 +610,12 @@ textarea,
 }
 
 .bottom-nav__icon svg {
-  width: 25px;
-  height: 25px;
+  width: 21px;
+  height: 21px;
 }
 
 .bottom-nav__label {
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -606,7 +624,11 @@ textarea,
 }
 
 .bottom-nav__link.is-active {
-  color: #0152dc;
+  color: #ffffff;
+}
+
+.bottom-nav__link.is-active .icon-fill-active {
+  fill: currentColor;
 }
 
 .login-screen {
@@ -1477,20 +1499,250 @@ textarea,
   display: none;
 }
 
-/* Botón de buscar, a la izquierda de la corona en la cabecera. */
-.dashboard-home-page__search {
+/* ===== Buscador de audios: disparador (lupa) + panel desplegable ===== */
+.dashboard-home-page__search-btn {
   flex-shrink: 0;
   display: grid;
   place-items: center;
   width: 34px;
   height: 34px;
+  border: none;
+  background: transparent;
   color: var(--text-secondary);
-  text-decoration: none;
+  cursor: pointer;
+  transition: color 140ms ease;
 }
 
-.dashboard-home-page__search svg {
-  width: 26px;
-  height: 26px;
+.dashboard-home-page__search-btn:hover {
+  color: var(--text);
+}
+
+.dashboard-home-page__search-btn.is-active {
+  color: #6aaeff;
+}
+
+.dashboard-home-page__search-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.buscador-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(14px, 6vh, 72px) 14px 14px;
+  background: rgba(3, 6, 14, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  overflow-y: auto;
+}
+
+.buscador-panel {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #0f1420;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.55);
+  max-height: calc(100dvh - clamp(28px, 12vh, 144px));
+}
+
+.buscador-panel__search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.buscador-panel__field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  height: 42px;
+  padding: 0 0.7rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(0, 71, 255, 0.6);
+}
+
+.buscador-panel__field-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: #6aaeff;
+}
+
+.buscador-panel__field-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.buscador-panel__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.buscador-panel__input::placeholder {
+  color: var(--text-muted);
+}
+
+.buscador-panel__input:focus {
+  outline: none;
+}
+
+.buscador-panel__clear {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+}
+
+.buscador-panel__clear svg {
+  width: 14px;
+  height: 14px;
+}
+
+.buscador-panel__clear:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.buscador-panel__cancel {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: #6aaeff;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.4rem 0.35rem;
+}
+
+.buscador-panel__label {
+  margin: 0;
+  padding: 0.8rem 1rem 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.buscador-panel__results {
+  overflow-y: auto;
+  padding: 0 0.5rem 0.55rem;
+  scrollbar-width: thin;
+}
+
+.buscador-panel__hint {
+  margin: 0;
+  padding: 1.6rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.buscador-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.buscador-panel__row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.buscador-panel__row:hover {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.buscador-panel__thumb {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #171d2b;
+  color: #4c90ff;
+}
+
+.buscador-panel__thumb svg {
+  width: 20px;
+  height: 20px;
+}
+
+.buscador-panel__name {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buscador-panel__mark {
+  background: rgba(0, 71, 255, 0.32);
+  color: #cfe0ff;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+.buscador-panel__time {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.buscador-panel__play {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #0047ff;
+  color: #ffffff;
+}
+
+.buscador-panel__play svg {
+  width: 14px;
+  height: 14px;
+  margin-left: 1px;
 }
 
 /* Corona de acceso a Premium, junto al icono de cuenta de la cabecera. */
@@ -1680,11 +1932,25 @@ textarea,
     display: none;
   }
 
-  /* El título "NeuroAudio" + la corona + el icono de cuenta de la cabecera son
-     solo para móvil (en escritorio la cuenta está en la barra lateral y la
-     cabecera muestra el saludo "Bienvenido, ..."). */
+  /* En escritorio la cuenta y Premium están en la barra lateral: de la fila del
+     título solo se conserva la lupa de búsqueda, anclada arriba a la derecha de
+     la cabecera (el saludo "Bienvenido, ..." ocupa el resto). */
   .dashboard-home-page__title-row {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    gap: 0;
+  }
+
+  .dashboard-home-page__brand,
+  .dashboard-home-page__title-row .dashboard-home-page__premium,
+  .dashboard-home-page__title-row .mobile-topbar__account {
     display: none;
+  }
+
+  .dashboard-home-page__title-row .dashboard-home-page__header-actions {
+    margin: 0;
   }
 
   .dashboard-home-page__stats {
@@ -1828,12 +2094,10 @@ textarea,
 }
 
 .dashboard-home-page__filter-pill.is-active {
-  background-color: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
-    0 2px 8px rgba(0, 0, 0, 0.28);
+  background-color: #017aff;
+  background-image: none;
+  border-color: #017aff;
+  box-shadow: 0 2px 8px rgba(1, 122, 255, 0.35);
   color: #ffffff;
 }
 
@@ -2049,7 +2313,7 @@ textarea,
 }
 
 .dashboard-step-card.is-active .dashboard-step-card__marker {
-  background: #0047ff;
+  background: #017aff;
   color: #FFFFFF;
 }
 
@@ -2074,7 +2338,7 @@ textarea,
   border: none;
   border-radius: 6px;
   padding: 0.65rem 0.95rem;
-  background: #0047ff;
+  background: #017aff;
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 600;
@@ -2084,7 +2348,7 @@ textarea,
 
 .dashboard-step-card__button:hover,
 .dashboard-step-card__button:focus-visible {
-  background: #3782fc;
+  background: #419bff;
 }
 
 .dashboard-step-card__button-icon {
@@ -2303,10 +2567,10 @@ textarea,
   flex-direction: column;
   align-items: center;
   gap: 1.1rem;
-  padding: 1.5rem;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: #0a0a0b;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  background: transparent;
 }
 
 .library-templates-intro .template-grid,
@@ -2321,10 +2585,6 @@ textarea,
     /* El ancho real de rejilla y banner sigue a --template-card-w, así el
        conjunto queda siempre centrado aunque cambies el tamaño de las tarjetas */
     --template-card-w: 276px;
-    padding: 0;
-    border-radius: 0;
-    border: none;
-    background: transparent;
   }
 }
 
@@ -2557,6 +2817,225 @@ textarea,
 .lista-options__menu-item--danger:hover {
   background: rgba(255, 107, 107, 0.12);
   color: #ff6b6b;
+}
+
+/* ===== Página de detalle de una lista ===== */
+.lista-detalle {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #000208;
+  color: var(--text);
+}
+
+.lista-detalle__loading {
+  padding: 2rem 1rem;
+  color: var(--text-secondary);
+}
+
+.lista-detalle__not-found {
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.lista-detalle__back-link {
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.lista-detalle__hero {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+  padding-top: 56px;
+  background-color: #0a0a0b;
+}
+
+.lista-detalle__hero-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 0 1.25rem 1.5rem;
+}
+
+.lista-detalle__hero-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.lista-detalle__cover {
+  flex-shrink: 0;
+  width: 128px;
+  height: 128px;
+  border-radius: 18px;
+  background-color: #141517;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+}
+
+.lista-detalle__cover-icon {
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.lista-detalle__cover-icon svg {
+  width: 52px;
+  height: 52px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.lista-detalle__hero-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.lista-detalle__hero-info h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+
+.lista-detalle__hero-info p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.lista-detalle__back {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.lista-detalle__back:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.lista-detalle__back svg {
+  width: 20px;
+  height: 20px;
+}
+
+.lista-detalle__body {
+  flex: 1;
+  padding: 1.1rem 1rem 6rem;
+}
+
+.lista-detalle__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.lista-detalle__add-button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.lista-detalle__add-button:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.lista-detalle__error {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  color: #ff6b6b;
+  font-size: 0.85rem;
+}
+
+.lista-detalle__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1.5rem 0;
+  color: var(--text-secondary);
+}
+
+@media (min-width: 641px) {
+  .lista-detalle__hero {
+    padding-top: 64px;
+  }
+
+  .lista-detalle__hero-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 2.5rem 2rem;
+  }
+
+  .lista-detalle__cover {
+    width: 172px;
+    height: 172px;
+    border-radius: 22px;
+  }
+
+  .lista-detalle__cover-icon svg {
+    width: 68px;
+    height: 68px;
+  }
+
+  .lista-detalle__hero-info h1 {
+    font-size: 2rem;
+  }
+
+  .lista-detalle__back {
+    top: 20px;
+    left: 20px;
+  }
+
+  .lista-detalle__body {
+    max-width: 1180px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 1.6rem 2.5rem 3rem;
+    box-sizing: border-box;
+  }
 }
 
 .library-screen__actions {
@@ -3564,14 +4043,26 @@ textarea,
   height: 22px;
 }
 
+/* Tamaño responsive (antes fijo en px): en pantallas muy estrechas, el hueco
+   disponible puede ser menor que "gap*2 + 38+64+38", y con tamaño fijo la fila
+   se ve forzada a desbordar/recortarse — ahí es donde el centrado por
+   justify-content puede repartir el espacio sobrante de forma desigual entre
+   los dos lados (redondeo de subpíxel). Con clamp() los tres botones encogen
+   antes de llegar a desbordar, así el hueco a cada lado del play siempre sale
+   del mismo cálculo real de gap, nunca de un recorte. */
 .now-playing__transport > button:not(.now-playing__play) {
-  width: 38px;
-  height: 38px;
+  width: clamp(56px, 17vw, 72px);
+  height: clamp(56px, 17vw, 72px);
+  /* Sin esto, si aun así no cabe, flexbox comprime el ANCHO de los botones
+     (nunca el alto) para intentar encajarlos — deja de ser un círculo/cuadrado
+     y el hueco deja de coincidir con el `gap` real. Mejor que desborde entero
+     a que se deforme de forma desigual entre los dos lados. */
+  flex-shrink: 0;
 }
 
 .now-playing__transport .skip-button svg {
-  width: 34px;
-  height: 34px;
+  width: 89%;
+  height: 89%;
 }
 
 .now-playing__side-button {
@@ -3581,8 +4072,9 @@ textarea,
 }
 
 .now-playing__play {
-  width: 64px;
-  height: 64px;
+  width: clamp(52px, 16vw, 64px);
+  height: clamp(52px, 16vw, 64px);
+  flex-shrink: 0;
   border-radius: 50%;
   border: 2px solid #2b7bff;
   background: rgba(10, 16, 32, 0.6) !important;
@@ -3591,8 +4083,8 @@ textarea,
 }
 
 .now-playing__play svg {
-  width: 26px;
-  height: 26px;
+  width: 40%;
+  height: 40%;
 }
 
 .now-playing__footer {
@@ -3760,6 +4252,11 @@ textarea,
   position: relative;
 }
 
+.skip-button__icon {
+  display: grid;
+  place-items: center;
+}
+
 .skip-button__label {
   position: absolute;
   inset: 0;
@@ -3774,8 +4271,8 @@ textarea,
 }
 
 .now-playing__transport .skip-button__label {
-  font-size: 9px;
-  padding-top: 3px;
+  font-size: 10px;
+  padding-top: 4px;
 }
 
 .repeat-control {
@@ -3863,10 +4360,10 @@ textarea,
 }
 
 .repeat-menu__option {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
+  column-gap: 0.6rem;
   width: 100%;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -3876,6 +4373,20 @@ textarea,
   padding: 0.7rem 0.85rem;
   font-size: 0.92rem;
   cursor: pointer;
+  /* Sin esto, algunos navegadores móviles (Safari/iOS) mantienen parte del
+     estilo nativo del <button> e ignoran el layout de aquí, descolocando el ✓. */
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Primera columna del grid (el texto): nunca debe partirse en dos líneas, si no
+   el ✓ de la segunda columna se centra respecto a las 2 líneas y parece
+   "flotar" en medio del texto en vez de quedar en línea con él. */
+.repeat-menu__option > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .repeat-menu__option:hover {
@@ -3911,12 +4422,29 @@ textarea,
 }
 
 .repeat-menu__times-label {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
+  column-gap: 0.6rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
   color: var(--text-secondary);
   font-size: 0.92rem;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.repeat-menu__times-label > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .repeat-menu__times.is-selected .repeat-menu__times-label {
@@ -3954,7 +4482,7 @@ textarea,
 .repeat-menu__stepper-value {
   flex: 1;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
   gap: 0.35rem;
   background: var(--surface-strong);
@@ -3966,9 +4494,9 @@ textarea,
   border: none;
   background: transparent;
   color: var(--text);
-  font-size: 1rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  text-align: right;
+  text-align: center;
   -moz-appearance: textfield;
 }
 
@@ -4067,7 +4595,7 @@ textarea,
     bottom: 0;
     height: var(--bottomnav-h);
     padding: 0.3rem 0.4rem calc(0.3rem + env(safe-area-inset-bottom, 0px));
-    background: #01060e;
+    background: #000000;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     z-index: 60;
   }
@@ -4159,6 +4687,13 @@ textarea,
   .dashboard-home-page__filters {
     display: flex;
     justify-content: center;
+    /* "safe center": si las 4 píldoras no caben y hay que hacer scroll, evita el
+       recorte típico de "justify-content: center" con overflow (centra sin
+       overflow; si no cabe, se alinea al inicio para que el primer/último botón
+       queden accesibles enteros al hacer scroll). Los navegadores que no lo
+       soportan simplemente ignoran esta línea y se quedan con el center de arriba. */
+    justify-content: safe center;
+    padding-inline: 14px;
     order: -30;
   }
 
@@ -4170,7 +4705,7 @@ textarea,
     gap: 6px;
   }
 
-  /* Fila del título: "NeuroAudio" a la izquierda y los dos botones (corona +
+  /* Fila del título: "NeuroAudio" a la izquierda y los botones (lupa + corona +
      cuenta) a la derecha, a la misma altura del título. El saludo va debajo. */
   .dashboard-home-page__title-row {
     justify-content: space-between;

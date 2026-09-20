@@ -2,7 +2,6 @@ import { NavLink } from 'react-router-dom'
 
 const navigationItems = [
   { to: '/app', label: 'Inicio' },
-  { to: '/app/explorar', label: 'Explorar' },
   { to: '/app/biblioteca', label: 'Biblioteca' },
 ]
 

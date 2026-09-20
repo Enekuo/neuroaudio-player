@@ -3,8 +3,8 @@ import ProtectedRoute from './features/auth/components/ProtectedRoute'
 import LoginPage from './features/auth/pages/LoginPage'
 import MainLayout from './layouts/MainLayout'
 import LandingPage from './pages/LandingPage'
-import ExplorePage from './pages/ExplorePage'
 import LibraryPage from './features/library/pages/LibraryPage'
+import ListaDetallePage from './features/library/pages/ListaDetallePage'
 import AudiosConjuntosPage from './pages/AudiosConjuntosPage'
 import DashboardHomePage from './features/dashboard/pages/DashboardHomePage'
 import FavoritosPage from './pages/FavoritosPage'
@@ -19,8 +19,8 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/app" element={<DashboardHomePage />} />
-          <Route path="/app/explorar" element={<ExplorePage />} />
           <Route path="/app/biblioteca" element={<LibraryPage />} />
+          <Route path="/app/listas/:folderKey" element={<ListaDetallePage />} />
           <Route path="/app/audios-conjuntos" element={<AudiosConjuntosPage />} />
           <Route path="/app/favoritos" element={<FavoritosPage />} />
           <Route path="/app/premium" element={<PremiumPage />} />

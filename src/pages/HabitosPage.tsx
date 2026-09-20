@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSwipeTabs } from '../hooks/useSwipeTabs'
 
 const tabs = [
   { id: 'calendario', label: 'Calendario' },
@@ -9,9 +10,13 @@ const tabs = [
 
 type HabitosTab = (typeof tabs)[number]['id']
 
+// Mismo orden visual que las pestañas de arriba, de izquierda a derecha.
+const HABITOS_TAB_ORDER: HabitosTab[] = tabs.map((tab) => tab.id)
+
 function HabitosPage() {
   const [activeTab, setActiveTab] = useState<HabitosTab>('calendario')
   const activeLabel = tabs.find((tab) => tab.id === activeTab)?.label ?? ''
+  const swipeHandlers = useSwipeTabs(HABITOS_TAB_ORDER, activeTab, setActiveTab)
 
   return (
     <section className="habitos-page" aria-label="Hábitos">
@@ -36,10 +41,12 @@ function HabitosPage() {
         </div>
 
         <div
-          className="habitos-page__panel"
+          key={activeTab}
+          className="habitos-page__panel tab-swipe-panel"
           id="habitos-panel"
           role="tabpanel"
           aria-labelledby={`habitos-tab-${activeTab}`}
+          {...swipeHandlers}
         >
           <p className="habitos-page__placeholder">{activeLabel} · Próximamente</p>
         </div>

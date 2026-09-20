@@ -17,14 +17,14 @@ const navigationItems = [
     to: '/app',
     label: 'Inicio',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="icon-fill-active" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 11.5L12 4l9 7.5v8.5a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1v-8.5Z" />
       </svg>
     ),
   },
   {
     to: '/app/biblioteca',
-    label: 'Mi biblioteca',
+    label: 'Biblioteca',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z" />
@@ -38,24 +38,8 @@ const navigationItems = [
     to: '/app/favoritos',
     label: 'Favoritos',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="icon-fill-active" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
-    ),
-  },
-  {
-    to: '/app/explorar',
-    label: 'Buscar',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="4" width="20" height="16" rx="2.6" />
-        <path d="M2 8.5h20" />
-        <path d="M4.8 6.25h.01M7 6.25h.01" />
-        <circle cx="10.5" cy="14" r="3.6" />
-        <path d="M6.9 14h7.2" />
-        <path d="M10.5 10.4c2 2 2 5.2 0 7.2c-2-2-2-5.2 0-7.2" />
-        <circle cx="18.5" cy="18" r="2.3" />
-        <path d="M18.5 14.9v1M18.5 21.1v1M15.4 18h1M21.6 18h1M16.3 15.8l.7.7M20 19.5l.7.7M16.3 20.2l.7-.7M20 16.5l.7-.7" />
       </svg>
     ),
   },
@@ -74,10 +58,6 @@ const navigationItems = [
     ),
   },
 ]
-
-// La barra inferior (móvil) no lleva "Buscar": ahí se accede desde la lupa de la
-// cabecera de Inicio. En el sidebar (escritorio) sí se mantiene.
-const bottomNavItems = navigationItems.filter((item) => item.to !== '/app/explorar')
 
 function MenuLateral() {
   const { user } = useAuth()
@@ -237,7 +217,7 @@ function MenuLateral() {
           dentro de su cabecera. El resto de páginas no lo llevan. */}
 
       <nav className="bottom-nav" aria-label="Navegación principal">
-        {bottomNavItems.map((item) => (
+        {navigationItems.map((item) => (
           <NavLink
             key={item.to}
             end

@@ -1,35 +1,47 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import UserAvatar from '../../auth/components/UserAvatar'
+import { useSwipeTabs } from '../../../hooks/useSwipeTabs'
 import { usePlayer } from '../../player/context/PlayerContext'
 import type { LibraryFolder } from '../data/plantillasListas'
 import { useLibraryFolders } from '../hooks/useLibraryFolders'
 import { type LibraryAudio } from '../hooks/useUserAudios'
 import { deleteAudio } from '../services/audioService'
-import { anadirAudioALista, eliminarLista, quitarAudioDeLista, renombrarLista } from '../services/listaService'
 import AudiosConjuntos from './AudiosConjuntos'
 import FilaAudio from './FilaAudio'
 import LibraryIcon from './LibraryIcon'
-import PanelAnadirAudios from './PanelAnadirAudios'
 import ModalCrearLista from './ModalCrearLista'
 import ModalSubirAudio from './ModalSubirAudio'
 import TemplateGrid from './TemplateGrid'
 
 type LibraryTab = 'general' | 'listas' | 'audios-conjuntos'
 
+// Orden visual de las pestañas (de izquierda a derecha, tal cual aparecen arriba),
+// usado por useSwipeTabs para saber cuál es "siguiente"/"anterior" al deslizar.
+const LIBRARY_TAB_ORDER: LibraryTab[] = [
+  'listas',
+  'general',
+  'audios-conjuntos',
+]
+
 function Biblioteca() {
   const { user } = useAuth()
-  const { folders, audios, isLoadingAudios: isLoading, isLoadingListas, error: listasError } = useLibraryFolders()
+  const {
+    folders,
+    audios,
+    isLoadingAudios: isLoading,
+    isLoadingListas,
+    error: listasError,
+  } = useLibraryFolders()
   const { playTrack } = usePlayer()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<LibraryTab>('listas')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [openFolderKey, setOpenFolderKey] = useState<string | null>(null)
-  const [listaActionError, setListaActionError] = useState<string | null>(null)
 
   useEffect(() => {
     const tab = searchParams.get('tab')
@@ -38,77 +50,14 @@ function Biblioteca() {
     }
   }, [searchParams])
 
-  const openFolder = folders.find((folder) => folder.key === openFolderKey) ?? null
+  const swipeHandlers = useSwipeTabs(LIBRARY_TAB_ORDER, activeTab, setActiveTab)
 
   function handlePlay(audio: LibraryAudio) {
     playTrack(audio, audios)
   }
 
-  function handleToggleFolder(folder: LibraryFolder) {
-    setListaActionError(null)
-    setOpenFolderKey((current) => (current === folder.key ? null : folder.key))
-  }
-
-  function handleCloseFolder() {
-    setListaActionError(null)
-    setOpenFolderKey(null)
-  }
-
-  async function handleToggleAudioEnLista(folder: LibraryFolder, audioId: string, incluir: boolean) {
-    if (!user) {
-      return
-    }
-
-    setListaActionError(null)
-
-    try {
-      if (incluir) {
-        await anadirAudioALista(folder.listaId, audioId, {
-          uid: user.uid,
-          name: folder.name,
-          template: folder.template,
-        })
-      } else {
-        await quitarAudioDeLista(folder.listaId, audioId)
-      }
-    } catch {
-      setListaActionError('No se pudo actualizar la lista. Inténtalo de nuevo.')
-    }
-  }
-
-  async function handleRenameLista(folder: LibraryFolder) {
-    const newName = window.prompt('Nuevo nombre de la lista', folder.name)?.trim()
-
-    if (!newName || newName === folder.name) {
-      return
-    }
-
-    setListaActionError(null)
-
-    try {
-      await renombrarLista(folder.listaId, newName)
-    } catch {
-      setListaActionError('No se pudo renombrar la lista. Inténtalo de nuevo.')
-    }
-  }
-
-  async function handleDeleteLista(folder: LibraryFolder) {
-    const confirmed = window.confirm(`¿Eliminar la lista "${folder.name}"? Esta acción no se puede deshacer.`)
-
-    if (!confirmed) {
-      return
-    }
-
-    setListaActionError(null)
-
-    try {
-      await eliminarLista(folder.listaId)
-      if (openFolderKey === folder.key) {
-        setOpenFolderKey(null)
-      }
-    } catch {
-      setListaActionError('No se pudo eliminar la lista. Inténtalo de nuevo.')
-    }
+  function handleOpenFolder(folder: LibraryFolder) {
+    navigate(`/app/listas/${folder.key}`)
   }
 
   async function handleDelete(audio: LibraryAudio) {
@@ -138,7 +87,9 @@ function Biblioteca() {
         <header className="library-screen__header">
           <div>
             <h1>
-              <span className="library-screen__title-desktop">Tu biblioteca</span>
+              <span className="library-screen__title-desktop">
+                Tu biblioteca
+              </span>
               <span className="library-screen__title-movil">Mis audios</span>
             </h1>
           </div>
@@ -148,7 +99,11 @@ function Biblioteca() {
           </div>
         </header>
 
-        <div className="library-tabs" role="tablist" aria-label="Secciones de la biblioteca">
+        <div
+          className="library-tabs"
+          role="tablist"
+          aria-label="Secciones de la biblioteca"
+        >
           <button
             type="button"
             role="tab"
@@ -180,76 +135,80 @@ function Biblioteca() {
 
         {deleteError && <p className="library-screen__error">{deleteError}</p>}
 
-        {activeTab === 'general' ? (
-          isLoading ? (
-            <p className="library-screen__loading">Cargando tu biblioteca...</p>
-          ) : audios.length === 0 ? (
-            <div className="library-empty-state" role="status">
-              <div className="library-empty-state__icon" aria-hidden="true">
-                <LibraryIcon name="music" />
+        <div key={activeTab} className="tab-swipe-panel" {...swipeHandlers}>
+          {activeTab === 'general' ? (
+            isLoading ? (
+              <p className="library-screen__loading">
+                Cargando tu biblioteca...
+              </p>
+            ) : audios.length === 0 ? (
+              <div className="library-empty-state" role="status">
+                <div className="library-empty-state__icon" aria-hidden="true">
+                  <LibraryIcon name="music" />
+                </div>
+                <h2>Tu biblioteca está vacía</h2>
+                <p>
+                  Añade tu primer audio para empezar a construir tu espacio
+                  personal.
+                </p>
+                <div className="library-empty-state__actions">
+                  <button
+                    type="button"
+                    className="library-empty-state__button library-empty-state__button--primary"
+                    onClick={() => setIsUploadModalOpen(true)}
+                  >
+                    Añadir tu primer audio
+                  </button>
+                </div>
               </div>
-              <h2>Tu biblioteca está vacía</h2>
-              <p>Añade tu primer audio para empezar a construir tu espacio personal.</p>
-              <div className="library-empty-state__actions">
-                <button
-                  type="button"
-                  className="library-empty-state__button library-empty-state__button--primary"
-                  onClick={() => setIsUploadModalOpen(true)}
-                >
-                  Añadir tu primer audio
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="library-section__list library-section__list--plana">
-              {audios.map((audio) => (
-                <FilaAudio
-                  key={audio.id}
-                  name={audio.name}
-                  duration={audio.duration}
-                  isDeleting={deletingId === audio.id}
-                  onPlay={() => handlePlay(audio)}
-                  onDelete={() => handleDelete(audio)}
-                />
-              ))}
-            </div>
-          )
-        ) : activeTab === 'listas' ? (
-          <>
-            {listasError && <p className="library-screen__error">{listasError}</p>}
-
-            {isLoadingListas ? (
-              <p className="library-screen__loading">Cargando tus listas...</p>
             ) : (
-              <div className="library-templates-intro">
-                {openFolder ? (
-                  <PanelAnadirAudios
-                    folder={openFolder}
-                    audios={audios}
-                    error={listaActionError}
-                    onToggleAudio={(audioId, incluir) => handleToggleAudioEnLista(openFolder, audioId, incluir)}
-                    onClose={handleCloseFolder}
-                    onRename={openFolder.isCustom ? () => handleRenameLista(openFolder) : undefined}
-                    onDelete={openFolder.isCustom ? () => handleDeleteLista(openFolder) : undefined}
+              <div className="library-section__list library-section__list--plana">
+                {audios.map((audio) => (
+                  <FilaAudio
+                    key={audio.id}
+                    name={audio.name}
+                    duration={audio.duration}
+                    isDeleting={deletingId === audio.id}
+                    onPlay={() => handlePlay(audio)}
+                    onDelete={() => handleDelete(audio)}
                   />
-                ) : null}
-
-                <TemplateGrid
-                  folders={folders}
-                  activeKey={openFolderKey}
-                  onOpen={handleToggleFolder}
-                  onCreateCustom={() => setIsCreateListModalOpen(true)}
-                />
+                ))}
               </div>
-            )}
-          </>
-        ) : (
-          <AudiosConjuntos audios={audios} isLoading={isLoading} />
-        )}
+            )
+          ) : activeTab === 'listas' ? (
+            <>
+              {listasError && (
+                <p className="library-screen__error">{listasError}</p>
+              )}
+
+              {isLoadingListas ? (
+                <p className="library-screen__loading">
+                  Cargando tus listas...
+                </p>
+              ) : (
+                <div className="library-templates-intro">
+                  <TemplateGrid
+                    folders={folders}
+                    onOpen={handleOpenFolder}
+                    onCreateCustom={() => setIsCreateListModalOpen(true)}
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <AudiosConjuntos audios={audios} isLoading={isLoading} />
+          )}
+        </div>
       </div>
 
-      <ModalSubirAudio isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
-      <ModalCrearLista isOpen={isCreateListModalOpen} onClose={() => setIsCreateListModalOpen(false)} />
+      <ModalSubirAudio
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+      />
+      <ModalCrearLista
+        isOpen={isCreateListModalOpen}
+        onClose={() => setIsCreateListModalOpen(false)}
+      />
     </section>
   )
 }

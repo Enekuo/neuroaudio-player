@@ -6,11 +6,12 @@ type FilaAudioProps = {
   name: string
   duration?: number
   isDeleting: boolean
+  isPlaying?: boolean
   onPlay: () => void
   onDelete: () => void
 }
 
-function FilaAudio({ name, duration, isDeleting, onPlay, onDelete }: FilaAudioProps) {
+function FilaAudio({ name, duration, isDeleting, isPlaying, onPlay, onDelete }: FilaAudioProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -45,7 +46,7 @@ function FilaAudio({ name, duration, isDeleting, onPlay, onDelete }: FilaAudioPr
   }
 
   return (
-    <div className="library-audio-row">
+    <div className={`library-audio-row${isPlaying ? ' is-playing' : ''}`}>
       <button type="button" className="library-audio-row__main" onClick={onPlay}>
         <div className="library-audio-row__thumb" aria-hidden="true">
           <LibraryIcon name="music" />

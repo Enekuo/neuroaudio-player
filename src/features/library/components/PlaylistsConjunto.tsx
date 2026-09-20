@@ -93,7 +93,7 @@ function PlaylistsConjunto({ audios }: PlaylistsConjuntoProps) {
       .filter((audio): audio is LibraryAudio => Boolean(audio))
 
     if (orderedAudios.length > 0) {
-      playTrack(orderedAudios[0], orderedAudios)
+      playTrack(orderedAudios[0], orderedAudios, { autoAdvance: true })
     }
   }
 

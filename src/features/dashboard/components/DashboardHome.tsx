@@ -6,6 +6,7 @@ import { useUserProfile } from '../../auth/hooks/useUserProfile'
 import { useUserAudios, type LibraryAudio } from '../../library/hooks/useUserAudios'
 import { useUserListas } from '../../library/hooks/useUserListas'
 import { deleteAudio } from '../../library/services/audioService'
+import BuscadorAudios from '../../library/components/BuscadorAudios'
 import FilaAudio from '../../library/components/FilaAudio'
 import MenuCuentaMovil from '../../library/components/MenuCuentaMovil'
 import ModalCrearLista from '../../library/components/ModalCrearLista'
@@ -73,7 +74,7 @@ function CrownIcon() {
 
 function SearchIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="11" cy="11" r="6" />
       <path d="m20 20-4.2-4.2" />
     </svg>
@@ -131,6 +132,7 @@ function DashboardHome() {
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
   const [activeFilter, setActiveFilter] = useState(filterPills[0].id)
   const [deletingAudioId, setDeletingAudioId] = useState<string | null>(null)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   function handlePlayAudio(audio: LibraryAudio) {
     playTrack(audio, audios)
@@ -202,19 +204,22 @@ function DashboardHome() {
 
         <header className="dashboard-home-page__header">
           {/* Solo móvil: fila del título con "NeuroAudio" a la izquierda y los
-              botones (buscar + corona Premium + cuenta) a la misma altura, a la
-              derecha. En escritorio esta fila se oculta (la cuenta está en la
-              barra lateral). */}
+              botones (corona Premium + cuenta) a la misma altura, a la derecha.
+              En escritorio esta fila se oculta (la cuenta está en la barra
+              lateral). */}
           <div className="dashboard-home-page__title-row">
             <span className="dashboard-home-page__brand">NeuroAudio</span>
             <div className="dashboard-home-page__header-actions">
-              <Link
-                to="/app/explorar"
-                className="dashboard-home-page__search"
-                aria-label="Buscar"
+              <button
+                type="button"
+                className={`dashboard-home-page__search-btn${isSearchOpen ? ' is-active' : ''}`}
+                onClick={() => setIsSearchOpen(true)}
+                aria-label="Buscar audios"
+                aria-haspopup="dialog"
+                aria-expanded={isSearchOpen}
               >
                 <SearchIcon />
-              </Link>
+              </button>
               <Link
                 to="/app/premium"
                 className="dashboard-home-page__premium"
@@ -284,7 +289,7 @@ function DashboardHome() {
             <div className="dashboard-discover-card__body">
               <h3 className="dashboard-discover-card__title">Conoce a profesionales</h3>
               <p className="dashboard-discover-card__subtitle">
-                Profesionales que usan NeuroAudio en su día a día.
+                Profesionales que trabajan con NeuroAudio en su día a día.
               </p>
             </div>
             <img
@@ -394,6 +399,11 @@ function DashboardHome() {
         </section>
       </div>
 
+      <BuscadorAudios
+        audios={audios}
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
       <ModalSubirAudio isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
       <ModalCrearLista isOpen={isCreateListModalOpen} onClose={() => setIsCreateListModalOpen(false)} />
     </section>
