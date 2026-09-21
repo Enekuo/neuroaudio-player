@@ -22,6 +22,7 @@
   --border-soft: rgba(255, 255, 255, 0.08);
   --shadow: 0 12px 30px rgba(0, 0, 0, 0.23);
   --shadow-strong: 0 24px 60px rgba(0, 0, 0, 0.32);
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --topbar-h: 40px;
   --bottomnav-h: 72px;
   --miniplayer-h: 64px;
@@ -95,6 +96,127 @@ html {
   }
 }
 
+/* ============================================================
+   Aparición suave al entrar en una pantalla (móvil): fundido +
+   ligero desplazamiento hacia arriba, con stagger en listas/rejillas.
+   Solo transform/opacity. Se dispara una vez al montar cada pantalla
+   (navegación de ruta o cambio de pestaña vía key={...}), nunca al
+   hacer scroll. Respeta prefers-reduced-motion y el toggle manual
+   .reduce-motion (ya colapsa animation-duration a 0.001ms).
+   ============================================================ */
+@keyframes screen-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  /* Nivel sección: los bloques principales de cada pantalla (cabecera,
+     banners, secciones, listas) entran en cascada suave. */
+  .dashboard-home-page__content > *,
+  .library-screen__content > *,
+  .habitos-page__content > *,
+  .favorites-page > * {
+    animation: screen-enter 300ms var(--ease-out-strong) both;
+  }
+
+  .dashboard-home-page__content > *:nth-child(1) { animation-delay: 0ms; }
+  .dashboard-home-page__content > *:nth-child(2) { animation-delay: 55ms; }
+  .dashboard-home-page__content > *:nth-child(3) { animation-delay: 110ms; }
+  .dashboard-home-page__content > *:nth-child(4) { animation-delay: 165ms; }
+  .dashboard-home-page__content > *:nth-child(5) { animation-delay: 220ms; }
+  .dashboard-home-page__content > *:nth-child(n+6) { animation-delay: 275ms; }
+
+  .library-screen__content > *:nth-child(1) { animation-delay: 0ms; }
+  .library-screen__content > *:nth-child(2) { animation-delay: 55ms; }
+  .library-screen__content > *:nth-child(n+3) { animation-delay: 110ms; }
+
+  .habitos-page__content > *:nth-child(1) { animation-delay: 0ms; }
+  .habitos-page__content > *:nth-child(2) { animation-delay: 55ms; }
+  .habitos-page__content > *:nth-child(n+3) { animation-delay: 110ms; }
+
+  .favorites-page > *:nth-child(1) { animation-delay: 0ms; }
+  .favorites-page > *:nth-child(n+2) { animation-delay: 55ms; }
+
+  /* Nivel lista/rejilla: dentro de cada sección, las tarjetas o filas
+     individuales entran con un stagger más corto y rápido. */
+  .dashboard-home-page__stats > .dashboard-stat-card,
+  .dashboard-home-page__steps > .dashboard-step-card,
+  .template-grid > .template-card,
+  .library-section__list--plana > * {
+    animation: screen-enter 260ms var(--ease-out-strong) both;
+  }
+
+  .dashboard-home-page__stats > .dashboard-stat-card:nth-child(1),
+  .dashboard-home-page__steps > .dashboard-step-card:nth-child(1),
+  .template-grid > .template-card:nth-child(1),
+  .library-section__list--plana > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+
+  .dashboard-home-page__stats > .dashboard-stat-card:nth-child(2),
+  .dashboard-home-page__steps > .dashboard-step-card:nth-child(2),
+  .template-grid > .template-card:nth-child(2),
+  .library-section__list--plana > *:nth-child(2) {
+    animation-delay: 35ms;
+  }
+
+  .dashboard-home-page__stats > .dashboard-stat-card:nth-child(3),
+  .dashboard-home-page__steps > .dashboard-step-card:nth-child(3),
+  .template-grid > .template-card:nth-child(3),
+  .library-section__list--plana > *:nth-child(3) {
+    animation-delay: 70ms;
+  }
+
+  .template-grid > .template-card:nth-child(4),
+  .library-section__list--plana > *:nth-child(4) {
+    animation-delay: 105ms;
+  }
+
+  .template-grid > .template-card:nth-child(5),
+  .library-section__list--plana > *:nth-child(5) {
+    animation-delay: 140ms;
+  }
+
+  .template-grid > .template-card:nth-child(6),
+  .library-section__list--plana > *:nth-child(6) {
+    animation-delay: 175ms;
+  }
+
+  .template-grid > .template-card:nth-child(7),
+  .library-section__list--plana > *:nth-child(7) {
+    animation-delay: 210ms;
+  }
+
+  .template-grid > .template-card:nth-child(8),
+  .library-section__list--plana > *:nth-child(8) {
+    animation-delay: 245ms;
+  }
+
+  .template-grid > .template-card:nth-child(n+9),
+  .library-section__list--plana > *:nth-child(n+9) {
+    animation-delay: 280ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-home-page__content > *,
+  .library-screen__content > *,
+  .habitos-page__content > *,
+  .favorites-page > *,
+  .dashboard-home-page__stats > .dashboard-stat-card,
+  .dashboard-home-page__steps > .dashboard-step-card,
+  .template-grid > .template-card,
+  .library-section__list--plana > * {
+    animation: none;
+  }
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -120,6 +242,69 @@ textarea,
 [role='button'],
 [tabindex] {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================================
+   Micro-interacciones de botones: respuesta táctil al pulsar y
+   transición suave al soltar. Coherente con DESIGN.md ("plano en
+   reposo, brillo como respuesta"): solo transform/opacity/box-shadow,
+   nunca color, tamaño base ni layout. Respeta prefers-reduced-motion
+   y no depende de :hover para el feedback en táctil.
+   ============================================================ */
+button,
+[role='button'],
+input[type='button'],
+input[type='submit'],
+.bottom-nav__link,
+.library-sidebar__link,
+.na-login,
+.na-btn-primary,
+.na-cta-primary,
+.landing-header__button {
+  touch-action: manipulation;
+  transition: transform 160ms var(--ease-out-strong);
+}
+
+button:active,
+[role='button']:active,
+input[type='button']:active,
+input[type='submit']:active,
+.bottom-nav__link:active,
+.library-sidebar__link:active,
+.na-login:active,
+.na-btn-primary:active,
+.na-cta-primary:active,
+.landing-header__button:active {
+  transform: scale(0.97);
+  transition-duration: 90ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  [role='button'],
+  input[type='button'],
+  input[type='submit'],
+  .bottom-nav__link,
+  .library-sidebar__link,
+  .na-login,
+  .na-btn-primary,
+  .na-cta-primary,
+  .landing-header__button {
+    transition: none;
+  }
+
+  button:active,
+  [role='button']:active,
+  input[type='button']:active,
+  input[type='submit']:active,
+  .bottom-nav__link:active,
+  .library-sidebar__link:active,
+  .na-login:active,
+  .na-btn-primary:active,
+  .na-cta-primary:active,
+  .landing-header__button:active {
+    transform: none;
+  }
 }
 
 #root {
@@ -602,6 +787,7 @@ textarea,
   text-decoration: none;
   color: #6b6e76;
   padding: 0.25rem 0.2rem;
+  transition: color 160ms ease;
 }
 
 .bottom-nav__icon {
@@ -612,6 +798,7 @@ textarea,
 .bottom-nav__icon svg {
   width: 21px;
   height: 21px;
+  transition: filter 180ms ease;
 }
 
 .bottom-nav__label {
@@ -625,6 +812,10 @@ textarea,
 
 .bottom-nav__link.is-active {
   color: #ffffff;
+}
+
+.bottom-nav__link.is-active .bottom-nav__icon svg {
+  filter: drop-shadow(0 0 6px rgba(43, 123, 255, 0.55));
 }
 
 .bottom-nav__link.is-active .icon-fill-active {
@@ -781,7 +972,7 @@ textarea,
   cursor: pointer;
   text-align: left;
   overflow: hidden;
-  transition: border-color 150ms ease;
+  transition: border-color 150ms ease, box-shadow 180ms ease, transform 160ms var(--ease-out-strong);
 }
 
 .template-card:hover {
