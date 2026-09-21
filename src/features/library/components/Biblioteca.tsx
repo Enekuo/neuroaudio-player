@@ -34,7 +34,7 @@ function Biblioteca() {
     isLoadingListas,
     error: listasError,
   } = useLibraryFolders()
-  const { playTrack } = usePlayer()
+  const { currentTrack, isPlaying, playTrack } = usePlayer()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<LibraryTab>('listas')
@@ -169,6 +169,7 @@ function Biblioteca() {
                     name={audio.name}
                     duration={audio.duration}
                     isDeleting={deletingId === audio.id}
+                    isPlaying={isPlaying && currentTrack?.id === audio.id}
                     onPlay={() => handlePlay(audio)}
                     onDelete={() => handleDelete(audio)}
                   />

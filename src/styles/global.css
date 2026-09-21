@@ -23,6 +23,7 @@
   --shadow: 0 12px 30px rgba(0, 0, 0, 0.23);
   --shadow-strong: 0 24px 60px rgba(0, 0, 0, 0.32);
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --topbar-h: 40px;
   --bottomnav-h: 72px;
   --miniplayer-h: 64px;
@@ -217,6 +218,102 @@ html {
   }
 }
 
+/* ============================================================
+   Popovers y menús contextuales: entran con un pequeño escalado desde
+   el punto donde nacen (el botón que los abre), nunca desde el centro
+   de la pantalla. Misma curva/duración en toda la app.
+   ============================================================ */
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.repeat-menu,
+.library-sidebar__account-menu,
+.lista-options__menu,
+.library-audio-row__menu,
+.mobile-topbar__menu {
+  animation: popover-in 160ms var(--ease-out-strong);
+}
+
+.repeat-menu {
+  transform-origin: bottom right;
+}
+
+.library-sidebar__account-menu {
+  transform-origin: bottom center;
+}
+
+.lista-options__menu,
+.library-audio-row__menu,
+.mobile-topbar__menu {
+  transform-origin: top right;
+}
+
+/* ============================================================
+   Paneles y modales: el fondo se funde, la tarjeta llega con un
+   ligero escalado + subida, siempre centrada (nunca anclada a un
+   disparador concreto).
+   ============================================================ */
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-overlay,
+.settings-overlay,
+.buscador-overlay {
+  animation: overlay-in 180ms ease;
+}
+
+.modal-card,
+.settings-modal,
+.buscador-panel {
+  animation: panel-in 220ms var(--ease-out-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .repeat-menu,
+  .library-sidebar__account-menu,
+  .lista-options__menu,
+  .library-audio-row__menu,
+  .mobile-topbar__menu,
+  .modal-overlay,
+  .settings-overlay,
+  .buscador-overlay,
+  .modal-card,
+  .settings-modal,
+  .buscador-panel,
+  .now-playing,
+  .now-playing.is-closing,
+  .now-playing__wave span,
+  .mini-player,
+  .library-audio-row.is-playing .library-audio-row__thumb {
+    animation: none;
+  }
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -269,7 +366,6 @@ button:active,
 [role='button']:active,
 input[type='button']:active,
 input[type='submit']:active,
-.bottom-nav__link:active,
 .library-sidebar__link:active,
 .na-login:active,
 .na-btn-primary:active,
@@ -297,7 +393,6 @@ input[type='submit']:active,
   [role='button']:active,
   input[type='button']:active,
   input[type='submit']:active,
-  .bottom-nav__link:active,
   .library-sidebar__link:active,
   .na-login:active,
   .na-btn-primary:active,
@@ -787,7 +882,26 @@ input[type='submit']:active,
   text-decoration: none;
   color: #6b6e76;
   padding: 0.25rem 0.2rem;
-  transition: color 160ms ease;
+  transition: color 160ms ease, transform 100ms ease-out, opacity 100ms ease-out;
+}
+
+/* Efecto al pulsar tipo Spotify: icono + nombre se atenúan y encogen juntos,
+   como una sola unidad, mientras se mantiene pulsado; sin rebote. Al soltar
+   vuelven a su estado. */
+.bottom-nav__link:active {
+  opacity: 0.55;
+  transform: scale(0.94);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-nav__link {
+    transition: color 160ms ease;
+  }
+
+  .bottom-nav__link:active {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .bottom-nav__icon {
@@ -997,6 +1111,13 @@ input[type='submit']:active,
   height: 38px;
   color: #2680eb;
   filter: drop-shadow(0 0 5px rgba(38, 128, 235, 0.4));
+  transition: filter 200ms ease;
+}
+
+/* Momento de "portal": al tocar una categoría para entrar, el halo del icono
+   se enciende un instante antes de que la navegación se lleve la tarjeta. */
+.template-card:active .template-card__icon svg {
+  filter: drop-shadow(0 0 12px rgba(38, 128, 235, 0.85));
 }
 
 .template-card__om {
@@ -3854,6 +3975,17 @@ input[type='submit']:active,
 .library-audio-row.is-playing .library-audio-row__thumb {
   background: #0047ff;
   color: #ffffff;
+  animation: row-thumb-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes row-thumb-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(43, 123, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 10px 3px rgba(43, 123, 255, 0.55);
+  }
 }
 
 .library-audio-row.is-playing .library-audios-conjuntos__toggle {
@@ -4018,7 +4150,11 @@ input[type='submit']:active,
     radial-gradient(ellipse 300px 400px at -20px 500px, rgba(43, 123, 255, 0.2), transparent 65%),
     #03040a;
   overflow-y: auto;
-  animation: now-playing-in 220ms ease;
+  animation: now-playing-in 280ms var(--ease-drawer) both;
+}
+
+.now-playing.is-closing {
+  animation: now-playing-out 200ms var(--ease-drawer) both;
 }
 
 @keyframes now-playing-in {
@@ -4029,6 +4165,17 @@ input[type='submit']:active,
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes now-playing-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(24px);
   }
 }
 
@@ -4099,12 +4246,55 @@ input[type='submit']:active,
   border-radius: 2px;
   background: rgba(43, 123, 255, 0.28);
   transition: background-color 160ms ease, box-shadow 160ms ease;
+  transform: scaleY(0.3);
+  animation: wave-bar-in 240ms var(--ease-out-strong) both;
 }
 
 .now-playing__wave span.is-played {
   background: #2b7bff;
   box-shadow: 0 0 6px 1px rgba(43, 123, 255, 0.67);
 }
+
+/* El "cursor" de avance: la barra justo después del tramo ya reproducido late
+   suavemente mientras suena, como si el audio estuviera vivo en ese punto. */
+.now-playing.is-playing .now-playing__wave span.is-played + span:not(.is-played) {
+  animation: wave-bar-in 240ms var(--ease-out-strong) both, wave-cursor-pulse 1.4s ease-in-out 240ms infinite;
+}
+
+@keyframes wave-bar-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes wave-cursor-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    box-shadow: 0 0 4px 1px rgba(43, 123, 255, 0.4);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 10px 3px rgba(43, 123, 255, 0.85);
+  }
+}
+
+.now-playing__wave span:nth-child(1) { animation-delay: 0ms; }
+.now-playing__wave span:nth-child(2) { animation-delay: 4ms; }
+.now-playing__wave span:nth-child(3) { animation-delay: 8ms; }
+.now-playing__wave span:nth-child(4) { animation-delay: 12ms; }
+.now-playing__wave span:nth-child(5) { animation-delay: 16ms; }
+.now-playing__wave span:nth-child(6) { animation-delay: 20ms; }
+.now-playing__wave span:nth-child(7) { animation-delay: 24ms; }
+.now-playing__wave span:nth-child(8) { animation-delay: 28ms; }
+.now-playing__wave span:nth-child(9) { animation-delay: 32ms; }
+.now-playing__wave span:nth-child(10) { animation-delay: 36ms; }
+.now-playing__wave span:nth-child(n+11) { animation-delay: 40ms; }
 
 .now-playing__info {
   text-align: left;
@@ -4316,7 +4506,7 @@ input[type='submit']:active,
   padding: 0.65rem 1.2rem;
   background: #0f0f0f;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  animation: mini-player-in 200ms ease;
+  animation: mini-player-in 220ms var(--ease-drawer) both;
 }
 
 @keyframes mini-player-in {

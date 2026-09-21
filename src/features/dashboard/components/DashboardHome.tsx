@@ -126,7 +126,7 @@ function DashboardHome() {
   const { profile } = useUserProfile()
   const { listas } = useUserListas()
   const { audios } = useUserAudios()
-  const { playTrack } = usePlayer()
+  const { currentTrack, isPlaying, playTrack } = usePlayer()
   const [isInviteBannerVisible, setIsInviteBannerVisible] = useState(true)
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
@@ -390,6 +390,7 @@ function DashboardHome() {
                   name={audio.name}
                   duration={audio.duration}
                   isDeleting={deletingAudioId === audio.id}
+                  isPlaying={isPlaying && currentTrack?.id === audio.id}
                   onPlay={() => handlePlayAudio(audio)}
                   onDelete={() => handleDeleteAudio(audio)}
                 />

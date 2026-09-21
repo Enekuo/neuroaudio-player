@@ -1,4 +1,4 @@
-import type { ChangeEvent, CSSProperties, FormEvent } from 'react'
+import type { AnimationEvent, ChangeEvent, CSSProperties, FormEvent } from 'react'
 import LibraryIcon from '../../library/components/LibraryIcon'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
@@ -11,9 +11,23 @@ const WAVEFORM_BARS = Array.from({ length: 48 }, (_, index) => {
   return Math.max(0.12, Math.min(1, wave + ripple))
 })
 
-function PantallaCompletaReproductor() {
+type PantallaCompletaReproductorProps = {
+  isClosing: boolean
+  onCloseAnimationEnd: () => void
+}
+
+function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: PantallaCompletaReproductorProps) {
   const { currentTrack, isPlaying, currentTime, duration, volume, togglePlay, seek, setVolume, collapse } =
     usePlayer()
+
+  // El aviso de "animación terminada" burbujea desde cualquier hijo (las barras
+  // del waveform animan constantemente), así que solo actuamos cuando es la
+  // propia animación de cierre del panel raíz la que ha terminado.
+  function handleAnimationEnd(event: AnimationEvent<HTMLDivElement>) {
+    if (event.target === event.currentTarget && event.animationName === 'now-playing-out') {
+      onCloseAnimationEnd()
+    }
+  }
 
   // Cuenta atrás basada en los mismos segundos enteros que ya muestra el tiempo transcurrido
   // (floor de ambos), para que el "-0:00" llegue exactamente cuando el número de la izquierda
@@ -34,7 +48,13 @@ function PantallaCompletaReproductor() {
   }
 
   return (
-    <div className="now-playing" role="dialog" aria-modal="true" aria-label="Reproductor a pantalla completa">
+    <div
+      className={`now-playing${isPlaying ? ' is-playing' : ''}${isClosing ? ' is-closing' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Reproductor a pantalla completa"
+      onAnimationEnd={handleAnimationEnd}
+    >
       <div className="now-playing__panel">
         <header className="now-playing__header">
           <button
