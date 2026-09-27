@@ -33,6 +33,25 @@ function ReplyForwardIcon() {
   )
 }
 
+/** Iconos "anterior/siguiente" (barra + triángulo) que usa el móvil. */
+function TrackIcon({ direction }: { direction: 'backward' | 'forward' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      {direction === 'backward' ? (
+        <>
+          <rect x="5" y="5" width="2.5" height="14" rx="1" />
+          <path d="M19 6.2v11.6a1 1 0 0 1-1.55.83L9.2 12.83a1 1 0 0 1 0-1.66l8.25-5.8A1 1 0 0 1 19 6.2z" />
+        </>
+      ) : (
+        <>
+          <rect x="16.5" y="5" width="2.5" height="14" rx="1" />
+          <path d="M5 6.2v11.6a1 1 0 0 0 1.55.83l8.25-5.8a1 1 0 0 0 0-1.66l-8.25-5.8A1 1 0 0 0 5 6.2z" />
+        </>
+      )}
+    </svg>
+  )
+}
+
 function SkipButton({ direction, seconds = 10, className }: SkipButtonProps) {
   const { skip } = usePlayer()
   const label = direction === 'backward' ? `Retroceder ${seconds} segundos` : `Adelantar ${seconds} segundos`
@@ -40,12 +59,15 @@ function SkipButton({ direction, seconds = 10, className }: SkipButtonProps) {
   return (
     <button
       type="button"
-      className={`skip-button${className ? ` ${className}` : ''}`}
+      className={`skip-button skip-button--${direction}${className ? ` ${className}` : ''}`}
       aria-label={label}
       onClick={() => skip(direction === 'backward' ? -seconds : seconds)}
     >
       <span className="skip-button__icon">
         {direction === 'backward' ? <ReplyBackwardIcon /> : <ReplyForwardIcon />}
+      </span>
+      <span className="skip-button__track-icon">
+        <TrackIcon direction={direction} />
       </span>
       <span className="skip-button__label" aria-hidden="true">
         {seconds}

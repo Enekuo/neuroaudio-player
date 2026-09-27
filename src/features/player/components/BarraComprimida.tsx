@@ -5,7 +5,20 @@ import { formatTime } from '../utils/formatTime'
 import RepeatButton from './RepeatButton'
 
 function BarraComprimida() {
-  const { currentTrack, isPlaying, currentTime, duration, volume, togglePlay, setVolume, expand } = usePlayer()
+  const {
+    currentTrack,
+    isPlaying,
+    currentTime,
+    duration,
+    volume,
+    togglePlay,
+    setVolume,
+    expand,
+    delayCountdown,
+    repeatMode,
+    repeatTimes,
+    repeatCount,
+  } = usePlayer()
 
   if (!currentTrack) {
     return null
@@ -28,7 +41,9 @@ function BarraComprimida() {
             <span aria-hidden="true">{currentTrack.name}</span>
           </div>
         </div>
-        <p>Tu audio de NeuroAudio</p>
+        <p className={delayCountdown !== null ? 'mini-player__countdown' : undefined}>
+          {delayCountdown !== null ? `Empieza en ${formatTime(delayCountdown)}` : 'Tu audio de NeuroAudio'}
+        </p>
       </div>
 
       <div className="mini-player__right">
@@ -70,10 +85,12 @@ function BarraComprimida() {
         <button
           type="button"
           className="mini-player__play"
-          aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+          aria-label={delayCountdown !== null ? 'Cancelar espera' : isPlaying ? 'Pausar' : 'Reproducir'}
           onClick={togglePlay}
         >
-          {isPlaying ? (
+          {delayCountdown !== null ? (
+            <span className="mini-player__play-countdown">{delayCountdown}</span>
+          ) : isPlaying ? (
             <svg viewBox="0 0 24 24" fill="currentColor">
               <rect x="7" y="6" width="4" height="12" rx="1" />
               <rect x="13" y="6" width="4" height="12" rx="1" />
@@ -83,6 +100,10 @@ function BarraComprimida() {
               <path d="M8 6.5v11l9-5.5-9-5.5z" />
             </svg>
           )}
+
+          {repeatMode === 'times' ? (
+            <span className="mini-player__play-badge">{repeatTimes - repeatCount}</span>
+          ) : null}
         </button>
       </div>
     </footer>
