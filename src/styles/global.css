@@ -1135,8 +1135,13 @@ input[type='submit']:active,
   transition: border-color 150ms ease, box-shadow 180ms ease, transform 160ms var(--ease-out-strong);
 }
 
-.template-card:hover {
-  border-color: rgba(111, 151, 255, 0.35);
+/* Solo con ratón: en táctil el :hover se queda "pegado" tras el toque. El
+   feedback táctil equivalente vive en :active (bloque de efectos de tarjetas
+   de Listas, al final del archivo). */
+@media (hover: hover) and (pointer: fine) {
+  .template-card:hover {
+    border-color: rgba(111, 151, 255, 0.35);
+  }
 }
 
 .template-card.is-selected {
@@ -1383,9 +1388,12 @@ input[type='submit']:active,
     right: 12px;
   }
 
+  /* Sin esto hereda el align-items: flex-start de .template-card de este
+     bloque y el "+" de "Nueva lista" queda pegado a la izquierda. */
   .template-card--custom {
     height: auto;
     min-height: 118px;
+    align-items: center;
   }
 
   .template-card--has-image .template-card__meta,
@@ -5486,17 +5494,29 @@ input[type='submit']:active,
      en la esquina superior derecha que se desvanece en diagonal hacia el negro.
      Va en .app-shell porque tiene altura exacta de viewport (100dvh), así el
      degradado queda anclado a la pantalla y no se estira con el scroll. */
+  /* Misma forma que el degradado original (18.3°, negro hasta el 64% y el
+     azul concentrado en la esquina superior derecha, con las mismas
+     paradas), pero con el azul de la cabecera de "Reprogramación":
+     en la esquina (100%) #378ADD al 30% sobre #000208 (= #112b48), y en
+     las paradas intermedias la misma proporción de intensidad que tenía el
+     original (#378ADD al 5%, 10.2%, 19.2% y 25.4% sobre #000208).
+     Versión anterior, más suave (#378ADD al 20% en la esquina):
+       #02070f 72%, #040b17 80%, #071323 88%, #09192c 95%, #0b1d33 100%.
+     ANTES (degradado original, azul petróleo):
+       background-color: #000000;
+       background-image: linear-gradient(18.3deg, #000000 0%, #000000 64%,
+         #03090f 72%, #05121f 80%, #06233a 88%, #05304d 95%, #06375b 100%); */
   .app-shell {
     background-color: #000000;
     background-image: linear-gradient(
       18.3deg,
       #000000 0%,
       #000000 64%,
-      #03090f 72%,
-      #05121f 80%,
-      #06233a 88%,
-      #05304d 95%,
-      #06375b 100%
+      #030913 72%,
+      #06101e 80%,
+      #0b1c31 88%,
+      #0e253e 95%,
+      #112b48 100%
     );
     background-repeat: no-repeat;
   }
@@ -5556,13 +5576,25 @@ input[type='submit']:active,
     bottom: 0;
     z-index: 70;
     padding: 0;
+    /* Mismos resplandores que la regla base, con el azul #378ADD
+       (rgb 55, 138, 221) en vez de #2B7BFF; mismas posiciones y opacidades.
+       ANTES (heredado de la base): rgba(43, 123, 255, 0.33) y rgba(43, 123, 255, 0.2). */
+    background:
+      radial-gradient(ellipse 420px 620px at -40px 260px, rgba(55, 138, 221, 0.33), transparent 60%),
+      radial-gradient(ellipse 300px 400px at -20px 500px, rgba(55, 138, 221, 0.2), transparent 65%),
+      #03040a;
   }
 
   .now-playing__panel {
     max-width: 100%;
     height: 100%;
     border-radius: 0;
-    background: linear-gradient(160deg, rgba(10, 16, 32, 0.92), rgba(3, 5, 12, 0.97));
+    /* Tono cambiado a #378ADD (el azul de la cabecera de las listas) con la
+       misma intensidad: cada parada es #378ADD oscurecido hasta el mismo
+       nivel de azul que tenía (32 y 12 en el canal azul). Mismas opacidades,
+       ángulo y fundido.
+       ANTES: linear-gradient(160deg, rgba(10, 16, 32, 0.92), rgba(3, 5, 12, 0.97)) */
+    background: linear-gradient(160deg, rgba(8, 20, 32, 0.92), rgba(3, 7, 12, 0.97));
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
     gap: 0.6rem;
     padding: calc(6px + env(safe-area-inset-top, 0px)) 18px calc(16px + env(safe-area-inset-bottom, 0px));
@@ -8138,10 +8170,10 @@ input[type='submit']:active,
     height: 34px;
   }
 
-  /* Baja la fila play + flechas sin alterar el layout (transform no mueve
-     a los demás elementos). */
+  /* Ajuste vertical de la fila play + flechas sin alterar el layout
+     (transform no mueve a los demás elementos). */
   .now-playing__transport {
-    transform: translateY(20px);
+    transform: translateY(-4px);
   }
 
   /* Play en blanco con el icono en negro (la base usa !important). */
@@ -8218,5 +8250,531 @@ input[type='submit']:active,
   .now-playing__transport .skip-button:active {
     transform: scale(0.84);
     transition-duration: 60ms;
+  }
+}
+
+/* Solo móvil: "+" de la tarjeta "Nueva lista" (Biblioteca → Listas) más
+   grande (antes 28px). */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .template-card--custom .template-card__icon svg {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* ============================================================
+   Biblioteca → Listas: efectos de las tarjetas y entrada al detalle.
+   Solo movimiento (transform/opacity) sobre el diseño existente.
+   - Toque: la tarjeta se hunde (scale 0.97) al instante de apoyar el
+     dedo, el borde se ilumina y el halo del icono ya se encendía (regla
+     .template-card:active de arriba). Al soltar vuelve con la transición
+     de 160ms que ya tenía .template-card.
+   - Entrada a una lista: no se usa View Transitions porque el detalle se
+     monta primero en "Cargando lista..." (se suscribe de nuevo a
+     Firestore) y la captura saldría de ese estado. En su lugar, cuando
+     aparece el contenido real, la portada "llega" (escala + fundido) y
+     el resto entra en cascada detrás: portada → título → barra → filas.
+   Respeta prefers-reduced-motion (solo fundidos, sin escala ni
+   desplazamiento) y el toggle de Ajustes (.reduce-motion colapsa todas
+   las duraciones a 0.001ms, arriba del todo).
+   ============================================================ */
+@keyframes lista-cover-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes lista-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .template-card {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .template-card:active:not(:disabled) {
+    transform: scale(0.97);
+    border-color: rgba(111, 151, 255, 0.35);
+    transition-duration: 100ms;
+  }
+
+  /* El halo de fondo del detalle aparece con un fundido; la portada llega
+     con escala desde el centro, como si la tarjeta tocada se abriera. */
+  .lista-detalle__hero {
+    animation: lista-fade-in 260ms ease-out backwards;
+  }
+
+  .lista-detalle__cover {
+    animation: lista-cover-enter 320ms var(--ease-out-strong) backwards;
+  }
+
+  .lista-detalle__hero-info {
+    animation: screen-enter 280ms var(--ease-out-strong) 60ms backwards;
+  }
+
+  .lista-detalle__back {
+    animation: lista-fade-in 200ms ease-out 80ms backwards;
+  }
+
+  .lista-detalle__toolbar,
+  .lista-detalle__empty {
+    animation: screen-enter 280ms var(--ease-out-strong) 110ms backwards;
+  }
+
+  /* Las filas ya entran en cascada (regla de .library-section__list--plana
+     de arriba); aquí se retrasa esa cascada para que empiece después de la
+     cabecera en vez de a la vez. */
+  .lista-detalle .library-section__list--plana > *:nth-child(1) { animation-delay: 140ms; }
+  .lista-detalle .library-section__list--plana > *:nth-child(2) { animation-delay: 175ms; }
+  .lista-detalle .library-section__list--plana > *:nth-child(3) { animation-delay: 210ms; }
+  .lista-detalle .library-section__list--plana > *:nth-child(4) { animation-delay: 245ms; }
+  .lista-detalle .library-section__list--plana > *:nth-child(5) { animation-delay: 280ms; }
+  .lista-detalle .library-section__list--plana > *:nth-child(6) { animation-delay: 315ms; }
+  .lista-detalle .library-section__list--plana > *:nth-child(n+7) { animation-delay: 350ms; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .template-card:active:not(:disabled) {
+    transform: none;
+  }
+
+  .lista-detalle__hero,
+  .lista-detalle__cover,
+  .lista-detalle__hero-info,
+  .lista-detalle__back,
+  .lista-detalle__toolbar,
+  .lista-detalle__empty {
+    animation: lista-fade-in 200ms ease-out backwards;
+  }
+}
+
+/* ============================================================
+   Favoritos: corazón en las filas de audio + página de Favoritos.
+   Sigue el Santuario Nocturno: casi negro, el azul solo en lo activo
+   (el corazón marcado, el botón principal). Mismo layout que Biblioteca
+   (.library-screen) para que ambas pantallas se sientan hermanas.
+   ============================================================ */
+
+/* Corazón pequeño junto a los tres puntos cuando el audio es favorito. */
+.library-audio-row__favorite {
+  display: grid;
+  place-items: center;
+  color: #2680eb;
+}
+
+.library-audio-row__favorite svg {
+  width: 15px;
+  height: 15px;
+  filter: drop-shadow(0 0 4px rgba(38, 128, 235, 0.45));
+}
+
+/* Cabecera: insignia con el corazón + título y resumen (nº y duración). */
+.favoritos-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  margin-bottom: 1.4rem;
+}
+
+.favoritos-hero__badge {
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(59, 158, 255, 0.35), transparent 60%),
+    linear-gradient(160deg, #1b4d78 0%, #0a1528 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.favoritos-hero__badge svg {
+  width: 38px;
+  height: 38px;
+  filter: drop-shadow(0 0 10px rgba(38, 128, 235, 0.6));
+}
+
+.favoritos-hero__info {
+  min-width: 0;
+}
+
+.favoritos-hero__info h1 {
+  margin: 0;
+  color: #f0f1f3;
+  font-size: clamp(26px, 3vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.favoritos-hero__info p {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Acciones: Reproducir (primaria, azul faro) y Aleatorio (fantasma). */
+.favoritos-actions {
+  display: flex;
+  gap: 0.65rem;
+  margin-bottom: 1.4rem;
+}
+
+.favoritos-actions__play,
+.favoritos-actions__shuffle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  transition:
+    transform 160ms var(--ease-out-strong),
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.favoritos-actions__play {
+  border: 1px solid #0047ff;
+  background: #0047ff;
+  color: #ffffff;
+}
+
+.favoritos-actions__shuffle {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+  color: #f0f1f3;
+}
+
+.favoritos-actions__play svg,
+.favoritos-actions__shuffle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.favoritos-actions__shuffle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.favoritos-actions__play:active,
+.favoritos-actions__shuffle:active:not(:disabled) {
+  transform: scale(0.97);
+  transition-duration: 100ms;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .favoritos-actions__play:hover {
+    background: #2680eb;
+    border-color: #2680eb;
+  }
+
+  .favoritos-actions__shuffle:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .favoritos-hero {
+    gap: 0.95rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .favoritos-hero__badge {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+  }
+
+  .favoritos-hero__badge svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* En móvil los dos botones se reparten el ancho, como en una app nativa. */
+  .favoritos-actions__play,
+  .favoritos-actions__shuffle {
+    flex: 1;
+  }
+
+  .favoritos-empty {
+    min-height: 320px;
+    padding: 2.5rem 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .favoritos-actions__play:active,
+  .favoritos-actions__shuffle:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Solo móvil: el reproductor pequeño no muestra el botón de programar audio
+   (sigue disponible en la pantalla completa). */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .mini-player__right .repeat-control {
+    display: none;
+  }
+}
+
+/* Solo móvil: programar audio, luz, volumen y favorito bajan de la cabecera
+   a esta fila, entre la barra de tiempo y el play (en la cabecera quedan la
+   flecha y los tres puntos). Sus menús se abren hacia arriba / como hoja,
+   porque debajo apenas queda sitio. */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .now-playing__extras {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1.5rem, 9vw, 2.5rem);
+    /* Un poco más arriba, sin mover el resto. Con position/top y no con
+       transform: un transform convertiría la fila en el contenedor de los
+       paneles position: fixed de dentro (hoja de programar audio). */
+    position: relative;
+    top: -8px;
+  }
+
+  /* Desplegable de los tres puntos (el mismo que en las filas de audio):
+     cuelga del botón, alineado a su borde derecho. */
+  .now-playing__more-wrapper {
+    position: relative;
+  }
+
+  .now-playing__more-wrapper .library-audio-row__menu {
+    z-index: 80;
+  }
+
+  /* El botón de tema va en el centro de la fila: su menú sale hacia arriba
+     centrado sobre él. */
+  .now-playing__extras .theme-menu {
+    top: auto;
+    bottom: calc(100% + 10px);
+    transform-origin: bottom center;
+  }
+
+  /* El disparador de programar audio mide 36px en móvil (regla genérica de
+     .repeat-control__trigger); aquí se iguala a los otros botones para que
+     la fila sea simétrica. */
+  .now-playing__extras .repeat-control__trigger {
+    width: clamp(48px, 13vw, 56px);
+    height: clamp(48px, 13vw, 56px);
+  }
+
+  /* Tema, volumen y corazón con el mismo color que el botón de programar
+     audio (.repeat-control__trigger usa --text-secondary). En Claro siguen
+     en azul por la regla !important de ese tema. */
+  .now-playing__extras .now-playing__icon-button {
+    color: var(--text-secondary);
+  }
+
+  /* Programar, luz y volumen (los que abren desplegable): al pulsarlos se
+     encogen, igual que el corazón y las flechas. */
+  .now-playing__extras .repeat-control__trigger,
+  .now-playing__extras .theme-control__trigger,
+  .now-playing__extras .volume-control__trigger {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 160ms var(--ease-drawer, ease-out), color 160ms ease-out;
+  }
+
+  .now-playing__extras .repeat-control__trigger:active,
+  .now-playing__extras .theme-control__trigger:active,
+  .now-playing__extras .volume-control__trigger:active {
+    transform: scale(0.84);
+    transition-duration: 60ms;
+  }
+
+  /* Mientras su desplegable está abierto, el botón se ilumina en blanco. */
+  .now-playing__extras .repeat-control__trigger[aria-expanded='true'],
+  .now-playing__extras .theme-control__trigger[aria-expanded='true'],
+  .now-playing__extras .volume-control__trigger[aria-expanded='true'] {
+    color: #ffffff;
+  }
+
+  /* Botón de volumen: encima del botón aparece, flotando sobre el
+     reproductor, una barra vertical con el porcentaje. */
+  .volume-control {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .volume-popover {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    translate: -50% 0;
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 0.6rem 0.8rem;
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(13, 20, 40, 0.98), rgba(3, 5, 12, 0.99));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: var(--shadow-strong), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transform-origin: bottom center;
+    animation: popover-in 160ms var(--ease-out-strong);
+  }
+
+  .volume-popover__value {
+    margin: 0;
+    min-width: 3.2em;
+    text-align: center;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Se arrastra con el dedo en cualquier punto (abajo 0 %, arriba 100 %);
+     touch-action: none evita que el arrastre haga scroll. */
+  .volume-popover__track {
+    position: relative;
+    width: 40px;
+    height: min(38vh, 260px);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    touch-action: none;
+    cursor: pointer;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .volume-popover__track:focus-visible {
+    box-shadow: 0 0 0 3px rgba(43, 123, 255, 0.6);
+  }
+
+  .volume-popover__fill {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #ffffff;
+    pointer-events: none;
+  }
+
+  /* Corazón de favoritos: relleno y en rosa cuando está marcado. */
+  .now-playing__extras .now-playing__favorite {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 160ms var(--ease-drawer, ease-out), color 160ms ease-out;
+  }
+
+  .now-playing__extras .now-playing__favorite:active {
+    transform: scale(0.84);
+    transition-duration: 60ms;
+  }
+
+  .now-playing__extras .now-playing__favorite.is-active {
+    color: #ff3b6b !important;
+  }
+
+  .now-playing__extras .now-playing__favorite:disabled {
+    opacity: 0.4;
+  }
+
+  /* Hoja de programar audio: aparece por encima de la fila de botones (no
+     pegada al borde inferior); al abrirse fija su borde superior y crece
+     hacia abajo (pinTopOnOpen en RepeatButton). Si no cabe, hace scroll. */
+  .now-playing__extras .repeat-menu {
+    bottom: calc(285px + env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 285px - env(safe-area-inset-bottom, 0px) - env(safe-area-inset-top, 0px) - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .now-playing--claro .now-playing__extras .repeat-control__trigger {
+    color: #2b7bff !important;
+  }
+}
+
+/* Móvil en horizontal: la fila de extras ocupa su propia fila en la columna
+   derecha del grid (sin esto se colocaría en una celda automática). */
+@media (orientation: landscape) and (hover: none) and (pointer: coarse) {
+  .now-playing__body {
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas:
+      'orb info'
+      'orb progress'
+      'orb extras'
+      'orb controls';
+  }
+
+  .now-playing__extras {
+    grid-area: extras;
+  }
+}
+
+/* Solo móvil: entrada de los desplegables de la fila de encima del play
+   (programar audio, luz y volumen). Suben desde el botón con un pequeño
+   rebote de escala y se enfocan (blur → nítido). */
+@keyframes extras-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.88);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .now-playing__extras .repeat-menu,
+  .now-playing__extras .theme-menu,
+  .now-playing__extras .volume-popover {
+    animation: extras-menu-in 320ms var(--ease-out-strong) backwards;
+  }
+
+  .now-playing__extras .repeat-menu {
+    transform-origin: bottom left;
+  }
+
+  .now-playing__extras .theme-menu,
+  .now-playing__extras .volume-popover {
+    transform-origin: bottom center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now-playing__extras .repeat-menu,
+  .now-playing__extras .theme-menu,
+  .now-playing__extras .volume-popover {
+    animation: none !important;
   }
 }

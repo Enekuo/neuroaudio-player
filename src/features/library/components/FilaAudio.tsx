@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import LibraryIcon from './LibraryIcon'
+import MenuOpcionesAudio from './MenuOpcionesAudio'
 import { formatTime } from '../utils/formatTime'
 
 type FilaAudioProps = {
@@ -7,11 +8,26 @@ type FilaAudioProps = {
   duration?: number
   isDeleting: boolean
   isPlaying?: boolean
+  isFavorite?: boolean
+  // Sin el corazón pequeño junto a los tres puntos (en la página de
+  // Favoritos todos lo son, así que sería ruido).
+  hideFavoriteBadge?: boolean
   onPlay: () => void
   onDelete: () => void
+  onToggleFavorite?: () => void
 }
 
-function FilaAudio({ name, duration, isDeleting, isPlaying, onPlay, onDelete }: FilaAudioProps) {
+function FilaAudio({
+  name,
+  duration,
+  isDeleting,
+  isPlaying,
+  isFavorite = false,
+  hideFavoriteBadge = false,
+  onPlay,
+  onDelete,
+  onToggleFavorite,
+}: FilaAudioProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -42,7 +58,7 @@ function FilaAudio({ name, duration, isDeleting, isPlaying, onPlay, onDelete }: 
 
   function handleFavoriteClick() {
     setIsMenuOpen(false)
-    // TODO: falta backend de favoritos.
+    onToggleFavorite?.()
   }
 
   return (
@@ -58,6 +74,14 @@ function FilaAudio({ name, duration, isDeleting, isPlaying, onPlay, onDelete }: 
       </button>
 
       <div className="library-audio-row__meta">
+        {isFavorite && !hideFavoriteBadge && !isDeleting ? (
+          <span className="library-audio-row__favorite" aria-label="En favoritos" role="img">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </span>
+        ) : null}
+
         {isDeleting ? (
           <span className="library-audio-row__deleting">Eliminando...</span>
         ) : (
@@ -74,53 +98,12 @@ function FilaAudio({ name, duration, isDeleting, isPlaying, onPlay, onDelete }: 
             </button>
 
             {isMenuOpen ? (
-              <div className="library-audio-row__menu" role="menu">
-                <button
-                  type="button"
-                  className="library-audio-row__menu-item"
-                  role="menuitem"
-                  onClick={handleAddToListClick}
-                >
-                  <span className="library-audio-row__menu-item-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 6h11" />
-                      <path d="M4 12h11" />
-                      <path d="M4 18h7" />
-                      <path d="M18 14v6" />
-                      <path d="M15 17h6" />
-                    </svg>
-                  </span>
-                  Añadir a la lista
-                </button>
-                <button
-                  type="button"
-                  className="library-audio-row__menu-item"
-                  role="menuitem"
-                  onClick={handleFavoriteClick}
-                >
-                  <span className="library-audio-row__menu-item-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                  </span>
-                  Marcar como favorito
-                </button>
-                <button
-                  type="button"
-                  className="library-audio-row__menu-item library-audio-row__menu-item--danger"
-                  role="menuitem"
-                  onClick={handleDeleteClick}
-                >
-                  <span className="library-audio-row__menu-item-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 7h16" />
-                      <path d="M6 7v13a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7" />
-                      <path d="M9 7V4h6v3" />
-                    </svg>
-                  </span>
-                  Eliminar
-                </button>
-              </div>
+              <MenuOpcionesAudio
+                isFavorite={isFavorite}
+                onAddToList={handleAddToListClick}
+                onFavorite={handleFavoriteClick}
+                onDelete={handleDeleteClick}
+              />
             ) : null}
           </div>
         )}

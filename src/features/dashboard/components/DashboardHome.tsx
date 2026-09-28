@@ -6,6 +6,7 @@ import { useUserProfile } from '../../auth/hooks/useUserProfile'
 import { useUserAudios, type LibraryAudio } from '../../library/hooks/useUserAudios'
 import { useUserListas } from '../../library/hooks/useUserListas'
 import { deleteAudio } from '../../library/services/audioService'
+import { alternarFavorito } from '../../library/services/favoritoService'
 import BuscadorAudios from '../../library/components/BuscadorAudios'
 import FilaAudio from '../../library/components/FilaAudio'
 import MenuCuentaMovil from '../../library/components/MenuCuentaMovil'
@@ -161,9 +162,7 @@ function DashboardHome() {
   const heroImageSrc =
     profile?.avatarGender === 'female' ? '/images/woman_listening.png' : '/images/man_listening.png'
 
-  // TODO: no hay ningún contador de favoritos en Firestore todavía.
-  // Cuando exista, sustituir este 0 por el dato real (p. ej. useUserFavoritos().totalFavoritos).
-  const totalFavoritos = 0
+  const totalFavoritos = audios.filter((audio) => audio.isFavorite).length
 
   const statCards = [
     {
@@ -392,7 +391,9 @@ function DashboardHome() {
                   isDeleting={deletingAudioId === audio.id}
                   isPlaying={isPlaying && currentTrack?.id === audio.id}
                   onPlay={() => handlePlayAudio(audio)}
+                  isFavorite={audio.isFavorite}
                   onDelete={() => handleDeleteAudio(audio)}
+                  onToggleFavorite={() => alternarFavorito(audio)}
                 />
               ))}
             </div>

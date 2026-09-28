@@ -8,6 +8,10 @@ export type LibraryAudio = AudioTrack & {
   size: number
   createdAt: Date
   storagePath?: string
+  // Favoritos: se guardan en el propio documento del audio. favoritedAt
+  // ordena la página de Favoritos (el último marcado, primero).
+  isFavorite: boolean
+  favoritedAt: Date | null
 }
 
 export function useUserAudios() {
@@ -32,7 +36,9 @@ export function useUserAudios() {
       audiosQuery,
       (snapshot) => {
         const items = snapshot.docs.map((docSnap): LibraryAudio => {
-          const data = docSnap.data()
+          // 'estimate': al marcar un favorito, favoritedAt (serverTimestamp)
+          // llega ya con una hora estimada en vez de null mientras se guarda.
+          const data = docSnap.data({ serverTimestamps: 'estimate' })
 
           return {
             id: docSnap.id,
@@ -42,6 +48,8 @@ export function useUserAudios() {
             size: data.size as number,
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
             storagePath: typeof data.storagePath === 'string' ? data.storagePath : undefined,
+            isFavorite: data.favorite === true,
+            favoritedAt: data.favoritedAt?.toDate ? data.favoritedAt.toDate() : null,
           }
         })
 

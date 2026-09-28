@@ -6,6 +6,7 @@ import { getTemplateById } from '../data/plantillasListas'
 import { useLibraryFolders } from '../hooks/useLibraryFolders'
 import type { LibraryAudio } from '../hooks/useUserAudios'
 import { deleteAudio } from '../services/audioService'
+import { alternarFavorito } from '../services/favoritoService'
 import { eliminarLista, quitarAudioDeLista, renombrarLista, anadirAudioALista } from '../services/listaService'
 import FilaAudio from './FilaAudio'
 import ListaOptionsMenu from './ListaOptionsMenu'
@@ -232,7 +233,9 @@ function ListaDetalle() {
                 isDeleting={deletingId === audio.id}
                 isPlaying={currentTrack?.id === audio.id && isPlaying}
                 onPlay={() => handlePlayTrack(audio)}
+                isFavorite={audio.isFavorite}
                 onDelete={() => handleDeleteTrack(audio)}
+                onToggleFavorite={() => alternarFavorito(audio)}
               />
             ))}
           </div>

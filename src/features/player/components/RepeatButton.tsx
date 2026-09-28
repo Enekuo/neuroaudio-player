@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import SettingsSwitch from '../../settings/components/SettingsSwitch'
 import { usePlayer, type RepeatMode } from '../context/PlayerContext'
 import { isNativeApp } from '../utils/platform'
@@ -9,6 +9,13 @@ type RepeatButtonProps = {
   // volumen y el retardo de inicio dentro de este mismo panel, y cambia el
   // título a "Programar audio".
   showVolume?: boolean
+  // En móvil el volumen tiene su propio botón (VolumeButton) en la fila de
+  // encima del play, así que el panel "Programar audio" no lo repite.
+  hideVolumeSection?: boolean
+  // Al abrirse, el panel fija su borde superior donde aparece (según el CSS)
+  // y a partir de ahí crece hacia abajo al desplegar secciones (p. ej. al
+  // activar el retardo), en vez de crecer hacia arriba desde el borde inferior.
+  pinTopOnOpen?: boolean
 }
 
 const DELAY_PRESETS = [
@@ -68,7 +75,7 @@ function CheckIcon() {
   )
 }
 
-function VolumeIcon() {
+export function VolumeIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M4 9v6h4l5 4V5L8 9H4Z" />
@@ -122,7 +129,7 @@ function ChevronIcon() {
 
 type ScheduleSection = 'repeat' | 'volume' | 'delay'
 
-function RepeatButton({ triggerClassName, showVolume }: RepeatButtonProps) {
+function RepeatButton({ triggerClassName, showVolume, hideVolumeSection, pinTopOnOpen }: RepeatButtonProps) {
   const {
     repeatMode,
     repeatTimes,
@@ -155,6 +162,21 @@ function RepeatButton({ triggerClassName, showVolume }: RepeatButtonProps) {
   // Volumen/Retardo de inicio) plegadas; solo una puede estar abierta a la vez.
   const [expandedSection, setExpandedSection] = useState<ScheduleSection | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Se mide antes de pintar, con el panel aún en su posición inicial del CSS
+  // (anclado por abajo). offsetTop no se ve afectado por el transform de la
+  // animación de entrada, así que da la posición real.
+  useLayoutEffect(() => {
+    const menu = menuRef.current
+    if (!isMenuOpen || !pinTopOnOpen || !menu) {
+      return
+    }
+    const top = menu.offsetTop
+    menu.style.top = `${top}px`
+    menu.style.bottom = 'auto'
+    menu.style.maxHeight = `calc(100dvh - ${top}px - env(safe-area-inset-bottom, 0px) - 12px)`
+  }, [isMenuOpen, pinTopOnOpen])
 
   useEffect(() => {
     if (!isMenuOpen) {
@@ -266,7 +288,7 @@ function RepeatButton({ triggerClassName, showVolume }: RepeatButtonProps) {
       </button>
 
       {isMenuOpen ? (
-        <div className={`repeat-menu${showVolume ? ' repeat-menu--schedule' : ''}`} role="menu" aria-label={`Opciones de ${menuTitle.toLowerCase()}`}>
+        <div ref={menuRef} className={`repeat-menu${showVolume ? ' repeat-menu--schedule' : ''}`} role="menu" aria-label={`Opciones de ${menuTitle.toLowerCase()}`}>
           <div className="repeat-menu__header">
             <span className="repeat-menu__header-icon" aria-hidden="true">
               <RepeatIcon />
@@ -375,6 +397,7 @@ function RepeatButton({ triggerClassName, showVolume }: RepeatButtonProps) {
                 ) : null}
               </div>
 
+              {hideVolumeSection ? null : (
               <div className="repeat-menu__section">
                 <button
                   type="button"
@@ -405,6 +428,7 @@ function RepeatButton({ triggerClassName, showVolume }: RepeatButtonProps) {
                   </div>
                 ) : null}
               </div>
+              )}
 
               <div className="repeat-menu__delay-group">
                 {pendingDelayEnabled && !isNativeApp() ? (

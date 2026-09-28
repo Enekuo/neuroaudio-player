@@ -1,9 +1,15 @@
-import { useState, type AnimationEvent, type ChangeEvent, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type AnimationEvent, type ChangeEvent, type CSSProperties } from 'react'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
 import RepeatButton from './RepeatButton'
 import SkipButton from './SkipButton'
 import ThemeButton, { type ThemeOption } from './ThemeButton'
+import VolumeButton from './VolumeButton'
+import { useIsMobileLayout } from '../utils/useIsMobileLayout'
+import MenuOpcionesAudio from '../../library/components/MenuOpcionesAudio'
+import { useUserAudios } from '../../library/hooks/useUserAudios'
+import { deleteAudio } from '../../library/services/audioService'
+import { alternarFavorito } from '../../library/services/favoritoService'
 
 const WAVEFORM_BARS = Array.from({ length: 48 }, (_, index) => {
   const wave = Math.sin(index * 0.45) * 0.5 + 0.5
@@ -20,6 +26,75 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
   const { currentTrack, isPlaying, currentTime, duration, togglePlay, seek, collapse, delayCountdown, repeatMode, repeatTimes, repeatCount } =
     usePlayer()
   const [theme, setTheme] = useState<ThemeOption>('normal')
+  const isMobileLayout = useIsMobileLayout()
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
+  const moreMenuRef = useRef<HTMLDivElement>(null)
+
+  // Favorito real (guardado en el documento del audio): el corazón y la
+  // opción del menú de tres puntos leen el estado desde la biblioteca.
+  const { audios } = useUserAudios()
+  const currentAudio = currentTrack ? audios.find((audio) => audio.id === currentTrack.id) ?? null : null
+  const isFavorite = currentAudio?.isFavorite ?? false
+
+  function handleToggleFavorite() {
+    if (currentAudio) {
+      void alternarFavorito(currentAudio)
+    }
+  }
+
+  useEffect(() => {
+    if (!isMoreMenuOpen) {
+      return
+    }
+
+    function handleClickOutside(event: MouseEvent) {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+        setIsMoreMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isMoreMenuOpen])
+
+  function handleAddToListClick() {
+    setIsMoreMenuOpen(false)
+    // TODO: falta backend para asociar audios a listas (igual que en FilaAudio).
+  }
+
+  function handleFavoriteMenuClick() {
+    setIsMoreMenuOpen(false)
+    handleToggleFavorite()
+  }
+
+  // Mismo flujo que "Eliminar" en la biblioteca (confirmación + deleteAudio);
+  // al terminar se pausa y se comprime el reproductor, porque la pista que
+  // estaba abierta ya no existe.
+  async function handleDeleteClick() {
+    setIsMoreMenuOpen(false)
+
+    if (!currentTrack) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas eliminar el audio "${currentTrack.name}"? Esta acción no se puede deshacer.`,
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      await deleteAudio(currentAudio ?? currentTrack)
+      if (isPlaying) {
+        togglePlay()
+      }
+      collapse()
+    } catch {
+      window.alert('No se pudo eliminar el audio. Inténtalo de nuevo.')
+    }
+  }
 
   // El aviso de "animación terminada" burbujea desde cualquier hijo (las barras
   // del waveform animan constantemente), así que solo actuamos cuando es la
@@ -65,11 +140,44 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
             </svg>
           </button>
 
-          <ThemeButton triggerClassName="now-playing__icon-button" theme={theme} onThemeChange={setTheme} />
+          {isMobileLayout ? (
+            // En móvil la cabecera solo lleva la flecha y el menú de tres
+            // puntos; tema, repetición, volumen y favorito bajan a
+            // .now-playing__extras (encima del play).
+            <div className="now-playing__more-wrapper" ref={moreMenuRef}>
+              <button
+                type="button"
+                className="now-playing__icon-button now-playing__more"
+                aria-label="Más opciones"
+                aria-haspopup="true"
+                aria-expanded={isMoreMenuOpen}
+                onClick={() => setIsMoreMenuOpen((value) => !value)}
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <circle cx="5" cy="12" r="2" />
+                  <circle cx="12" cy="12" r="2" />
+                  <circle cx="19" cy="12" r="2" />
+                </svg>
+              </button>
 
-          <div className="now-playing__header-actions">
-            <RepeatButton triggerClassName="now-playing__icon-button" showVolume />
-          </div>
+              {isMoreMenuOpen ? (
+                <MenuOpcionesAudio
+                  isFavorite={isFavorite}
+                  onAddToList={handleAddToListClick}
+                  onFavorite={handleFavoriteMenuClick}
+                  onDelete={handleDeleteClick}
+                />
+              ) : null}
+            </div>
+          ) : (
+            <>
+              <ThemeButton triggerClassName="now-playing__icon-button" theme={theme} onThemeChange={setTheme} />
+
+              <div className="now-playing__header-actions">
+                <RepeatButton triggerClassName="now-playing__icon-button" showVolume />
+              </div>
+            </>
+          )}
         </header>
 
         <div className="now-playing__body">
@@ -108,6 +216,26 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
               <span>-{formatTime(remaining)}</span>
             </div>
           </div>
+
+          {isMobileLayout ? (
+            <div className="now-playing__extras">
+              <RepeatButton triggerClassName="now-playing__icon-button" showVolume hideVolumeSection pinTopOnOpen />
+              <ThemeButton triggerClassName="now-playing__icon-button" theme={theme} onThemeChange={setTheme} />
+              <VolumeButton triggerClassName="now-playing__icon-button" />
+              <button
+                type="button"
+                className={`now-playing__icon-button now-playing__favorite${isFavorite ? ' is-active' : ''}`}
+                aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+                aria-pressed={isFavorite}
+                disabled={!currentAudio}
+                onClick={handleToggleFavorite}
+              >
+                <svg viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </button>
+            </div>
+          ) : null}
 
           <div className="now-playing__controls">
             <div className="now-playing__transport">

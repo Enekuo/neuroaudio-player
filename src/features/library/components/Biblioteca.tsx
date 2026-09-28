@@ -8,6 +8,7 @@ import type { LibraryFolder } from '../data/plantillasListas'
 import { useLibraryFolders } from '../hooks/useLibraryFolders'
 import { type LibraryAudio } from '../hooks/useUserAudios'
 import { deleteAudio } from '../services/audioService'
+import { alternarFavorito } from '../services/favoritoService'
 import AudiosConjuntos from './AudiosConjuntos'
 import FilaAudio from './FilaAudio'
 import LibraryIcon from './LibraryIcon'
@@ -171,7 +172,9 @@ function Biblioteca() {
                     isDeleting={deletingId === audio.id}
                     isPlaying={isPlaying && currentTrack?.id === audio.id}
                     onPlay={() => handlePlay(audio)}
+                    isFavorite={audio.isFavorite}
                     onDelete={() => handleDelete(audio)}
+                    onToggleFavorite={() => alternarFavorito(audio)}
                   />
                 ))}
               </div>
