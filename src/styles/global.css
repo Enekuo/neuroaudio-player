@@ -8364,10 +8364,8 @@ input[type='submit']:active,
 }
 
 /* ============================================================
-   Favoritos: corazón en las filas de audio + página de Favoritos.
-   Sigue el Santuario Nocturno: casi negro, el azul solo en lo activo
-   (el corazón marcado, el botón principal). Mismo layout que Biblioteca
-   (.library-screen) para que ambas pantallas se sientan hermanas.
+   Favoritos: corazón en las filas de audio (la página de Favoritos usa su
+   diseño original: .page--simple + .favorites-page).
    ============================================================ */
 
 /* Corazón pequeño junto a los tres puntos cuando el audio es favorito. */
@@ -8381,161 +8379,6 @@ input[type='submit']:active,
   width: 15px;
   height: 15px;
   filter: drop-shadow(0 0 4px rgba(38, 128, 235, 0.45));
-}
-
-/* Cabecera: insignia con el corazón + título y resumen (nº y duración). */
-.favoritos-hero {
-  display: flex;
-  align-items: center;
-  gap: 1.1rem;
-  margin-bottom: 1.4rem;
-}
-
-.favoritos-hero__badge {
-  width: 84px;
-  height: 84px;
-  flex-shrink: 0;
-  border-radius: 22px;
-  display: grid;
-  place-items: center;
-  color: #ffffff;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(59, 158, 255, 0.35), transparent 60%),
-    linear-gradient(160deg, #1b4d78 0%, #0a1528 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.favoritos-hero__badge svg {
-  width: 38px;
-  height: 38px;
-  filter: drop-shadow(0 0 10px rgba(38, 128, 235, 0.6));
-}
-
-.favoritos-hero__info {
-  min-width: 0;
-}
-
-.favoritos-hero__info h1 {
-  margin: 0;
-  color: #f0f1f3;
-  font-size: clamp(26px, 3vw, 2.2rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-}
-
-.favoritos-hero__info p {
-  margin: 0.35rem 0 0;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Acciones: Reproducir (primaria, azul faro) y Aleatorio (fantasma). */
-.favoritos-actions {
-  display: flex;
-  gap: 0.65rem;
-  margin-bottom: 1.4rem;
-}
-
-.favoritos-actions__play,
-.favoritos-actions__shuffle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  min-height: 44px;
-  padding: 0 1.25rem;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-user-select: none;
-  user-select: none;
-  transition:
-    transform 160ms var(--ease-out-strong),
-    background-color 160ms ease,
-    border-color 160ms ease;
-}
-
-.favoritos-actions__play {
-  border: 1px solid #0047ff;
-  background: #0047ff;
-  color: #ffffff;
-}
-
-.favoritos-actions__shuffle {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: transparent;
-  color: #f0f1f3;
-}
-
-.favoritos-actions__play svg,
-.favoritos-actions__shuffle svg {
-  width: 18px;
-  height: 18px;
-}
-
-.favoritos-actions__shuffle:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.favoritos-actions__play:active,
-.favoritos-actions__shuffle:active:not(:disabled) {
-  transform: scale(0.97);
-  transition-duration: 100ms;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .favoritos-actions__play:hover {
-    background: #2680eb;
-    border-color: #2680eb;
-  }
-
-  .favoritos-actions__shuffle:hover:not(:disabled) {
-    border-color: rgba(255, 255, 255, 0.3);
-  }
-}
-
-@media (max-width: 640px), (hover: none) and (pointer: coarse) {
-  .favoritos-hero {
-    gap: 0.95rem;
-    margin-bottom: 1.2rem;
-  }
-
-  .favoritos-hero__badge {
-    width: 72px;
-    height: 72px;
-    border-radius: 18px;
-  }
-
-  .favoritos-hero__badge svg {
-    width: 32px;
-    height: 32px;
-  }
-
-  /* En móvil los dos botones se reparten el ancho, como en una app nativa. */
-  .favoritos-actions__play,
-  .favoritos-actions__shuffle {
-    flex: 1;
-  }
-
-  .favoritos-empty {
-    min-height: 320px;
-    padding: 2.5rem 1.5rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .favoritos-actions__play:active,
-  .favoritos-actions__shuffle:active:not(:disabled) {
-    transform: none;
-  }
 }
 
 /* Solo móvil: el reproductor pequeño no muestra el botón de programar audio
@@ -8776,5 +8619,25 @@ input[type='submit']:active,
   .now-playing__extras .theme-menu,
   .now-playing__extras .volume-popover {
     animation: none !important;
+  }
+}
+
+/* Solo móvil: aviso del retardo de inicio fuera del panel de programar audio
+   (fila de encima del play), justo encima del panel completo. Mismo aspecto
+   que el aviso normal; su "bottom" lo calcula RepeatButton a partir del
+   borde superior del panel. La flecha apunta hacia el panel. */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .repeat-menu__delay-notice--outside {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    z-index: 81;
+    animation: extras-menu-in 240ms var(--ease-out-strong) backwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .repeat-menu__delay-notice--outside {
+    animation: none;
   }
 }

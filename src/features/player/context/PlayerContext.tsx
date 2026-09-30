@@ -58,6 +58,15 @@ type PlayerContextValue = {
 
 const PlayerContext = createContext<PlayerContextValue | undefined>(undefined)
 
+// Huella de un programa (audio + valores), para saber si ya está guardado tal
+// cual y no repetir escrituras.
+function scheduleKey(
+  trackId: string,
+  schedule: { repeatMode: RepeatMode; repeatTimes: number; startDelayEnabled: boolean; startDelaySeconds: number; volume: number },
+) {
+  return `${trackId}|${schedule.repeatMode}|${schedule.repeatTimes}|${schedule.startDelayEnabled}|${schedule.startDelaySeconds}|${schedule.volume}`
+}
+
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const uid = user?.uid ?? null
@@ -79,10 +88,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [startDelayEnabled, setStartDelayEnabled] = useState(false)
   const [startDelaySeconds, setStartDelaySeconds] = useState(30)
   const [delayCountdown, setDelayCountdown] = useState<number | null>(null)
-  // Si la pista actual tiene programación guardada en Firestore, y si hay un
-  // guardado/borrado en curso (para no dejar pulsar el botón dos veces).
-  const [hasSavedSchedule, setHasSavedSchedule] = useState(false)
+  // Id de la pista cuya programación está guardada en Firestore (o null), y si
+  // hay un guardado/borrado en curso (para no dejar pulsar el botón dos veces).
+  // Se guarda el id y no un simple booleano: así la programación queda atada a
+  // ESE audio y nunca se puede escribir ni mostrar como guardada en otro.
+  const [savedScheduleTrackId, setSavedScheduleTrackIdState] = useState<string | null>(null)
+  const savedScheduleTrackIdRef = useRef<string | null>(null)
   const [isSavingSchedule, setIsSavingSchedule] = useState(false)
+  // Volumen "general" del usuario (el que usa en los audios SIN programación
+  // guardada). Al pasar de un audio programado a otro que no lo está, se
+  // vuelve a este volumen en vez de arrastrar el del programa anterior.
+  const generalVolumeRef = useRef(1)
+  // Sincronización automática de una programación ya guardada: si después de
+  // pulsar "Guardar" se cambia el retardo, las repeticiones o el volumen de
+  // ese audio, se actualiza sola (con un pequeño debounce para el slider).
+  const lastSyncedScheduleKeyRef = useRef<string | null>(null)
+  const pendingScheduleSyncRef = useRef<{
+    uid: string
+    trackId: string
+    key: string
+    schedule: Parameters<typeof saveAudioSchedule>[2]
+  } | null>(null)
 
   const repeatModeRef = useRef<RepeatMode>('off')
   const repeatTimesRef = useRef(5)
@@ -123,6 +149,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const scheduleRequestIdRef = useRef(0)
 
   const currentTrack = currentIndex !== null ? (queue[currentIndex] ?? null) : null
+  const hasSavedSchedule = savedScheduleTrackId !== null && savedScheduleTrackId === currentTrack?.id
+
+  const setSavedScheduleTrackId = useCallback((trackId: string | null) => {
+    savedScheduleTrackIdRef.current = trackId
+    setSavedScheduleTrackIdState(trackId)
+  }, [])
 
   useEffect(() => {
     queueRef.current = queue
@@ -461,7 +493,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setRepeatTimes(5)
     setStartDelayEnabled(false)
     setStartDelaySeconds(30)
-    setHasSavedSchedule(false)
+    setSavedScheduleTrackId(null)
+    // El volumen también forma parte del programa: si la pista anterior tenía
+    // uno guardado con otro volumen, no se hereda — se vuelve al general.
+    setVolumeState(generalVolumeRef.current)
+    audioEl.volume = generalVolumeRef.current
 
     async function loadScheduleAndPlay() {
       let schedule = null as Awaited<ReturnType<typeof getAudioSchedule>>
@@ -485,9 +521,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         setRepeatTimes(schedule.repeatTimes)
         setStartDelayEnabled(schedule.startDelayEnabled)
         setStartDelaySeconds(schedule.startDelaySeconds)
-        setHasSavedSchedule(true)
+        setSavedScheduleTrackId(trackId)
 
         const clampedVolume = Math.min(1, Math.max(0, schedule.volume))
+        // Lo que viene de Firestore ya está guardado: no hace falta volver a
+        // escribirlo al aplicarlo.
+        lastSyncedScheduleKeyRef.current = scheduleKey(trackId, { ...schedule, volume: clampedVolume })
         setVolumeState(clampedVolume)
         if (audioRef.current) {
           audioRef.current.volume = clampedVolume
@@ -507,7 +546,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
 
     loadScheduleAndPlay()
-  }, [currentTrack, uid, startDelayCountdown, playRobust])
+  }, [currentTrack, uid, startDelayCountdown, playRobust, setSavedScheduleTrackId])
 
   // Media Session: declara la pista activa ante el sistema operativo/navegador
   // para que la reproducción sobreviva en segundo plano y aparezcan los
@@ -630,6 +669,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const audioEl = audioRef.current
     if (audioEl) {
       audioEl.volume = clamped
+    }
+    // En un audio con programa guardado, el volumen es parte de ESE programa
+    // (se sincroniza con él); en el resto, es el volumen general.
+    if (savedScheduleTrackIdRef.current === null) {
+      generalVolumeRef.current = clamped
     }
     setVolumeState(clamped)
   }, [])
@@ -760,19 +804,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     const trackId = currentTrack.id
     const wasSaved = hasSavedSchedule
+    const schedule = {
+      repeatMode: repeatModeRef.current,
+      repeatTimes: repeatTimesRef.current,
+      startDelayEnabled: startDelayEnabledRef.current,
+      startDelaySeconds: startDelaySecondsRef.current,
+      volume: volumeRef.current,
+    }
 
-    setHasSavedSchedule(!wasSaved)
+    // Cualquier sincronización pendiente queda sustituida por esta acción
+    // (y, si se está quitando el guardado, no debe volver a crear el doc).
+    pendingScheduleSyncRef.current = null
+    lastSyncedScheduleKeyRef.current = wasSaved ? null : scheduleKey(trackId, schedule)
+    if (wasSaved) {
+      // Al quitar el programa, el volumen actual pasa a ser el general.
+      generalVolumeRef.current = volumeRef.current
+    }
+
+    setSavedScheduleTrackId(wasSaved ? null : trackId)
     setIsSavingSchedule(true)
 
-    const request = wasSaved
-      ? deleteAudioSchedule(uid, trackId)
-      : saveAudioSchedule(uid, trackId, {
-          repeatMode: repeatModeRef.current,
-          repeatTimes: repeatTimesRef.current,
-          startDelayEnabled: startDelayEnabledRef.current,
-          startDelaySeconds: startDelaySecondsRef.current,
-          volume: volumeRef.current,
-        })
+    const request = wasSaved ? deleteAudioSchedule(uid, trackId) : saveAudioSchedule(uid, trackId, schedule)
 
     request
       .catch((error) => {
@@ -780,13 +832,49 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         // Solo se deshace si seguimos en la misma pista; si ya se cambió de
         // audio, el estado de "guardado" que se ve ahora es el de otra pista.
         if (loadedTrackIdRef.current === trackId) {
-          setHasSavedSchedule(wasSaved)
+          setSavedScheduleTrackId(wasSaved ? trackId : null)
+          lastSyncedScheduleKeyRef.current = null
         }
       })
       .finally(() => {
         setIsSavingSchedule(false)
       })
-  }, [uid, currentTrack, hasSavedSchedule, isSavingSchedule])
+  }, [uid, currentTrack, hasSavedSchedule, isSavingSchedule, setSavedScheduleTrackId])
+
+  const flushScheduleSync = useCallback(() => {
+    const pending = pendingScheduleSyncRef.current
+    if (!pending) {
+      return
+    }
+    pendingScheduleSyncRef.current = null
+    lastSyncedScheduleKeyRef.current = pending.key
+    saveAudioSchedule(pending.uid, pending.trackId, pending.schedule).catch((error) => {
+      console.error('No se pudo actualizar la programación guardada del audio', error)
+      lastSyncedScheduleKeyRef.current = null
+    })
+  }, [])
+
+  // Programa ya guardado + el usuario cambia algo de ESE audio → se actualiza
+  // en Firestore. El destino es siempre savedScheduleTrackId (el audio al que
+  // pertenece el programa), nunca "la pista actual", así que es imposible que
+  // se escriba en otro audio. Al cambiar de pista (savedScheduleTrackId pasa a
+  // null) se vuelca lo pendiente del audio anterior antes de olvidarlo.
+  useEffect(() => {
+    if (!uid || !savedScheduleTrackId) {
+      flushScheduleSync()
+      return
+    }
+
+    const schedule = { repeatMode, repeatTimes, startDelayEnabled, startDelaySeconds, volume }
+    const key = scheduleKey(savedScheduleTrackId, schedule)
+    if (key === lastSyncedScheduleKeyRef.current) {
+      return
+    }
+
+    pendingScheduleSyncRef.current = { uid, trackId: savedScheduleTrackId, key, schedule }
+    const timeoutId = window.setTimeout(flushScheduleSync, 600)
+    return () => window.clearTimeout(timeoutId)
+  }, [uid, savedScheduleTrackId, repeatMode, repeatTimes, startDelayEnabled, startDelaySeconds, volume, flushScheduleSync])
 
   const value = useMemo<PlayerContextValue>(
     () => ({

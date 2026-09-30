@@ -161,6 +161,9 @@ function RepeatButton({ triggerClassName, showVolume, hideVolumeSection, pinTopO
   // Panel "Programar audio": empieza siempre con las tres partes (Repeticiones/
   // Volumen/Retardo de inicio) plegadas; solo una puede estar abierta a la vez.
   const [expandedSection, setExpandedSection] = useState<ScheduleSection | null>(null)
+  // Borde superior (px) del panel ya fijado con pinTopOnOpen: el aviso del
+  // retardo se coloca justo encima del panel entero, por fuera.
+  const [pinnedMenuTop, setPinnedMenuTop] = useState<number | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -176,6 +179,7 @@ function RepeatButton({ triggerClassName, showVolume, hideVolumeSection, pinTopO
     menu.style.top = `${top}px`
     menu.style.bottom = 'auto'
     menu.style.maxHeight = `calc(100dvh - ${top}px - env(safe-area-inset-bottom, 0px) - 12px)`
+    setPinnedMenuTop(top)
   }, [isMenuOpen, pinTopOnOpen])
 
   useEffect(() => {
@@ -267,6 +271,24 @@ function RepeatButton({ triggerClassName, showVolume, hideVolumeSection, pinTopO
 
   const menuTitle = showVolume ? 'Programar audio' : 'Repetición'
 
+  const showDelayNotice = pendingDelayEnabled && !isNativeApp()
+  // Con el panel fijado (móvil, fila de encima del play) el aviso va fuera,
+  // encima del panel completo; si no, sigue encima del retardo de inicio.
+  const isNoticeOutside = pinTopOnOpen === true && pinnedMenuTop !== null
+  const delayNotice = (
+    <div
+      className={`repeat-menu__delay-notice${isNoticeOutside ? ' repeat-menu__delay-notice--outside' : ''}`}
+      role="note"
+      style={isNoticeOutside ? { bottom: `calc(100% - ${pinnedMenuTop}px + 12px)` } : undefined}
+    >
+      <InfoIcon />
+      <span>
+        Aviso: con la pantalla apagada, el retardo puede no funcionar correctamente según tu
+        dispositivo o navegador. Para una experiencia completa, descarga la app.
+      </span>
+    </div>
+  )
+
   const label =
     repeatMode === 'off'
       ? 'Repetición: desactivada'
@@ -286,6 +308,8 @@ function RepeatButton({ triggerClassName, showVolume, hideVolumeSection, pinTopO
       >
         <RepeatIcon />
       </button>
+
+      {isMenuOpen && showDelayNotice && isNoticeOutside ? delayNotice : null}
 
       {isMenuOpen ? (
         <div ref={menuRef} className={`repeat-menu${showVolume ? ' repeat-menu--schedule' : ''}`} role="menu" aria-label={`Opciones de ${menuTitle.toLowerCase()}`}>
@@ -431,15 +455,7 @@ function RepeatButton({ triggerClassName, showVolume, hideVolumeSection, pinTopO
               )}
 
               <div className="repeat-menu__delay-group">
-                {pendingDelayEnabled && !isNativeApp() ? (
-                  <div className="repeat-menu__delay-notice" role="note">
-                    <InfoIcon />
-                    <span>
-                      Aviso: con la pantalla apagada, el retardo puede no funcionar correctamente según tu
-                      dispositivo o navegador. Para una experiencia completa, descarga la app.
-                    </span>
-                  </div>
-                ) : null}
+                {showDelayNotice && !isNoticeOutside ? delayNotice : null}
 
                 <div className="repeat-menu__section">
                   <div className="repeat-menu__section-header-row">
