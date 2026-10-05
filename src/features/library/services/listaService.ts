@@ -88,3 +88,10 @@ export async function guardarAudiosDeLista(listaId: string, audioIds: string[]) 
   const listaRef = doc(db, 'listas', listaId)
   await updateDoc(listaRef, { audioIds })
 }
+
+// Portada de una lista personalizada (data URL ya reducido en el cliente, ver
+// utils/portadaLista.ts). null la quita y la lista vuelve a su icono.
+export async function cambiarPortadaLista(listaId: string, coverImage: string | null) {
+  const listaRef = doc(db, 'listas', listaId)
+  await updateDoc(listaRef, { coverImage })
+}

@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { useAuth } from '../../auth/context/AuthContext'
 import { deleteAudioSchedule, getAudioSchedule, saveAudioSchedule } from '../services/audioScheduleService'
+import { registrarReproduccion } from '../../library/services/audioService'
 
 export type AudioTrack = {
   id: string
@@ -480,6 +481,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     audioEl.src = currentTrack.url
     loadedTrackIdRef.current = currentTrack.id
+
+    // "Audios recientes": una sola escritura por cada audio que se pone a
+    // sonar (solo al cambiar de pista, nunca en bucle ni en cada repetición).
+    if (uid) {
+      registrarReproduccion(currentTrack.id).catch((error) => {
+        console.error('No se pudo registrar la última reproducción del audio', error)
+      })
+    }
 
     const trackId = currentTrack.id
     scheduleRequestIdRef.current += 1

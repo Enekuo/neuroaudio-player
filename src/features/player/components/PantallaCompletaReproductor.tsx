@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type AnimationEvent, type ChangeEvent, type CSSProperties } from 'react'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
+import AudioWave from '../../../components/AudioWave'
 import RepeatButton from './RepeatButton'
 import SkipButton from './SkipButton'
 import ThemeButton, { type ThemeOption } from './ThemeButton'
@@ -10,12 +11,6 @@ import MenuOpcionesAudio from '../../library/components/MenuOpcionesAudio'
 import { useUserAudios } from '../../library/hooks/useUserAudios'
 import { deleteAudio } from '../../library/services/audioService'
 import { alternarFavorito } from '../../library/services/favoritoService'
-
-const WAVEFORM_BARS = Array.from({ length: 48 }, (_, index) => {
-  const wave = Math.sin(index * 0.45) * 0.5 + 0.5
-  const ripple = Math.sin(index * 1.3) * 0.2
-  return Math.max(0.12, Math.min(1, wave + ripple))
-})
 
 type PantallaCompletaReproductorProps = {
   isClosing: boolean
@@ -181,16 +176,8 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
         </header>
 
         <div className="now-playing__body">
-          <div className="now-playing__orb">
-            <div className="now-playing__wave" aria-hidden="true">
-              {WAVEFORM_BARS.map((height, index) => (
-                <span
-                  key={index}
-                  className={index / WAVEFORM_BARS.length <= progressRatio ? 'is-played' : ''}
-                  style={{ height: `${Math.round(height * 100)}%` }}
-                />
-              ))}
-            </div>
+          <div className="now-playing__orb now-playing__orb--wave">
+            <AudioWave variant="large" playing={isPlaying} />
           </div>
 
           <div className="now-playing__info">

@@ -4,6 +4,8 @@ import TemplateIcon from './TemplateIcon'
 type TemplateGridProps = {
   folders: LibraryFolder[]
   activeKey?: string | null
+  // Lista de la que se acaba de volver: su tarjeta se ilumina un instante.
+  returnKey?: string | null
   disabled?: boolean
   onOpen: (folder: LibraryFolder) => void
   onCreateCustom: () => void
@@ -28,20 +30,22 @@ function ChevronIcon() {
   )
 }
 
-function TemplateGrid({ folders, activeKey, disabled, onOpen, onCreateCustom }: TemplateGridProps) {
+function TemplateGrid({ folders, activeKey, returnKey, disabled, onOpen, onCreateCustom }: TemplateGridProps) {
   return (
     <div className="template-grid">
       {folders.map((folder) => {
         const template = getTemplateById(folder.template)
-        const hasImage = Boolean(template.cardImage)
+        const coverImage = folder.coverImage ?? null
+        const hasImage = Boolean(coverImage || template.cardImage)
         const isActive = folder.key === activeKey
+        const isReturning = Boolean(returnKey) && folder.key === returnKey
         const audioLabel = folder.count === 1 ? '1 audio' : `${folder.count} audios`
 
         return (
           <button
             key={folder.key}
             type="button"
-            className={`template-card${hasImage ? ' template-card--has-image' : ''}${isActive ? ' is-selected' : ''}`}
+            className={`template-card${hasImage ? ' template-card--has-image' : ''}${isActive ? ' is-selected' : ''}${isReturning ? ' is-returning' : ''}`}
             onClick={() => onOpen(folder)}
             disabled={disabled}
           >
@@ -49,11 +53,16 @@ function TemplateGrid({ folders, activeKey, disabled, onOpen, onCreateCustom }: 
               <>
                 <span
                   className="template-card__bg"
-                  style={{
-                    backgroundImage: `url(${template.cardImage})`,
-                    ...(template.cardImageSize ? { backgroundSize: `${template.cardImageSize}%` } : {}),
-                    ...(template.cardImagePosition ? { backgroundPosition: template.cardImagePosition } : {}),
-                  }}
+                  style={
+                    coverImage
+                      ? // Foto del usuario: llena toda la tarjeta.
+                        { backgroundImage: `url(${coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                      : {
+                          backgroundImage: `url(${template.cardImage})`,
+                          ...(template.cardImageSize ? { backgroundSize: `${template.cardImageSize}%` } : {}),
+                          ...(template.cardImagePosition ? { backgroundPosition: template.cardImagePosition } : {}),
+                        }
+                  }
                   aria-hidden="true"
                 />
                 <span className="template-card__bg-overlay" aria-hidden="true" />

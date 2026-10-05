@@ -52,6 +52,7 @@ export function useLibraryFolders() {
         isCustom: true,
         audioIds: lista.audioIds,
         count: countExisting(lista.audioIds),
+        coverImage: lista.coverImage,
       }))
 
     return [...fixedFolders, ...customFolders]

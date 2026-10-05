@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import UserAvatar from '../../auth/components/UserAvatar'
 import { useSwipeTabs } from '../../../hooks/useSwipeTabs'
@@ -38,6 +38,10 @@ function Biblioteca() {
   const { currentTrack, isPlaying, playTrack } = usePlayer()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const location = useLocation()
+  const [returnKey, setReturnKey] = useState<string | null>(
+    () => (location.state as { fromList?: string } | null)?.fromList ?? null,
+  )
   const [activeTab, setActiveTab] = useState<LibraryTab>('listas')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
@@ -50,6 +54,18 @@ function Biblioteca() {
       setActiveTab(tab)
     }
   }, [searchParams])
+
+  useEffect(() => {
+    if (location.state) {
+      window.history.replaceState({ ...window.history.state, usr: null }, '')
+    }
+    // El destello dura menos de un segundo; después se olvida para que no se
+    // repita si se vuelve a la pestaña Listas tras cambiar de pestaña.
+    const timeoutId = window.setTimeout(() => setReturnKey(null), 1200)
+    return () => window.clearTimeout(timeoutId)
+    // Solo al montar: el estado de navegación se consume una vez.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const swipeHandlers = useSwipeTabs(LIBRARY_TAB_ORDER, activeTab, setActiveTab)
 
@@ -193,6 +209,7 @@ function Biblioteca() {
                 <div className="library-templates-intro">
                   <TemplateGrid
                     folders={folders}
+                    returnKey={returnKey}
                     onOpen={handleOpenFolder}
                     onCreateCustom={() => setIsCreateListModalOpen(true)}
                   />

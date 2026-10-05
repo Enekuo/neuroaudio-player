@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState, type AnimationEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import UserAvatar from '../../auth/components/UserAvatar'
@@ -102,19 +102,32 @@ function getSaludoPorHora(): string {
   return 'Buenas noches'
 }
 
+// Alturas (px, sobre 96) de las barras de la onda decorativa de la tarjeta de
+// bienvenida: una envolvente suave que crece hacia la derecha, como un audio
+// que empieza a sonar.
+// PRUEBA: fuerza la tarjeta de bienvenida aunque el usuario tenga audios.
+// Poner a false para volver a la regla normal (solo usuarios sin audios).
+const MOSTRAR_BIENVENIDA_SIEMPRE = true
+
+const WELCOME_WAVE_BARS = Array.from({ length: 28 }, (_, index) => {
+  const envelope = 0.25 + 0.75 * (index / 27)
+  const ripple = 0.55 + 0.45 * Math.abs(Math.sin(index * 0.9) * Math.cos(index * 0.37))
+  return Math.round(Math.max(8, 92 * envelope * ripple))
+})
+
 const steps = [
   {
     id: 1,
-    title: 'Añade tu primer audio',
-    description: 'Desde YouTube, un archivo o un enlace.',
+    title: 'Añadir audio',
+    description: 'Sube un archivo de audio',
     active: true,
     buttonLabel: 'Añadir',
     action: 'upload' as const,
   },
   {
     id: 2,
-    title: 'Crea una lista',
-    description: 'Agrupa tus audios como quieras: dormir, ansiedad…',
+    title: 'Crear lista',
+    description: 'Organiza tus audios en listas',
     active: true,
     buttonLabel: 'Crear lista',
     action: 'create-list' as const,
@@ -126,7 +139,7 @@ function DashboardHome() {
   const { user } = useAuth()
   const { profile } = useUserProfile()
   const { listas } = useUserListas()
-  const { audios } = useUserAudios()
+  const { audios, isLoading: isLoadingAudios } = useUserAudios()
   const { currentTrack, isPlaying, playTrack } = usePlayer()
   const [isInviteBannerVisible, setIsInviteBannerVisible] = useState(true)
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
@@ -163,6 +176,42 @@ function DashboardHome() {
     profile?.avatarGender === 'female' ? '/images/woman_listening.png' : '/images/man_listening.png'
 
   const totalFavoritos = audios.filter((audio) => audio.isFavorite).length
+  const mostrarBienvenida = MOSTRAR_BIENVENIDA_SIEMPRE || (!isLoadingAudios && audios.length === 0)
+
+  // Ciclo de vida visual de la bienvenida: al subir el primer audio no
+  // desaparece de golpe, sale con una animación ('leaving') y solo después
+  // se desmonta y entra "Añade contenido" en su sitio.
+  const [welcomeState, setWelcomeState] = useState<'shown' | 'leaving' | 'hidden'>(
+    mostrarBienvenida ? 'shown' : 'hidden',
+  )
+
+  useEffect(() => {
+    if (mostrarBienvenida) {
+      setWelcomeState('shown')
+    } else {
+      setWelcomeState((previous) => (previous === 'shown' ? 'leaving' : 'hidden'))
+    }
+  }, [mostrarBienvenida])
+
+  function handleWelcomeAnimationEnd(event: AnimationEvent<HTMLElement>) {
+    if (event.target === event.currentTarget && welcomeState === 'leaving') {
+      setWelcomeState('hidden')
+    }
+  }
+
+  // Audios recientes (máx. 4): primero los reproducidos, del último al más
+  // antiguo. Los huecos libres se rellenan con audios aún sin reproducir en
+  // orden de llegada (el más antiguo primero): así un audio que ya ocupa un
+  // hueco conserva su sitio, y uno recién añadido solo entra si queda hueco.
+  // Si la lista ya está llena, el audio nuevo se guarda solo en la biblioteca.
+  const audiosRecientes = [
+    ...audios
+      .filter((audio) => audio.lastPlayedAt !== null)
+      .sort((a, b) => (b.lastPlayedAt?.getTime() ?? 0) - (a.lastPlayedAt?.getTime() ?? 0)),
+    ...audios
+      .filter((audio) => audio.lastPlayedAt === null)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
+  ].slice(0, 4)
 
   const statCards = [
     {
@@ -334,56 +383,97 @@ function DashboardHome() {
           ))}
         </div>
 
-        <section className="dashboard-home-page__section" aria-labelledby="dashboard-steps-title">
-          <p className="dashboard-home-page__section-label">PRIMEROS PASOS</p>
-          <div className="dashboard-home-page__steps">
-            {steps.map((step) => (
-              <article
-                key={step.id}
-                className={`dashboard-step-card ${step.active ? 'is-active' : 'is-muted'}`}
-              >
-                <div className="dashboard-step-card__marker" aria-hidden="true">
-                  <span>{step.id}</span>
-                </div>
-                <div className="dashboard-step-card__body">
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
-                </div>
-                {step.active ? (
-                  <button
-                    type="button"
-                    className="dashboard-step-card__button"
-                    onClick={() =>
-                      step.action === 'upload' ? setIsUploadModalOpen(true) : setIsCreateListModalOpen(true)
-                    }
-                  >
-                    <span aria-hidden="true" className="dashboard-step-card__button-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 5v14" />
-                        <path d="M5 12h14" />
-                      </svg>
-                    </span>
-                    {step.buttonLabel}
-                  </button>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        </section>
+        {/* Bienvenida: solo para usuarios nuevos, sin ningún audio. Va en el
+            sitio de "Añade contenido" y lo sustituye mientras se muestra. Se
+            espera a que termine la carga para no mostrarla un instante a quien
+            sí tiene audios; en cuanto sube el primero, desaparece sola. */}
+        {welcomeState !== 'hidden' ? (
+          <section
+            className={`welcome-card${welcomeState === 'leaving' ? ' is-leaving' : ''}`}
+            aria-labelledby="welcome-card-title"
+            onAnimationEnd={handleWelcomeAnimationEnd}
+          >
+            <svg className="welcome-card__wave" viewBox="0 0 280 96" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
+              {WELCOME_WAVE_BARS.map((height, index) => (
+                <rect
+                  key={index}
+                  className="welcome-card__wave-bar"
+                  x={index * 10}
+                  y={96 - height}
+                  width="4"
+                  height={height}
+                  rx="2"
+                  style={{ animationDelay: `${160 + index * 22}ms` }}
+                />
+              ))}
+            </svg>
 
-        <section
-          className="dashboard-home-page__section dashboard-home-page__lists-section"
-          aria-labelledby="dashboard-audios-title"
-        >
-          <h2 className="dashboard-home-page__section-heading" id="dashboard-audios-title">
-            Todos los audios
-          </h2>
+            <span className="welcome-card__badge">
+              <span className="welcome-card__badge-dot" aria-hidden="true" />
+              Bienvenido a NeuroAudio
+            </span>
+            <h2 className="welcome-card__title" id="welcome-card-title">
+              Añade tu primer audio
+            </h2>
+            <p className="welcome-card__text">Sube un archivo de audio y empieza tu primera sesión.</p>
+            <button type="button" className="welcome-card__button" onClick={() => setIsUploadModalOpen(true)}>
+              Añadir audio
+            </button>
+          </section>
+        ) : null}
 
-          {audios.length === 0 ? (
-            <p className="dashboard-home-page__section-empty">Aún no has añadido ningún audio.</p>
-          ) : (
+        {welcomeState !== 'hidden' ? null : (
+          <section className="dashboard-home-page__section" aria-labelledby="dashboard-steps-title">
+            <h2 className="dashboard-home-page__section-heading" id="dashboard-steps-title">
+              Añade contenido
+            </h2>
+            <div className="dashboard-home-page__steps">
+              {steps.map((step) => (
+                <article
+                  key={step.id}
+                  className={`dashboard-step-card ${step.active ? 'is-active' : 'is-muted'}`}
+                >
+                  <div className="dashboard-step-card__marker" aria-hidden="true">
+                    <span>{step.id}</span>
+                  </div>
+                  <div className="dashboard-step-card__body">
+                    <h3>{step.title}</h3>
+                    <p>{step.description}</p>
+                  </div>
+                  {step.active ? (
+                    <button
+                      type="button"
+                      className="dashboard-step-card__button"
+                      onClick={() =>
+                        step.action === 'upload' ? setIsUploadModalOpen(true) : setIsCreateListModalOpen(true)
+                      }
+                    >
+                      <span aria-hidden="true" className="dashboard-step-card__button-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 5v14" />
+                          <path d="M5 12h14" />
+                        </svg>
+                      </span>
+                      {step.buttonLabel}
+                    </button>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {audiosRecientes.length > 0 ? (
+          <section
+            className="dashboard-home-page__section dashboard-home-page__lists-section"
+            aria-labelledby="dashboard-audios-title"
+          >
+            <h2 className="dashboard-home-page__section-heading" id="dashboard-audios-title">
+              Audios recientes
+            </h2>
+
             <div className="library-section__list library-section__list--plana">
-              {audios.map((audio) => (
+              {audiosRecientes.map((audio) => (
                 <FilaAudio
                   key={audio.id}
                   name={audio.name}
@@ -397,8 +487,8 @@ function DashboardHome() {
                 />
               ))}
             </div>
-          )}
-        </section>
+          </section>
+        ) : null}
       </div>
 
       <BuscadorAudios

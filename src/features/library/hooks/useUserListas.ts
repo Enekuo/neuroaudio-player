@@ -9,6 +9,8 @@ export type LibraryLista = {
   template: string
   audioIds: string[]
   createdAt: Date
+  /** Portada elegida por el usuario (data URL JPEG), solo en listas propias. */
+  coverImage: string | null
 }
 
 export function useUserListas() {
@@ -41,6 +43,7 @@ export function useUserListas() {
             template: data.template as string,
             audioIds: Array.isArray(data.audioIds) ? (data.audioIds as string[]) : [],
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+            coverImage: typeof data.coverImage === 'string' ? data.coverImage : null,
           }
         })
 

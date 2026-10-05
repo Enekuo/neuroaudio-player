@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { collection, deleteDoc, doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore'
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable, type UploadTaskSnapshot } from 'firebase/storage'
 import { db, storage } from '../../../lib/firebase'
 
@@ -96,4 +96,11 @@ function getAudioDuration(file: File): Promise<number | null> {
     audioEl.addEventListener('error', onError)
     audioEl.src = objectUrl
   })
+}
+
+// "Última vez reproducido" de un audio (para "Audios recientes" del Inicio).
+// Se guarda en el propio documento del audio, como los favoritos: una sola
+// escritura cada vez que el usuario pone a sonar un audio distinto.
+export async function registrarReproduccion(audioId: string) {
+  await updateDoc(doc(db, 'audios', audioId), { lastPlayedAt: serverTimestamp() })
 }

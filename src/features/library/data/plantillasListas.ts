@@ -14,17 +14,21 @@ export type ListTemplate = {
   cardImageSize?: number
   /** Posición de esa imagen de fondo (background-position): 'center', '30% 70%', 'right top', etc. Por defecto 'center' si no se indica. */
   cardImagePosition?: string
+  /** Tamaño de la imagen en la portada del detalle de la lista (background-size): p. ej. 'auto 90%' = 90% del alto. Por defecto 'cover'. */
+  detailImageSize?: string
+  /** Posición de la imagen en esa portada (background-position). Por defecto 'center'. */
+  detailImagePosition?: string
 }
 
 export const LIST_TEMPLATES: ListTemplate[] = [
   { id: 'meditacion', label: 'Meditación', gradientFrom: '#1D9E75', gradientTo: '#0F6E56', icon: 'yinyang', cardImage: '/images/img_tarjeta1.png', cardImageSize: 75, cardImagePosition: 'center' },
-  { id: 'hipnosis', label: 'Hipnosis', gradientFrom: '#7F77DD', gradientTo: '#3C3489', icon: 'spiral', cardImage: '/images/img_tarjeta2.png', cardImageSize: 75, cardImagePosition: 'center' },
-  { id: 'reprogramacion', label: 'Reprogramación', gradientFrom: '#378ADD', gradientTo: '#0C447C', icon: 'refresh', cardImage: '/images/img_tarjeta3.png', cardImagePosition: 'center' },
+  { id: 'hipnosis', label: 'Hipnosis', gradientFrom: '#7F77DD', gradientTo: '#3C3489', icon: 'spiral', cardImage: '/images/img_tarjeta2.png', cardImageSize: 75, cardImagePosition: 'center', detailImagePosition: '100% 50%' },
+  { id: 'reprogramacion', label: 'Reprogramación', gradientFrom: '#378ADD', gradientTo: '#0C447C', icon: 'refresh', cardImage: '/images/img_tarjeta3.png', cardImagePosition: 'center', detailImageSize: 'auto 90%', detailImagePosition: '100% 125%' },
+  // id 'ansiedad' se mantiene por compatibilidad con listas ya creadas y el backend; solo cambia la etiqueta visible.
+  { id: 'ansiedad', label: 'Visualización', gradientFrom: '#5DCAA5', gradientTo: '#0F6E56', icon: 'wind', cardImage: '/images/img_tarjeta7.png', cardImageSize: 75, cardImagePosition: 'center', detailImagePosition: '100% 50%' },
   { id: 'subliminales', label: 'Subliminales', gradientFrom: '#D4537E', gradientTo: '#72243E', icon: 'wave-sine', cardImage: '/images/img_tarjeta4.png', cardImagePosition: 'center' },
   { id: 'mantras', label: 'Mantras', gradientFrom: '#EF9F27', gradientTo: '#854F0B', icon: 'om', cardImage: '/images/img_tarjeta5.png', cardImageSize: 75, cardImagePosition: 'center' },
   { id: 'dormir', label: 'Para dormir', gradientFrom: '#26215C', gradientTo: '#042C53', icon: 'moon', cardImage: '/images/img_tarjeta6.png', cardImagePosition: 'center' },
-  // id 'ansiedad' se mantiene por compatibilidad con listas ya creadas y el backend; solo cambia la etiqueta visible.
-  { id: 'ansiedad', label: 'Visualización', gradientFrom: '#5DCAA5', gradientTo: '#0F6E56', icon: 'wind', cardImage: '/images/img_tarjeta7.png', cardImageSize: 75, cardImagePosition: 'center' },
   { id: 'motivacion', label: 'Motivación', gradientFrom: '#D85A30', gradientTo: '#712B13', icon: 'flame' },
 ]
 
@@ -65,4 +69,6 @@ export type LibraryFolder = {
   audioIds: string[]
   /** Nº de audios que existen realmente en la biblioteca del usuario. */
   count: number
+  /** Portada propia (solo listas personalizadas); si existe, sustituye al icono. */
+  coverImage?: string | null
 }

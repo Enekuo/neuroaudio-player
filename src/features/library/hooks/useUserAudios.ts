@@ -12,6 +12,9 @@ export type LibraryAudio = AudioTrack & {
   // ordena la página de Favoritos (el último marcado, primero).
   isFavorite: boolean
   favoritedAt: Date | null
+  // Última vez que el usuario lo puso a sonar (null si nunca). Ordena
+  // "Audios recientes" en el Inicio.
+  lastPlayedAt: Date | null
 }
 
 export function useUserAudios() {
@@ -50,6 +53,7 @@ export function useUserAudios() {
             storagePath: typeof data.storagePath === 'string' ? data.storagePath : undefined,
             isFavorite: data.favorite === true,
             favoritedAt: data.favoritedAt?.toDate ? data.favoritedAt.toDate() : null,
+            lastPlayedAt: data.lastPlayedAt?.toDate ? data.lastPlayedAt.toDate() : null,
           }
         })
 
