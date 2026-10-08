@@ -39,7 +39,7 @@ function HeroSection() {
           <Link to="/login" className="na-cta-primary">
             Crear mi cuenta
           </Link>
-          <button type="button" className="na-cta-secondary">
+          <Link to="/profesional" className="na-cta-secondary">
             Soy profesional
             <svg
               width="13"
@@ -54,7 +54,7 @@ function HeroSection() {
               <path d="M7 17L17 7" />
               <path d="M7 7h10v10" />
             </svg>
-          </button>
+          </Link>
         </div>
         <div className="na-eyebrow">
           <span className="na-eyebrow__dot" />

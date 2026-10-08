@@ -7,6 +7,7 @@ import SkipButton from './SkipButton'
 import ThemeButton, { type ThemeOption } from './ThemeButton'
 import VolumeButton from './VolumeButton'
 import { useIsMobileLayout } from '../utils/useIsMobileLayout'
+import { consumeOpenedWithViewTransition } from '../utils/playerTransition'
 import MenuOpcionesAudio from '../../library/components/MenuOpcionesAudio'
 import { useUserAudios } from '../../library/hooks/useUserAudios'
 import { deleteAudio } from '../../library/services/audioService'
@@ -22,6 +23,9 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
     usePlayer()
   const [theme, setTheme] = useState<ThemeOption>('normal')
   const isMobileLayout = useIsMobileLayout()
+  // Abierto desde el mini-reproductor con View Transitions: sin la animación
+  // de hoja (la entrada ya la hace la imagen que crece).
+  const [openedWithViewTransition] = useState(consumeOpenedWithViewTransition)
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
   const moreMenuRef = useRef<HTMLDivElement>(null)
 
@@ -95,7 +99,12 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
   // del waveform animan constantemente), así que solo actuamos cuando es la
   // propia animación de cierre del panel raíz la que ha terminado.
   function handleAnimationEnd(event: AnimationEvent<HTMLDivElement>) {
-    if (event.target === event.currentTarget && event.animationName === 'now-playing-out') {
+    // Nombres de la animación de cierre: la de escritorio, la hoja que baja
+    // en móvil y el fundido de "reducir movimiento".
+    if (
+      event.target === event.currentTarget &&
+      ['now-playing-out', 'now-playing-sheet-out', 'now-playing-fade-out'].includes(event.animationName)
+    ) {
       onCloseAnimationEnd()
     }
   }
@@ -116,7 +125,7 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
 
   return (
     <div
-      className={`now-playing${isPlaying ? ' is-playing' : ''}${isClosing ? ' is-closing' : ''}${theme !== 'normal' ? ` now-playing--${theme}` : ''}`}
+      className={`now-playing${isPlaying ? ' is-playing' : ''}${isClosing ? ' is-closing' : ''}${theme !== 'normal' ? ` now-playing--${theme}` : ''}${openedWithViewTransition ? ' now-playing--vt' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label="Reproductor a pantalla completa"

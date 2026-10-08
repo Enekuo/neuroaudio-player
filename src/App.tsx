@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
 import LoginPage from './features/auth/pages/LoginPage'
@@ -10,6 +11,10 @@ import DashboardHomePage from './features/dashboard/pages/DashboardHomePage'
 import FavoritosPage from './pages/FavoritosPage'
 import PremiumPage from './pages/PremiumPage'
 import HabitosPage from './pages/HabitosPage'
+
+// Panel de profesional: se carga bajo demanda para que Material UI (que solo
+// usa el panel) no entre en el bundle de la parte de usuario.
+const ProfesionalApp = lazy(() => import('./features/profesional/ProfesionalApp'))
 
 function App() {
   return (
@@ -26,6 +31,17 @@ function App() {
           <Route path="/app/premium" element={<PremiumPage />} />
           <Route path="/app/habitos" element={<HabitosPage />} />
         </Route>
+
+        {/* Dashboard de profesional (esqueleto; sin control de acceso aún).
+            Sus rutas internas viven en ProfesionalApp. */}
+        <Route
+          path="/profesional/*"
+          element={
+            <Suspense fallback={<div style={{ minHeight: '100dvh', background: '#f8f9fa' }} />}>
+              <ProfesionalApp />
+            </Suspense>
+          }
+        />
       </Route>
     </Routes>
   )

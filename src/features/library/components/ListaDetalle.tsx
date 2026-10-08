@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ChangeEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/context/AuthContext'
 import { usePlayer } from '../../player/context/PlayerContext'
@@ -22,6 +22,19 @@ function BackIcon() {
   )
 }
 
+// "8 audios · 1 h 12 min" (sin duración si los audios no la tienen).
+function formatResumenLista(total: number, seconds: number) {
+  const audios = total === 1 ? '1 audio' : `${total} audios`
+  if (seconds <= 0) {
+    return audios
+  }
+  const totalMinutes = Math.max(1, Math.round(seconds / 60))
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  const duracion = hours > 0 ? `${hours} h${minutes > 0 ? ` ${minutes} min` : ''}` : `${minutes} min`
+  return `${audios} · ${duracion}`
+}
+
 function ListaDetalle() {
   const { folderKey } = useParams<{ folderKey: string }>()
   const navigate = useNavigate()
@@ -35,6 +48,10 @@ function ListaDetalle() {
   const [isCoverMenuOpen, setIsCoverMenuOpen] = useState(false)
   const coverMenuRef = useRef<HTMLDivElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
+  // Barra superior compacta: aparece (con el nombre de la lista) cuando el
+  // título grande de la cabecera sale de la pantalla al hacer scroll.
+  const [isCompact, setIsCompact] = useState(false)
+  const heroTitleRef = useRef<HTMLHeadingElement>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -46,6 +63,20 @@ function ListaDetalle() {
         .map((id) => audios.find((audio) => audio.id === id))
         .filter((audio): audio is LibraryAudio => Boolean(audio))
     : []
+
+  useEffect(() => {
+    const title = heroTitleRef.current
+    if (!title) {
+      return
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsCompact(!entry.isIntersecting),
+      // El título cuenta como "fuera" en cuanto pasa por debajo de la barra.
+      { rootMargin: '-64px 0px 0px 0px', threshold: 0 },
+    )
+    observer.observe(title)
+    return () => observer.disconnect()
+  }, [folderKey, isLoadingAudios, isLoadingListas])
 
   useEffect(() => {
     if (!isCoverMenuOpen) {
@@ -242,17 +273,41 @@ function ListaDetalle() {
           ...(template.detailImagePosition ? { backgroundPosition: template.detailImagePosition } : {}),
         }
       : { background: `linear-gradient(160deg, ${template.gradientFrom} 0%, ${template.gradientTo} 100%)` }
-  const audioLabel = folder.count === 1 ? '1 audio' : `${folder.count} audios`
+  const resumen = formatResumenLista(
+    folder.count,
+    tracks.reduce((total, audio) => total + (audio.duration ?? 0), 0),
+  )
+  const backdropImage = coverImage ?? template.cardImage ?? null
+  const sectionStyle = { '--lista-color': template.gradientFrom } as CSSProperties
 
   return (
-    <section className="lista-detalle" aria-label={`Detalle de la lista ${folder.name}`}>
-      <div
-        className="lista-detalle__hero"
-        style={{ background: `linear-gradient(160deg, ${template.gradientFrom}33 0%, #000208 70%)` }}
-      >
+    <section className="lista-detalle lista-detalle--rica" aria-label={`Detalle de la lista ${folder.name}`} style={sectionStyle}>
+      {/* Fondo ambiental: la propia portada, muy ampliada y desenfocada,
+          fundida hacia el negro (o el degradado de la lista si no tiene
+          imagen). Da a cada lista su propia atmósfera. */}
+      <div className="lista-detalle__backdrop" aria-hidden="true">
+        <span
+          className="lista-detalle__backdrop-art"
+          style={
+            backdropImage
+              ? { backgroundImage: `url(${backdropImage})` }
+              : { background: `linear-gradient(160deg, ${template.gradientFrom} 0%, ${template.gradientTo} 100%)` }
+          }
+        />
+      </div>
+
+      {/* Barra superior fija: flecha siempre; al bajar, se vuelve sólida y
+          muestra el nombre de la lista. */}
+      <div className={`lista-detalle__topbar${isCompact ? ' is-compact' : ''}`}>
         <button type="button" className="lista-detalle__back" onClick={handleBack} aria-label="Volver">
           <BackIcon />
         </button>
+        <span className="lista-detalle__topbar-title" aria-hidden={!isCompact}>
+          {folder.name}
+        </span>
+      </div>
+
+      <div className="lista-detalle__hero">
 
         <div className="lista-detalle__hero-inner">
           <div className="lista-detalle__hero-main">
@@ -332,10 +387,11 @@ function ListaDetalle() {
             )}
 
             <div className="lista-detalle__hero-info">
-              <h1>{folder.name}</h1>
-              <p>{audioLabel}</p>
+              <h1 ref={heroTitleRef}>{folder.name}</h1>
+              <p>{resumen}</p>
             </div>
           </div>
+
         </div>
       </div>
 

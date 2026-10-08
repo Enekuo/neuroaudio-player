@@ -41,6 +41,11 @@ type PlayerContextValue = {
   // y retardo) asociada a este usuario en Firestore.
   hasSavedSchedule: boolean
   isSavingSchedule: boolean
+  // Estados del audio para el mini-reproductor: cargando/almacenando en
+  // búfer, error al cargar y terminado (sin repetición, quedó al final).
+  isBuffering: boolean
+  loadError: boolean
+  hasEnded: boolean
   playTrack: (track: AudioTrack, queue?: AudioTrack[], options?: { autoAdvance?: boolean }) => void
   togglePlay: () => void
   seek: (time: number) => void
@@ -55,6 +60,12 @@ type PlayerContextValue = {
   applyRepeatTimes: (times: number) => void
   applyStartDelay: (enabled: boolean, seconds: number) => void
   toggleSavedSchedule: () => void
+  /** Vuelve a cargar la pista actual tras un error y la reproduce. */
+  retryLoad: () => void
+  /** Cierra el reproductor (pausa y quita la pista); se puede deshacer. */
+  dismissPlayer: () => void
+  /** Deshace el último cierre: misma pista y posición, en pausa. */
+  undoDismissPlayer: () => void
 }
 
 const PlayerContext = createContext<PlayerContextValue | undefined>(undefined)
@@ -96,6 +107,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [savedScheduleTrackId, setSavedScheduleTrackIdState] = useState<string | null>(null)
   const savedScheduleTrackIdRef = useRef<string | null>(null)
   const [isSavingSchedule, setIsSavingSchedule] = useState(false)
+  const [isBuffering, setIsBuffering] = useState(false)
+  const [loadError, setLoadError] = useState(false)
+  const [hasEnded, setHasEnded] = useState(false)
+  // Último cierre del mini-reproductor (para "Deshacer"): cola, posición en
+  // la cola, segundo exacto y si avanzaba solo.
+  const dismissedRef = useRef<{ queue: AudioTrack[]; index: number; time: number; autoAdvance: boolean } | null>(null)
+  // Si la próxima pista que se cargue es una restauración de "Deshacer":
+  // entonces no se reproduce sola ni cuenta como reproducción nueva, y se
+  // coloca en el segundo donde estaba.
+  const restoreRef = useRef<{ trackId: string; time: number } | null>(null)
   // Volumen "general" del usuario (el que usa en los audios SIN programación
   // guardada). Al pasar de un audio programado a otro que no lo está, se
   // vuelve a este volumen en vez de arrastrar el del programa anterior.
@@ -339,7 +360,22 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const handleLoadedMetadata = () => setDuration(audioEl.duration || 0)
     const handlePlay = () => {
       setIsPlaying(true)
+      setHasEnded(false)
     }
+    const handleLoadStart = () => {
+      setIsBuffering(true)
+      setLoadError(false)
+    }
+    const handleWaiting = () => setIsBuffering(true)
+    const handleReady = () => setIsBuffering(false)
+    const handleError = () => {
+      // Solo cuenta si hay un archivo cargado (vaciar src también dispara error).
+      if (audioEl.getAttribute('src')) {
+        setIsBuffering(false)
+        setLoadError(true)
+      }
+    }
+    const handleSeeking = () => setHasEnded(false)
     const handlePause = () => {
       setIsPlaying(false)
 
@@ -433,6 +469,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       audioEl.pause()
       audioEl.currentTime = 0
       setIsPlaying(false)
+      // "Terminado": el mini-reproductor muestra el icono de repetir y la
+      // barra llena hasta que se vuelva a reproducir.
+      setHasEnded(true)
 
       // La pista sigue "cargada" (se ve en el mini-player, en pausa en 0), así
       // que aquí no procede 'none' (implicaría que no hay nada cargado) sino
@@ -449,8 +488,24 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     audioEl.addEventListener('play', handlePlay)
     audioEl.addEventListener('pause', handlePause)
     audioEl.addEventListener('ended', handleEnded)
+    audioEl.addEventListener('loadstart', handleLoadStart)
+    audioEl.addEventListener('waiting', handleWaiting)
+    audioEl.addEventListener('stalled', handleWaiting)
+    audioEl.addEventListener('canplay', handleReady)
+    audioEl.addEventListener('playing', handleReady)
+    audioEl.addEventListener('pause', handleReady)
+    audioEl.addEventListener('error', handleError)
+    audioEl.addEventListener('seeking', handleSeeking)
 
     return () => {
+      audioEl.removeEventListener('loadstart', handleLoadStart)
+      audioEl.removeEventListener('waiting', handleWaiting)
+      audioEl.removeEventListener('stalled', handleWaiting)
+      audioEl.removeEventListener('canplay', handleReady)
+      audioEl.removeEventListener('playing', handleReady)
+      audioEl.removeEventListener('pause', handleReady)
+      audioEl.removeEventListener('error', handleError)
+      audioEl.removeEventListener('seeking', handleSeeking)
       audioEl.removeEventListener('timeupdate', handleTimeUpdate)
       audioEl.removeEventListener('loadedmetadata', handleLoadedMetadata)
       audioEl.removeEventListener('play', handlePlay)
@@ -481,10 +536,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     audioEl.src = currentTrack.url
     loadedTrackIdRef.current = currentTrack.id
+    setHasEnded(false)
+    setLoadError(false)
+
+    const restore = restoreRef.current?.trackId === currentTrack.id ? restoreRef.current : null
+    restoreRef.current = null
 
     // "Audios recientes": una sola escritura por cada audio que se pone a
     // sonar (solo al cambiar de pista, nunca en bucle ni en cada repetición).
-    if (uid) {
+    // Restaurar con "Deshacer" no cuenta como reproducción nueva.
+    if (uid && !restore) {
       registrarReproduccion(currentTrack.id).catch((error) => {
         console.error('No se pudo registrar la última reproducción del audio', error)
       })
@@ -544,6 +605,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
       const audioElNow = audioRef.current
       if (!audioElNow || loadedTrackIdRef.current !== trackId) {
+        return
+      }
+
+      // Restauración ("Deshacer" tras cerrar el mini-reproductor): queda en
+      // pausa en el segundo donde estaba, sin arrancar ni cuenta atrás.
+      if (restore) {
+        const applyTime = () => {
+          audioElNow.currentTime = restore.time
+          setCurrentTime(restore.time)
+        }
+        if (audioElNow.readyState >= 1) {
+          applyTime()
+        } else {
+          audioElNow.addEventListener('loadedmetadata', applyTime, { once: true })
+        }
         return
       }
 
@@ -662,6 +738,55 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setCurrentTime(time)
   }, [])
 
+  const retryLoad = useCallback(() => {
+    const audioEl = audioRef.current
+    if (!audioEl || !currentTrack) {
+      return
+    }
+    setLoadError(false)
+    audioEl.load()
+    playRobust()
+  }, [currentTrack, playRobust])
+
+  const dismissPlayer = useCallback(() => {
+    const audioEl = audioRef.current
+    if (!currentTrack || currentIndexRef.current === null) {
+      return
+    }
+    dismissedRef.current = {
+      queue: queueRef.current,
+      index: currentIndexRef.current,
+      time: audioEl?.currentTime ?? 0,
+      autoAdvance: autoAdvanceRef.current,
+    }
+    cancelStartDelay()
+    if (audioEl) {
+      intentionalPauseRef.current = true
+      expectedPlayingRef.current = false
+      audioEl.pause()
+    }
+    loadedTrackIdRef.current = null
+    setIsPlaying(false)
+    setIsExpanded(false)
+    setCurrentIndex(null)
+  }, [currentTrack, cancelStartDelay])
+
+  const undoDismissPlayer = useCallback(() => {
+    const dismissed = dismissedRef.current
+    if (!dismissed) {
+      return
+    }
+    dismissedRef.current = null
+    const track = dismissed.queue[dismissed.index]
+    if (!track) {
+      return
+    }
+    restoreRef.current = { trackId: track.id, time: dismissed.time }
+    autoAdvanceRef.current = dismissed.autoAdvance
+    setQueue(dismissed.queue)
+    setCurrentIndex(dismissed.index)
+  }, [])
+
   const skip = useCallback((seconds: number) => {
     const audioEl = audioRef.current
     if (!audioEl) {
@@ -729,6 +854,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     // seekOffset que sugiera el sistema: el salto queda fijo en 10s.
     navigator.mediaSession.setActionHandler('seekbackward', () => skip(-10))
     navigator.mediaSession.setActionHandler('seekforward', () => skip(10))
+    try {
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (typeof details.seekTime === 'number') {
+          seek(details.seekTime)
+        }
+      })
+    } catch {
+      // 'seekto' no está soportado en todos los navegadores.
+    }
 
     // Algunos dispositivos móviles solo pintan flechas laterales en la
     // notificación cuando hay handlers de 'previoustrack'/'nexttrack' (ignoran
@@ -743,10 +877,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       navigator.mediaSession.setActionHandler('pause', null)
       navigator.mediaSession.setActionHandler('seekbackward', null)
       navigator.mediaSession.setActionHandler('seekforward', null)
+      try {
+        navigator.mediaSession.setActionHandler('seekto', null)
+      } catch {
+        // idem
+      }
       navigator.mediaSession.setActionHandler('previoustrack', null)
       navigator.mediaSession.setActionHandler('nexttrack', null)
     }
-  }, [skip])
+  }, [skip, seek])
 
   const expand = useCallback(() => setIsExpanded(true), [])
   const collapse = useCallback(() => setIsExpanded(false), [])
@@ -916,6 +1055,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       applyRepeatTimes,
       applyStartDelay,
       toggleSavedSchedule,
+      isBuffering,
+      loadError,
+      hasEnded,
+      retryLoad,
+      dismissPlayer,
+      undoDismissPlayer,
     }),
     [
       queue,
@@ -947,6 +1092,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       applyRepeatTimes,
       applyStartDelay,
       toggleSavedSchedule,
+      isBuffering,
+      loadError,
+      hasEnded,
+      retryLoad,
+      dismissPlayer,
+      undoDismissPlayer,
     ],
   )
 

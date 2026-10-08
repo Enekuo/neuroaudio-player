@@ -62,7 +62,7 @@ function FilaAudio({
   }
 
   return (
-    <div className={`library-audio-row${isPlaying ? ' is-playing' : ''}`}>
+    <div className={`library-audio-row library-audio-row--fila${isPlaying ? ' is-playing' : ''}`}>
       <button type="button" className="library-audio-row__main" onClick={onPlay}>
         <div className="library-audio-row__thumb" aria-hidden="true">
           <LibraryIcon name="music" />

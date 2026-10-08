@@ -29,7 +29,7 @@ export const LIST_TEMPLATES: ListTemplate[] = [
   { id: 'subliminales', label: 'Subliminales', gradientFrom: '#D4537E', gradientTo: '#72243E', icon: 'wave-sine', cardImage: '/images/img_tarjeta4.png', cardImagePosition: 'center' },
   { id: 'mantras', label: 'Mantras', gradientFrom: '#EF9F27', gradientTo: '#854F0B', icon: 'om', cardImage: '/images/img_tarjeta5.png', cardImageSize: 75, cardImagePosition: 'center' },
   { id: 'dormir', label: 'Para dormir', gradientFrom: '#26215C', gradientTo: '#042C53', icon: 'moon', cardImage: '/images/img_tarjeta6.png', cardImagePosition: 'center' },
-  { id: 'motivacion', label: 'Motivación', gradientFrom: '#D85A30', gradientTo: '#712B13', icon: 'flame' },
+  { id: 'motivacion', label: 'Motivación', gradientFrom: '#D85A30', gradientTo: '#712B13', icon: 'flame', cardImage: '/images/img_tarjeta8.png', cardImageSize: 75, cardImagePosition: 'center' },
 ]
 
 export const CUSTOM_TEMPLATE_ID = 'personalizada'

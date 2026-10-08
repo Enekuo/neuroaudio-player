@@ -10196,3 +10196,824 @@ input[type='submit']:active,
     animation-duration: 1.6s;
   }
 }
+
+/* ============================================================
+   Detalle de lista: cabecera rica (2026-10-05).
+   Copia del diseño anterior en .backups/lista-detalle-cabecera-2026-10-05/.
+   - Fondo ambiental: la portada ampliada y desenfocada, fundida a negro.
+   - Portada protagonista y centrada, con un halo del color de la lista.
+   - Título grande + "N audios · duración" (sin botones de reproducir todo
+     ni aleatorio: en NeuroAudio el usuario elige cada audio y cuándo).
+   - Barra superior fija que se vuelve sólida (con el nombre) al bajar.
+   ============================================================ */
+.lista-detalle--rica {
+  position: relative;
+  isolation: isolate;
+}
+
+.lista-detalle__backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 520px;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.lista-detalle__backdrop-art {
+  position: absolute;
+  inset: -60px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(44px) saturate(1.25);
+  opacity: 0.6;
+  transform: scale(1.15);
+}
+
+/* Fundido del fondo ambiental hacia el negro de la app. */
+.lista-detalle__backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 2, 8, 0.2) 0%, rgba(0, 2, 8, 0.6) 55%, #000208 100%);
+}
+
+.lista-detalle--rica .lista-detalle__hero {
+  position: relative;
+  z-index: 1;
+  padding-top: 0;
+  background: transparent;
+}
+
+.lista-detalle--rica .lista-detalle__body {
+  position: relative;
+  z-index: 1;
+}
+
+/* Barra superior: transparente sobre la cabecera; sólida y con el nombre
+   de la lista cuando el título grande sale de la pantalla. */
+.lista-detalle__topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: env(safe-area-inset-top, 0px) 14px 0;
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    -webkit-backdrop-filter 220ms ease,
+    backdrop-filter 220ms ease;
+}
+
+.lista-detalle__topbar.is-compact {
+  background: rgba(3, 5, 11, 0.82);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  backdrop-filter: blur(18px) saturate(1.3);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.lista-detalle--rica .lista-detalle__back {
+  position: static;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.lista-detalle__topbar.is-compact .lista-detalle__back {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lista-detalle__topbar-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f0f1f3;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 220ms ease, transform 260ms var(--ease-out-strong);
+}
+
+.lista-detalle__topbar.is-compact .lista-detalle__topbar-title {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Composición centrada: portada grande, título y datos debajo. */
+.lista-detalle--rica .lista-detalle__hero-inner {
+  gap: 18px;
+  padding: 6px 20px 24px;
+}
+
+.lista-detalle--rica .lista-detalle__hero-main {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 18px;
+}
+
+.lista-detalle--rica .lista-detalle__cover {
+  width: 172px;
+  height: 172px;
+  border-radius: 20px;
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.5), 0 8px 18px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 24px 56px color-mix(in srgb, var(--lista-color, #2680eb) 32%, transparent),
+    0 10px 22px rgba(0, 0, 0, 0.5);
+}
+
+.lista-detalle--rica .lista-detalle__hero-info {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.lista-detalle--rica .lista-detalle__hero-info h1 {
+  margin: 0;
+  color: #f5f6fa;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.lista-detalle--rica .lista-detalle__hero-info p {
+  margin: 8px 0 0;
+  color: #9097ab;
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Escritorio: portada a la izquierda y datos alineados abajo, como una
+   cabecera de álbum; el resto igual. */
+@media (min-width: 641px) and (hover: hover) and (pointer: fine) {
+  .lista-detalle--rica .lista-detalle__hero-inner {
+    padding: 8px 2.5rem 2rem;
+  }
+
+  .lista-detalle--rica .lista-detalle__hero-main {
+    flex-direction: row;
+    align-items: flex-end;
+    text-align: left;
+    gap: 28px;
+  }
+
+  .lista-detalle--rica .lista-detalle__cover {
+    width: 200px;
+    height: 200px;
+    border-radius: 22px;
+  }
+
+  .lista-detalle--rica .lista-detalle__hero-info h1 {
+    font-size: 2.6rem;
+  }
+
+  .lista-detalle__topbar {
+    padding: 8px 2.5rem 0;
+  }
+}
+
+/* Entrada (móvil): el fondo ambiental se revela despacio por detrás
+   mientras llegan portada → título → botones → lista. */
+@keyframes lista-backdrop-in {
+  from {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+  to {
+    opacity: 0.6;
+    transform: scale(1.15);
+  }
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .lista-detalle__backdrop-art {
+    animation: lista-backdrop-in 700ms var(--ease-out-strong) backwards;
+  }
+
+  .lista-detalle--rica .lista-detalle__toolbar,
+  .lista-detalle--rica .lista-detalle__empty {
+    animation-delay: 160ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lista-detalle__backdrop-art {
+    animation: none;
+  }
+
+  .lista-detalle__topbar-title {
+    transform: none;
+  }
+}
+
+/* ============================================================
+   Landing: franja de confianza bajo el hero. Solo una frase corta
+   ("Más de N profesionales usan NeuroAudio") con la cifra en azul y una
+   línea mínima de apoyo debajo; discreta, entre dos líneas finas.
+   ============================================================ */
+.na-proof {
+  --na-bg: #070a13;
+  --na-accent: #5b8cff;
+  --na-ink: #f5f6fa;
+  --na-muted: #7f889f;
+  --na-line: #1c2438;
+  background: var(--na-bg);
+  border-top: 1px solid var(--na-line);
+  border-bottom: 1px solid var(--na-line);
+  padding: 26px clamp(20px, 4vw, 48px);
+  font-family: 'Manrope', system-ui, sans-serif;
+  text-align: center;
+}
+
+.na-proof__inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.na-proof__title {
+  margin: 0;
+  font-size: clamp(16px, 2vw, 18px);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--na-ink);
+}
+
+.na-proof__title strong {
+  font-weight: 700;
+  color: var(--na-accent);
+}
+
+.na-proof__lead {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--na-muted);
+}
+
+/* ============================================================
+   Mini-reproductor (solo móvil): todo él abre el reproductor grande.
+   Una zona táctil invisible cubre la barra entera; el contenido queda
+   encima sin captar toques (pointer-events: none) salvo los controles,
+   que hacen solo lo suyo (el play solo reproduce/pausa). El botón de
+   flecha "Expandir" ya no hace falta y se oculta.
+   ============================================================ */
+.mini-player__open-area {
+  display: none;
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .mini-player__open-area {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: inherit;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 160ms ease;
+  }
+
+  /* Al tocar la barra, se aclara un instante: confirma que se ha oído. */
+  .mini-player__open-area:active {
+    background: rgba(255, 255, 255, 0.05);
+    transition-duration: 60ms;
+  }
+
+  .mini-player__open-area:focus-visible {
+    outline: 2px solid #3b9eff;
+    outline-offset: -2px;
+  }
+
+  /* El contenido no capta toques (pasan a la zona de abrir)... */
+  .mini-player > :not(.mini-player__open-area) {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* ...salvo los controles que funcionan por sí mismos. */
+  .mini-player__right button:not(:disabled),
+  .mini-player__right input,
+  .mini-player__right .repeat-control {
+    pointer-events: auto;
+  }
+
+  .mini-player__expand {
+    display: none;
+  }
+}
+
+/* ============================================================
+   Reproductor (solo móvil): abrir / cerrar como una hoja.
+   - Abrir: la pantalla completa sube desde abajo (desde donde está el
+     mini-reproductor) con la curva de cajones de la app, con las
+     esquinas superiores redondeadas que se aplanan al llegar arriba.
+     Su contenido llega en cascada detrás: cabecera, círculo central
+     (crece), título, barra, botones y play.
+   - Cerrar: baja por el mismo camino, algo más rápida, dejando ver la
+     página de debajo; al terminar vuelve el mini-reproductor.
+   Las entradas internas usan las propiedades independientes `scale` y
+   `translate` para no pisar los `transform` de posición que ya tienen
+   el círculo y la fila del play.
+   ============================================================ */
+@keyframes now-playing-sheet-in {
+  from {
+    transform: translateY(100%);
+    border-radius: 28px 28px 0 0;
+  }
+  to {
+    transform: translateY(0);
+    border-radius: 0;
+  }
+}
+
+@keyframes now-playing-sheet-out {
+  from {
+    transform: translateY(0);
+    border-radius: 0;
+  }
+  to {
+    transform: translateY(100%);
+    border-radius: 28px 28px 0 0;
+  }
+}
+
+@keyframes now-playing-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes now-playing-part-in {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes now-playing-orb-in {
+  from {
+    opacity: 0;
+    scale: 0.88;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .now-playing {
+    animation: now-playing-sheet-in 460ms var(--ease-drawer) backwards;
+    box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.45);
+  }
+
+  .now-playing.is-closing {
+    pointer-events: none;
+    animation: now-playing-sheet-out 320ms var(--ease-drawer) forwards;
+  }
+
+  .now-playing:not(.is-closing) .now-playing__header {
+    animation: now-playing-part-in 320ms var(--ease-out-strong) 140ms backwards;
+  }
+
+  .now-playing:not(.is-closing) .now-playing__orb {
+    animation: now-playing-orb-in 520ms var(--ease-out-strong) 120ms backwards;
+  }
+
+  .now-playing:not(.is-closing) .now-playing__info {
+    animation: now-playing-part-in 360ms var(--ease-out-strong) 190ms backwards;
+  }
+
+  .now-playing:not(.is-closing) .now-playing__progress {
+    animation: now-playing-part-in 360ms var(--ease-out-strong) 220ms backwards;
+  }
+
+  .now-playing:not(.is-closing) .now-playing__extras {
+    animation: now-playing-part-in 360ms var(--ease-out-strong) 250ms backwards;
+  }
+
+  .now-playing:not(.is-closing) .now-playing__controls {
+    animation: now-playing-part-in 380ms var(--ease-out-strong) 280ms backwards;
+  }
+}
+
+/* Reducir movimiento: sin deslizamientos ni escalas; solo fundidos. El
+   cierre conserva una animación (fundido) para que siga avisando de que
+   ha terminado y el mini-reproductor vuelva. */
+@media (prefers-reduced-motion: reduce) {
+  .now-playing {
+    animation: lista-fade-in 200ms ease-out backwards !important;
+  }
+
+  .now-playing.is-closing {
+    animation: now-playing-fade-out 160ms ease forwards !important;
+  }
+
+  .now-playing:not(.is-closing) .now-playing__header,
+  .now-playing:not(.is-closing) .now-playing__orb,
+  .now-playing:not(.is-closing) .now-playing__info,
+  .now-playing:not(.is-closing) .now-playing__progress,
+  .now-playing:not(.is-closing) .now-playing__extras,
+  .now-playing:not(.is-closing) .now-playing__controls {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   Mini-reproductor profesional (solo móvil).
+   Tarjeta flotante sobre la navegación inferior: imagen del audio,
+   título (con su marquee de siempre) + línea secundaria, controles
+   -10 s / play-pausa / +10 s y una barra de progreso fina en el borde
+   inferior. Estados: cargando (spinner), error (línea roja, tocar
+   reintenta), terminado (icono de repetir y barra llena).
+   ============================================================ */
+/* Con más especificidad que ".mini-player__right > button { display: grid }":
+   si no, esa regla los volvía a mostrar. */
+.mini-player__right > .mini-player__skip,
+.mini-player > .mini-player__progress {
+  display: none;
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  /* 1. Contenedor flotante */
+  .mini-player {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--bottomnav-h) + 8px);
+    z-index: 55;
+    max-width: 560px;
+    margin: 0 auto;
+    height: 64px;
+    box-sizing: border-box;
+    gap: 10px;
+    padding: 0 4px 0 10px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(20, 22, 31, 0.92);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+  }
+
+  /* El contenido de cada pantalla reserva el alto de la barra + 24px. */
+  .content-area:has(.mini-player) .content-area__scroll {
+    padding-bottom: 88px;
+  }
+
+  /* Gestos sobre la barra: no deben hacer scroll de la página. */
+  .mini-player__open-area {
+    touch-action: none;
+  }
+
+  .mini-player__open-area:active {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  /* 2.1 Imagen: misma que las filas de audio (miniatura oscura con la
+     nota azul), sin variante de color al sonar. */
+  .mini-player__thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #141517;
+    color: #0047ff;
+  }
+
+  /* 2.2 Texto */
+  .mini-player__info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .mini-player__name-track span {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .mini-player__info p {
+    display: block;
+    color: #8b90a6;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .mini-player__info .mini-player__error {
+    color: #f26d6d;
+  }
+
+  /* 2.3 Controles: -10 s, play/pausa y +10 s. Lo demás se oculta. */
+  .mini-player__right {
+    gap: 0;
+  }
+
+  .mini-player__time,
+  .mini-player__volume,
+  .mini-player__right .repeat-control,
+  .mini-player__right > button:disabled,
+  .mini-player__right > .mini-player__expand {
+    display: none;
+  }
+
+  .mini-player__right > .mini-player__skip {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: #b4b8c9;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 160ms var(--ease-out-strong), color 140ms ease;
+  }
+
+  .mini-player__right > .mini-player__skip svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .mini-player__right > .mini-player__skip:active {
+    transform: scale(0.88);
+    color: #ffffff;
+    transition-duration: 90ms;
+  }
+
+  /* Play/pausa: círculo claro de 40px dentro de un área táctil de 44px. */
+  .mini-player__right > .mini-player__play {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #e4e6ef 0 20px, transparent 20.5px);
+    color: #05060b;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 160ms var(--ease-out-strong);
+  }
+
+  .mini-player__right > .mini-player__play svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .mini-player__right > .mini-player__play:active {
+    transform: scale(0.92);
+    transition-duration: 90ms;
+  }
+
+  .mini-player__play-countdown {
+    color: #05060b;
+  }
+
+  .mini-player__play-badge {
+    top: -2px;
+    right: -2px;
+  }
+
+  /* Cargando: spinner en el sitio del icono (mismo tamaño, nada se mueve). */
+  .mini-player__spinner {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(5, 6, 11, 0.2);
+    border-top-color: #05060b;
+    animation: mini-player-spin 700ms linear infinite;
+  }
+
+  /* Foco visible con teclado. */
+  .mini-player button:focus-visible {
+    outline: 2px solid #7fa6ff;
+    outline-offset: 2px;
+  }
+
+  .mini-player__open-area:focus-visible {
+    outline-offset: -2px;
+  }
+
+  /* 2.4 Progreso: 2px pegado al borde inferior, 12px de margen lateral. */
+  .mini-player > .mini-player__progress {
+    display: block;
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+    z-index: 1;
+    height: 2px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .mini-player__progress-fill {
+    display: block;
+    height: 100%;
+    background: #5b8cff;
+    transform-origin: left center;
+    transition: transform 250ms linear;
+  }
+}
+
+@keyframes mini-player-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* "Reproductor cerrado · Deshacer" tras deslizar para cerrar. */
+.player-undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--bottomnav-h) + 16px);
+  z-index: 56;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 10px 10px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 22, 31, 0.96);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  color: #e4e6ef;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  animation: player-toast-in 240ms var(--ease-out-strong) backwards;
+}
+
+.player-undo-toast button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(91, 140, 255, 0.16);
+  color: #8fb2ff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 160ms var(--ease-out-strong), background-color 140ms ease;
+}
+
+.player-undo-toast button:active {
+  transform: scale(0.95);
+  background: rgba(91, 140, 255, 0.26);
+}
+
+.player-undo-toast button:focus-visible {
+  outline: 2px solid #7fa6ff;
+  outline-offset: 2px;
+}
+
+@keyframes player-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apertura con View Transitions: la imagen del recuadro crece hasta la
+   imagen grande del reproductor y la barra se funde (~300ms, ease-out).
+   Mientras dura, la pantalla completa no hace su animación de hoja. */
+.np-vt-open .mini-player__thumb,
+.np-vt-open .now-playing__orb {
+  view-transition-name: np-artwork;
+}
+
+.now-playing--vt {
+  animation: none !important;
+}
+
+::view-transition-group(np-artwork) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 300ms;
+  animation-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mini-player__progress-fill,
+  .mini-player__right > .mini-player__skip,
+  .mini-player__right > .mini-player__play {
+    transition: none;
+  }
+
+  .mini-player__right > .mini-player__skip:active,
+  .mini-player__right > .mini-player__play:active {
+    transform: none;
+  }
+
+  .mini-player__spinner {
+    animation-duration: 1.6s;
+  }
+
+  .player-undo-toast {
+    animation: lista-fade-in 160ms ease-out backwards;
+  }
+}
+
+/* ============================================================
+   Audio que está sonando (solo móvil): la fila no cambia; se destaca su
+   miniatura de la izquierda. En vez de rellenarla de azul, conserva su
+   fondo oscuro y su nota azul, y es su propio borde redondeado el que se
+   ilumina en azul con un brillo suave. Sin elementos añadidos.
+   (Actualización: el borde iluminado se quitó; ahora el audio que suena
+   se marca solo con la barra vertical de FilaAudio, más abajo.)
+   ============================================================ */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .library-audio-row.is-playing {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .library-section__list--plana .library-audio-row.is-playing {
+    border-color: transparent;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .library-audio-row.is-playing .library-audio-row__thumb {
+    background: #141517;
+    color: #0047ff;
+    animation: none;
+  }
+}
+
+
+/* Solo móvil: el audio que está sonando ahora (FilaAudio: Inicio,
+   Biblioteca, listas, Favoritos) se "ilumina": un degradado azul de marca
+   muy tenue, más intenso a la izquierda (junto a su miniatura) y que se
+   apaga hacia la derecha, como si la fila tuviera luz propia; las demás
+   quedan planas ("superficies planas en reposo, brillo como respuesta").
+   El brillo vive en una capa (::before) bajo el contenido, así que al
+   cambiar de audio se apaga en la fila anterior y se enciende en la nueva
+   con un fundido (--ease-out-strong). Si no suena nada, ninguna se ilumina.
+   (Sustituye a la barra vertical azul de la versión anterior.) */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .library-audio-row--fila {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .library-audio-row--fila::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 12px;
+    background:
+      radial-gradient(120% 140% at 0% 50%, rgba(0, 71, 255, 0.3) 0%, rgba(0, 71, 255, 0) 65%),
+      linear-gradient(90deg, rgba(0, 71, 255, 0.16) 0%, rgba(0, 71, 255, 0.04) 90%);
+    opacity: 0;
+    transition: opacity 420ms var(--ease-out-strong);
+    pointer-events: none;
+  }
+
+  .library-audio-row--fila.is-playing::before {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-audio-row--fila::before {
+    transition-duration: 160ms;
+  }
+}
