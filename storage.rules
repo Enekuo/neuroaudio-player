@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Audios de cada usuario (sin cambios respecto a las reglas que había en
+    // la consola de Firebase).
+    match /audios/{userId}/{fileName} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ---------- Fotos del perfil del profesional ----------
+
+    // ¿El usuario con sesión es un oyente con vínculo activo con este profesional?
+    function esOyenteVinculado(profesionalUid) {
+      let ruta = /databases/(default)/documents/vinculos/$(profesionalUid + '_' + request.auth.uid);
+      return firestore.exists(ruta)
+        && firestore.get(ruta).data.oyenteUid == request.auth.uid
+        && firestore.get(ruta).data.estado == 'activo';
+    }
+
+    // ¿Esta foto es la que el profesional ha reservado (con el límite por
+    // minuto de firestore.rules → limitesSubida) en los últimos 5 minutos?
+    function esFotoReservada(uid, fotoId) {
+      let limite = firestore.get(/databases/(default)/documents/limitesSubida/$(uid)).data;
+      return limite.reservada == fotoId
+        && request.time < limite.reservadaEn + duration.value(5, 'm');
+    }
+
+    // perfiles/{uid}/fotos/{fotoId}/{variante}. Solo las lee el propio
+    // profesional o un oyente vinculado (se comprueba en cada descarga); solo
+    // las sube o borra el propio profesional.
+    match /perfiles/{uid}/fotos/{fotoId}/{variante} {
+      allow read: if request.auth != null
+        && (request.auth.uid == uid || esOyenteVinculado(uid));
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && variante in ['miniatura', 'normal', 'cuadrada']
+        && request.resource.size <= 3 * 1024 * 1024
+        && request.resource.contentType.matches('image/(webp|jpeg)')
+        && esFotoReservada(uid, fotoId);
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

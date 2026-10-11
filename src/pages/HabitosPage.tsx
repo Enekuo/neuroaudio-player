@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSwipeTabs } from '../hooks/useSwipeTabs'
+import CalendarioHabitos from '../features/habitos/components/CalendarioHabitos'
 
 const tabs = [
   { id: 'calendario', label: 'Calendario' },
@@ -23,7 +24,11 @@ function HabitosPage() {
       <div className="habitos-page__content">
         <h1 className="page__title">Hábitos</h1>
 
-        <div className="library-tabs" role="tablist" aria-label="Secciones de Hábitos">
+        <div
+          className="library-tabs"
+          role="tablist"
+          aria-label="Secciones de Hábitos"
+        >
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -42,13 +47,19 @@ function HabitosPage() {
 
         <div
           key={activeTab}
-          className="habitos-page__panel tab-swipe-panel"
+          className={`habitos-page__panel tab-swipe-panel${activeTab === 'calendario' ? ' habitos-page__panel--calendario' : ''}`}
           id="habitos-panel"
           role="tabpanel"
           aria-labelledby={`habitos-tab-${activeTab}`}
           {...swipeHandlers}
         >
-          <p className="habitos-page__placeholder">{activeLabel} · Próximamente</p>
+          {activeTab === 'calendario' ? (
+            <CalendarioHabitos />
+          ) : (
+            <p className="habitos-page__placeholder">
+              {activeLabel} · Próximamente
+            </p>
+          )}
         </div>
       </div>
     </section>

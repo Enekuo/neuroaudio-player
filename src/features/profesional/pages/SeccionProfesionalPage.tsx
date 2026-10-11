@@ -3,6 +3,7 @@ import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 import type { SeccionProfesional } from '../data/secciones'
+import { animacionEntrada } from '../theme/movimiento'
 
 type SeccionProfesionalPageProps = {
   seccion: SeccionProfesional
@@ -12,19 +13,48 @@ type SeccionProfesionalPageProps = {
 // y un aviso "Próximamente"; la funcionalidad llegará más adelante.
 function SeccionProfesionalPage({ seccion }: SeccionProfesionalPageProps) {
   return (
-    <Box component="section" key={seccion.path} aria-labelledby={`pro-page-${seccion.path}`}>
-      <Typography id={`pro-page-${seccion.path}`} variant="h5" component="h1" sx={{ fontWeight: 400, mb: 3 }}>
+    <Box
+      component="section"
+      key={seccion.path}
+      aria-labelledby={`pro-page-${seccion.path}`}
+    >
+      <Typography
+        id={`pro-page-${seccion.path}`}
+        variant="h5"
+        component="h1"
+        sx={{ fontWeight: 400, mb: 3 }}
+      >
         {seccion.label}
       </Typography>
 
-      <Paper variant="outlined" sx={{ px: { xs: 3, sm: 6 }, py: { xs: 5, sm: 8 }, textAlign: 'center' }}>
-        <Avatar sx={{ width: 56, height: 56, mx: 'auto', mb: 2, bgcolor: 'primary.light', color: 'primary.main' }}>
+      {/* El título entra con la página; el bloque llega un instante después. */}
+      <Paper
+        variant="outlined"
+        sx={[
+          { px: { xs: 3, sm: 6 }, py: { xs: 5, sm: 8 }, textAlign: 'center' },
+          animacionEntrada({ retardo: 70, distancia: 10 }),
+        ]}
+      >
+        <Avatar
+          sx={{
+            width: 56,
+            height: 56,
+            mx: 'auto',
+            mb: 2,
+            bgcolor: 'primary.light',
+            color: 'primary.main',
+          }}
+        >
           {seccion.icon}
         </Avatar>
         <Typography variant="h6" component="p" sx={{ fontWeight: 400 }}>
           Próximamente
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 420, mx: 'auto' }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mt: 1, maxWidth: 420, mx: 'auto' }}
+        >
           {seccion.description}
         </Typography>
       </Paper>

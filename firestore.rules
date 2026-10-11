@@ -21,5 +21,102 @@ service cloud.firestore {
       allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.uid;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
     }
+
+    // ---------- Perfil del profesional y vínculos con sus oyentes ----------
+    // Los límites coinciden con src/features/perfilProfesional/modelo.ts.
+
+    // ¿El usuario con sesión es un oyente con vínculo activo con este profesional?
+    function esOyenteVinculado(profesionalUid) {
+      let ruta = /databases/$(database)/documents/vinculos/$(profesionalUid + '_' + request.auth.uid);
+      return request.auth != null
+        && exists(ruta)
+        && get(ruta).data.oyenteUid == request.auth.uid
+        && get(ruta).data.estado == 'activo';
+    }
+
+    function enlaceValido(enlaces, red) {
+      return !(red in enlaces)
+        || (enlaces[red] is string && enlaces[red].size() <= 300 && enlaces[red].matches('https://.+'));
+    }
+
+    function perfilValido() {
+      let d = request.resource.data;
+      let campos = ['nombre', 'frase', 'dedicacion', 'enlaces', 'bienvenida', 'respuesta',
+                    'fotos', 'fotoPrincipalId', 'secciones', 'actualizadoEn'];
+      return d.keys().hasAll(campos) && d.keys().hasOnly(campos)
+        && d.nombre is string && d.nombre.size() <= 80
+        && d.frase is string && d.frase.size() <= 160
+        && d.dedicacion is string && d.dedicacion.size() <= 4000
+        && d.bienvenida is string && d.bienvenida.size() <= 4000
+        && d.enlaces is map
+        && d.enlaces.keys().hasOnly(['web', 'instagram', 'youtube', 'tiktok'])
+        && enlaceValido(d.enlaces, 'web') && enlaceValido(d.enlaces, 'instagram')
+        && enlaceValido(d.enlaces, 'youtube') && enlaceValido(d.enlaces, 'tiktok')
+        && (d.respuesta == null || d.respuesta in ['mismo-dia', '1-2-dias', '3-5-dias'])
+        && d.fotos is list && d.fotos.size() <= 9
+        && (d.fotoPrincipalId == null || d.fotoPrincipalId is string)
+        && d.secciones is list && d.secciones.size() <= 30
+        && d.actualizadoEn == request.time;
+    }
+
+    // Solo lo lee el propio profesional o un oyente vinculado; solo lo escribe
+    // el propio profesional (el id del documento es su uid).
+    match /perfilesProfesionales/{profesionalUid} {
+      allow read: if request.auth != null
+        && (request.auth.uid == profesionalUid || esOyenteVinculado(profesionalUid));
+      allow create, update: if request.auth != null
+        && request.auth.uid == profesionalUid
+        && perfilValido();
+      allow delete: if request.auth != null && request.auth.uid == profesionalUid;
+    }
+
+    // Límite de subidas de fotos del perfil: 10 fotos nuevas por minuto
+    // (SUBIDAS_POR_MINUTO en fotoService.ts). Cada foto nueva se «reserva»
+    // aquí antes de subirla, y storage.rules solo admite archivos de la foto
+    // reservada en los últimos 5 minutos. Así no se puede subir sin pasar
+    // por este contador.
+    match /limitesSubida/{uid} {
+      function camposLimite() {
+        let campos = ['ventanaInicio', 'cuenta', 'reservada', 'reservadaEn'];
+        return request.resource.data.keys().hasAll(campos)
+          && request.resource.data.keys().hasOnly(campos)
+          && request.resource.data.reservada is string
+          && request.resource.data.reservada.size() > 0
+          && request.resource.data.reservada.size() <= 64
+          && request.resource.data.reservadaEn == request.time;
+      }
+      function ventanaNueva() {
+        return request.resource.data.ventanaInicio == request.time
+          && request.resource.data.cuenta == 1;
+      }
+
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && camposLimite() && ventanaNueva();
+      allow update: if request.auth != null && request.auth.uid == uid
+        && camposLimite()
+        && request.resource.data.reservada != resource.data.reservada
+        && (
+          // Dentro del mismo minuto: suma una, sin pasar de 10.
+          (request.time < resource.data.ventanaInicio + duration.value(60, 's')
+            && request.resource.data.ventanaInicio == resource.data.ventanaInicio
+            && request.resource.data.cuenta == resource.data.cuenta + 1
+            && request.resource.data.cuenta <= 10)
+          // Pasado el minuto: empieza una ventana nueva.
+          || (request.time >= resource.data.ventanaInicio + duration.value(60, 's')
+            && ventanaNueva())
+        );
+      allow delete: if false;
+    }
+
+    // vinculos/{profesionalUid}_{oyenteUid}. Cada parte lee los suyos. Por
+    // ahora nadie los escribe desde la app: los de prueba se crean a mano en
+    // la consola; la página Oyentes (invitaciones) abrirá la escritura.
+    match /vinculos/{vinculoId} {
+      allow read: if request.auth != null
+        && (request.auth.uid == resource.data.profesionalUid
+            || request.auth.uid == resource.data.oyenteUid);
+      allow write: if false;
+    }
   }
 }

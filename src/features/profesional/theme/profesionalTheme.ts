@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles'
+import { EASE_OUT } from './movimiento'
 
 // Tema de Material UI del panel de profesional: Material claro con los
 // colores de las consolas de Google (Gmail, Analytics): azul #1a73e8, textos
@@ -25,6 +26,13 @@ export const profesionalTheme = createTheme({
   },
   shape: {
     borderRadius: 8,
+  },
+  transitions: {
+    // Las entradas de MUI (drawer móvil, menús, tooltips) con el mismo
+    // ease-out fuerte que el resto del panel; las salidas siguen en "sharp".
+    easing: {
+      easeOut: EASE_OUT,
+    },
   },
   typography: {
     fontFamily: "Roboto, 'Helvetica Neue', Arial, sans-serif",

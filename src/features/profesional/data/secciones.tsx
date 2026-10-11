@@ -27,15 +27,24 @@ export const DASHBOARD_PROFESIONAL = {
 // Las 7 páginas del dashboard de profesional, en el orden del menú.
 export const SECCIONES_PROFESIONAL: SeccionProfesional[] = [
   {
+    path: 'perfil',
+    label: 'Perfil',
+    description:
+      'Aquí podrás preparar el perfil que verán las personas que te encuentren.',
+    icon: <AccountCircleOutlined />,
+  },
+  {
     path: 'audios',
     label: 'Audios',
-    description: 'Aquí podrás subir y gestionar los audios que compartes con tus clientes.',
+    description:
+      'Aquí podrás subir y gestionar los audios que compartes con tus clientes.',
     icon: <LibraryMusicOutlined />,
   },
   {
     path: 'listas',
     label: 'Listas y programas',
-    description: 'Aquí podrás organizar tus audios en listas y programas para cada cliente.',
+    description:
+      'Aquí podrás organizar tus audios en listas y programas para cada cliente.',
     icon: <QueueMusicOutlined />,
   },
   {
@@ -49,12 +58,6 @@ export const SECCIONES_PROFESIONAL: SeccionProfesional[] = [
     label: 'Estadísticas',
     description: 'Aquí podrás ver cómo escuchan tus clientes tus audios.',
     icon: <InsightsOutlined />,
-  },
-  {
-    path: 'perfil',
-    label: 'Perfil público',
-    description: 'Aquí podrás preparar el perfil que verán las personas que te encuentren.',
-    icon: <AccountCircleOutlined />,
   },
   {
     path: 'ingresos',

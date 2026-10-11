@@ -11017,3 +11017,1105 @@ input[type='submit']:active,
     transition-duration: 160ms;
   }
 }
+
+/* ============================================================
+   Perfil del profesional, tal como lo ve su oyente (perfil-*).
+   Lo usan el Inicio del oyente, su ruta de perfil y la vista
+   previa del panel profesional («así te ve un oyente»).
+   Todo el texto es plano: los saltos de línea se respetan con
+   white-space: pre-line, nunca se interpreta HTML.
+   ============================================================ */
+.perfil-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #1b2238;
+  user-select: none;
+}
+
+.perfil-avatar--iniciales {
+  color: #8fb0ff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: linear-gradient(145deg, #1d2a52, #141a2e);
+}
+
+.perfil-foto--cargando {
+  display: block;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Tarjeta del Inicio: foto, nombre y frase. */
+.perfil-tarjeta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.perfil-tarjeta--enlace {
+  transition: background-color 180ms ease, transform 160ms var(--ease-out-strong);
+}
+
+.perfil-tarjeta--enlace:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .perfil-tarjeta--enlace:hover {
+    background: var(--surface);
+  }
+}
+
+.perfil-tarjeta__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.perfil-tarjeta__etiqueta {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.perfil-tarjeta__nombre {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.perfil-tarjeta__frase {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.perfil-tarjeta__flecha {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+/* Perfil completo. */
+.perfil-oyente {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--text);
+}
+
+.perfil-oyente__bienvenida {
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(59, 139, 255, 0.16), rgba(59, 139, 255, 0.04));
+  border: 1px solid rgba(91, 139, 255, 0.28);
+}
+
+.perfil-oyente__bienvenida-etiqueta {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8fb0ff;
+}
+
+.perfil-oyente__cabecera {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 8px 4px 4px;
+}
+
+.perfil-oyente__cabecera .perfil-avatar {
+  margin-bottom: 6px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.perfil-oyente__nombre {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.perfil-oyente__frase {
+  margin: 0;
+  max-width: 440px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.perfil-oyente__respuesta {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.perfil-oyente__enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.perfil-oyente__enlace {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .perfil-oyente__enlace:hover {
+    background: var(--surface);
+  }
+}
+
+.perfil-oyente__bloque {
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+}
+
+.perfil-oyente__titulo {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.perfil-oyente__texto {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.perfil-oyente__texto + .perfil-oyente__galeria {
+  margin-top: 12px;
+}
+
+.perfil-oyente__galeria {
+  /* Mosaico en columnas: cada foto con su proporción original. */
+  columns: 2 140px;
+  column-gap: 8px;
+}
+
+.perfil-oyente__foto {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-bottom: 8px;
+  border-radius: 14px;
+  break-inside: avoid;
+}
+
+/* Mientras llega, un hueco provisional (aún no se sabe su proporción). */
+.perfil-oyente__foto.perfil-foto--cargando {
+  aspect-ratio: 4 / 3;
+}
+
+/* ============================================================
+   Hábitos · Calendario (cal-*) y ventana del día (hoja-dia-*).
+   Solo diseño, con datos de ejemplo. Mismo lenguaje que el resto
+   de la app: lienzo casi negro, azul solo en lo activo, plano en
+   reposo. Única serif de la pantalla: el nombre del mes.
+   ============================================================ */
+
+/* El panel de la pestaña deja de ser la tarjeta de «Próximamente». */
+.habitos-page__panel--calendario {
+  display: block;
+  place-items: normal;
+  min-height: 0;
+  padding: 0;
+  text-align: left;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+.cal {
+  max-width: 720px;
+  padding: 22px 22px 18px;
+  border-radius: 22px;
+  background: #05070e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.cal__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.cal__mes {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  min-width: 0;
+}
+
+.cal__mes-nombre {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.cal__mes-anio {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cal__navegacion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cal__flecha {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, transform 140ms var(--ease-out-strong);
+}
+
+.cal__flecha svg {
+  width: 20px;
+  height: 20px;
+}
+
+.cal__hoy {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(38, 128, 235, 0.45);
+  background: transparent;
+  color: #8fc3ff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  animation: overlay-in 180ms ease;
+  transition: background-color 160ms ease, transform 140ms var(--ease-out-strong);
+}
+
+.cal__flecha:active,
+.cal__hoy:active {
+  transform: scale(0.94);
+}
+
+.cal__semana,
+.cal__rejilla {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.cal__semana {
+  margin-bottom: 4px;
+}
+
+.cal__dia-semana {
+  padding: 6px 0;
+  text-align: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+/* Cambio de mes: la rejilla entra por el lado hacia el que se avanza. */
+.cal__rejilla[data-sentido='siguiente'] {
+  animation: modal-step-in-forward 260ms var(--ease-out-strong);
+}
+
+.cal__rejilla[data-sentido='anterior'] {
+  animation: modal-step-in-back 260ms var(--ease-out-strong);
+}
+
+.cal__dia {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  aspect-ratio: 1.15;
+  min-height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 140ms var(--ease-out-strong);
+}
+
+.cal__dia:active {
+  transform: scale(0.94);
+  transition-duration: 90ms;
+}
+
+.cal__numero {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+/* Mini icono de audio: pequeño, en un hueco fijo bajo el número. */
+.cal__marca {
+  display: grid;
+  place-items: center;
+  height: 12px;
+}
+
+.cal__icono-audio {
+  width: 13px;
+  height: 13px;
+  color: #3b9eff;
+  stroke-width: 2.4;
+  opacity: 0.9;
+}
+
+.cal__dia.is-fuera {
+  color: rgba(240, 241, 243, 0.26);
+}
+
+.cal__dia.is-fuera .cal__icono-audio {
+  opacity: 0.35;
+}
+
+/* Hoy: aro azul alrededor del número. */
+.cal__dia.is-hoy .cal__numero {
+  color: #cfe4ff;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1.5px rgba(59, 158, 255, 0.75);
+}
+
+/* Elegido: la casilla se tiñe y recibe el anillo de selección. */
+.cal__dia.is-seleccionado {
+  background: rgba(38, 128, 235, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(38, 128, 235, 0.55), 0 0 0 3px rgba(38, 128, 235, 0.12);
+}
+
+.cal__dia.is-seleccionado .cal__numero {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Hoy y elegido a la vez: el número se enciende (el único azul lleno). */
+.cal__dia.is-hoy.is-seleccionado .cal__numero {
+  background: #2680eb;
+  box-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cal__flecha:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+  }
+
+  .cal__hoy:hover {
+    background: rgba(38, 128, 235, 0.1);
+  }
+
+  .cal__dia:not(.is-seleccionado):hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+
+/* ---------- Ventana del día ---------- */
+.hoja-dia-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 2, 8, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: overlay-in 220ms ease;
+}
+
+.hoja-dia-fondo.is-cerrando {
+  animation: modal-overlay-out 220ms ease forwards;
+}
+
+/* Móvil: hoja que sube desde abajo. */
+.hoja-dia {
+  width: 100%;
+  max-height: min(86dvh, 720px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 20px calc(22px + env(safe-area-inset-bottom, 0px));
+  border-radius: 26px 26px 0 0;
+  background: #0b0d13;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+  box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.45);
+  color: var(--text);
+  outline: none;
+  animation: hoja-sube 380ms var(--ease-drawer);
+}
+
+.hoja-dia.is-cerrando {
+  animation: hoja-baja 240ms var(--ease-drawer) forwards;
+}
+
+@keyframes hoja-sube {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes hoja-baja {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.hoja-dia__asa {
+  display: block;
+  width: 38px;
+  height: 4px;
+  margin: 0 auto 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.hoja-dia__vista[data-sentido='adelante'] {
+  animation: modal-step-in-forward 260ms var(--ease-out-strong);
+}
+
+.hoja-dia__vista[data-sentido='atras'] {
+  animation: modal-step-in-back 260ms var(--ease-out-strong);
+}
+
+.hoja-dia__cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.hoja-dia__cabecera--form {
+  align-items: center;
+}
+
+.hoja-dia__titulos {
+  flex: 1;
+  min-width: 0;
+}
+
+.hoja-dia__titulo {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.hoja-dia__resumen {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.hoja-dia__cerrar,
+.hoja-dia__volver {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, transform 140ms var(--ease-out-strong);
+}
+
+.hoja-dia__cerrar svg,
+.hoja-dia__volver svg {
+  width: 18px;
+  height: 18px;
+}
+
+.hoja-dia__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hoja-dia__audio {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto 36px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 6px 10px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-soft);
+}
+
+.hoja-dia__audio-icono {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #01040f;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #3b9eff;
+}
+
+.hoja-dia__audio-icono svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.2;
+}
+
+.hoja-dia__audio-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.hoja-dia__audio-nombre {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hoja-dia__audio-modo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.hoja-dia__audio-modo svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.hoja-dia__audio-hora {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.hoja-dia__eliminar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, transform 140ms var(--ease-out-strong);
+}
+
+.hoja-dia__eliminar svg {
+  width: 18px;
+  height: 18px;
+}
+
+.hoja-dia__otro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  margin-top: 12px;
+  border-radius: 999px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, transform 140ms var(--ease-out-strong);
+}
+
+.hoja-dia__otro svg {
+  width: 18px;
+  height: 18px;
+}
+
+.hoja-dia__vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px 4px;
+  text-align: center;
+}
+
+.hoja-dia__vacio-icono {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  background: rgba(38, 128, 235, 0.12);
+  color: #6aaeff;
+}
+
+.hoja-dia__vacio-icono svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.2;
+}
+
+.hoja-dia__vacio-texto {
+  max-width: 30ch;
+  margin: 0 0 22px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.hoja-dia__primario,
+.hoja-dia__secundario {
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 160ms ease, border-color 160ms ease, opacity 160ms ease, transform 140ms var(--ease-out-strong);
+}
+
+.hoja-dia__primario {
+  border: none;
+  background: #2680eb;
+  color: #ffffff;
+}
+
+.hoja-dia__vacio .hoja-dia__primario {
+  width: 100%;
+}
+
+.hoja-dia__secundario {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.hoja-dia__primario:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hoja-dia__cerrar:active,
+.hoja-dia__volver:active,
+.hoja-dia__eliminar:active,
+.hoja-dia__otro:active,
+.hoja-dia__primario:active:not(:disabled),
+.hoja-dia__secundario:active {
+  transform: scale(0.96);
+  transition-duration: 90ms;
+}
+
+/* ---------- Formulario «Programar audio» ---------- */
+.hoja-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.hoja-form .hoja-dia__cabecera {
+  margin-bottom: 2px;
+}
+
+.hoja-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.hoja-campo__etiqueta {
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hoja-campo__select {
+  position: relative;
+  display: block;
+}
+
+.hoja-campo__select select,
+.hoja-campo__hora {
+  width: 100%;
+  height: 50px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font: inherit;
+  /* 16px: iOS no hace zoom al enfocar. */
+  font-size: 16px;
+  color-scheme: dark;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.hoja-campo__select select {
+  padding: 0 44px 0 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.hoja-campo__select select:invalid {
+  color: var(--text-muted);
+}
+
+.hoja-campo__select option {
+  background: #141517;
+  color: var(--text);
+}
+
+.hoja-campo__flecha {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  transform: translateY(-50%) rotate(90deg);
+  pointer-events: none;
+}
+
+.hoja-campo__hora {
+  padding: 0 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hoja-campo__hora::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.hoja-campo__select select:focus-visible,
+.hoja-campo__hora:focus-visible {
+  outline: none;
+  border-color: rgba(38, 128, 235, 0.7);
+  box-shadow: 0 0 0 3px rgba(38, 128, 235, 0.18);
+}
+
+.hoja-modos {
+  gap: 10px;
+}
+
+.hoja-modo {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+/* El radio real queda invisible pero accesible; el foco se ve en la tarjeta. */
+.hoja-modo input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hoja-modo:has(input:focus-visible) {
+  outline: 2px solid #0047ff;
+  outline-offset: 2px;
+}
+
+.hoja-modo.is-elegido {
+  border-color: rgba(38, 128, 235, 0.6);
+  background: rgba(38, 128, 235, 0.08);
+  box-shadow: 0 0 0 3px rgba(38, 128, 235, 0.12);
+}
+
+.hoja-modo__icono {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.hoja-modo__icono svg {
+  width: 19px;
+  height: 19px;
+}
+
+.hoja-modo.is-elegido .hoja-modo__icono {
+  background: rgba(38, 128, 235, 0.16);
+  color: #6aaeff;
+}
+
+.hoja-modo__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hoja-modo__titulo {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.hoja-modo__descripcion {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.hoja-form__acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.hoja-form__acciones .hoja-dia__primario {
+  flex: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hoja-dia__cerrar:hover,
+  .hoja-dia__volver:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+  }
+
+  .hoja-dia__eliminar:hover {
+    background: rgba(255, 95, 95, 0.1);
+    color: #ff8f8f;
+  }
+
+  .hoja-dia__otro:hover {
+    border-color: rgba(38, 128, 235, 0.55);
+    color: var(--text);
+  }
+
+  .hoja-dia__primario:hover:not(:disabled) {
+    background: #3b8ff0;
+  }
+
+  .hoja-dia__secundario:hover {
+    border-color: rgba(255, 255, 255, 0.24);
+    color: var(--text);
+  }
+
+  .hoja-modo:not(.is-elegido):hover {
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+}
+
+/* Móvil: el calendario aprovecha el ancho; casillas cuadradas. */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .cal {
+    padding: 16px 10px 12px;
+    border-radius: 20px;
+  }
+
+  .cal__cabecera {
+    padding: 0 6px;
+    margin-bottom: 14px;
+  }
+
+  .cal__mes-nombre {
+    font-size: 28px;
+  }
+
+  .cal__mes-anio {
+    font-size: 14px;
+  }
+
+  .cal__semana,
+  .cal__rejilla {
+    gap: 2px;
+  }
+
+  .cal__dia {
+    aspect-ratio: 1;
+    min-height: 44px;
+    border-radius: 12px;
+  }
+
+  .cal__dia {
+    gap: 0;
+  }
+
+  .cal__numero {
+    width: 28px;
+    height: 28px;
+  }
+
+  .cal__marca {
+    height: 11px;
+  }
+
+  .cal__icono-audio {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Escritorio: la ventana del día es una tarjeta centrada. */
+@media (min-width: 641px) and (hover: hover) and (pointer: fine) {
+  .hoja-dia-fondo {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .hoja-dia {
+    max-width: 460px;
+    padding: 22px 24px 24px;
+    border-radius: 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: var(--shadow-strong);
+    animation: panel-in 240ms var(--ease-out-strong);
+  }
+
+  .hoja-dia.is-cerrando {
+    animation: modal-panel-out 180ms var(--ease-out-strong) forwards;
+  }
+
+  .hoja-dia__asa {
+    display: none;
+  }
+
+  .hoja-dia__vacio .hoja-dia__primario {
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Sin desplazamientos: solo fundidos (y el cierre sigue terminando con
+     animationend, para desmontar la hoja). */
+  .hoja-dia,
+  .cal__rejilla[data-sentido],
+  .hoja-dia__vista[data-sentido] {
+    animation: overlay-in 160ms ease;
+  }
+
+  .hoja-dia.is-cerrando {
+    animation: modal-overlay-out 140ms ease forwards;
+  }
+
+  .cal__dia:active,
+  .cal__flecha:active,
+  .cal__hoy:active,
+  .hoja-dia__cerrar:active,
+  .hoja-dia__volver:active,
+  .hoja-dia__eliminar:active,
+  .hoja-dia__otro:active,
+  .hoja-dia__primario:active,
+  .hoja-dia__secundario:active {
+    transform: none;
+  }
+}

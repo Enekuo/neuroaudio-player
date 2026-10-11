@@ -1,0 +1,10 @@
+[
+  {
+    "origin": [
+      "https://neuroaudio-player.vercel.app",
+      "http://localhost:5173"
+    ],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]
