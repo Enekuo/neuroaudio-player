@@ -153,6 +153,34 @@ export async function procesarFoto(
   }
 }
 
+/**
+ * Solo la versión cuadrada (512 px como mucho), comprobada y limpia de
+ * metadatos: la imagen propia de una lista del profesional.
+ */
+export async function procesarCuadrada(
+  file: File,
+  encuadre?: Encuadre,
+): Promise<Blob> {
+  await comprobarArchivoFoto(file)
+  let imagen: ImageBitmap
+  try {
+    imagen = await createImageBitmap(file, { imageOrientation: 'from-image' })
+  } catch {
+    throw new ErrorFoto('No se pudo leer la imagen. ¿Está dañada?')
+  }
+  try {
+    if (imagen.width * imagen.height > PIXELES_MAXIMOS) {
+      throw new ErrorFoto('La imagen tiene demasiados píxeles.')
+    }
+    return await codificarCuadrada(
+      imagen,
+      encuadre ?? encuadreInicial(imagen.width, imagen.height),
+    )
+  } finally {
+    imagen.close()
+  }
+}
+
 /** Recorte cuadrado (512 px como mucho, sin agrandar) según el encuadre. */
 function codificarCuadrada(imagen: ImageBitmap, encuadre: Encuadre) {
   const { x, y, lado } = recorteEnPixeles(imagen.width, imagen.height, encuadre)

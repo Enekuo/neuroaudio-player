@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import LibraryIcon from './LibraryIcon'
 import MenuOpcionesAudio from './MenuOpcionesAudio'
 import { formatTime } from '../utils/formatTime'
@@ -13,8 +13,19 @@ type FilaAudioProps = {
   // Favoritos todos lo son, así que sería ruido).
   hideFavoriteBadge?: boolean
   onPlay: () => void
-  onDelete: () => void
+  onDelete?: () => void
   onToggleFavorite?: () => void
+  // Texto extra en la segunda línea, tras la duración ("· Contenido de salud").
+  detalle?: string
+  // Menú propio en lugar del de siempre (Añadir a la lista / Favorito /
+  // Eliminar), para audios que no son del usuario (p. ej. de su profesional).
+  opciones?: OpcionFila[]
+}
+
+export type OpcionFila = {
+  etiqueta: string
+  icono?: ReactNode
+  onClick: () => void
 }
 
 function FilaAudio({
@@ -27,6 +38,8 @@ function FilaAudio({
   onPlay,
   onDelete,
   onToggleFavorite,
+  detalle,
+  opciones,
 }: FilaAudioProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -48,7 +61,7 @@ function FilaAudio({
 
   function handleDeleteClick() {
     setIsMenuOpen(false)
-    onDelete()
+    onDelete?.()
   }
 
   function handleAddToListClick() {
@@ -69,7 +82,7 @@ function FilaAudio({
         </div>
         <div className="library-audio-row__info">
           <h4>{name}</h4>
-          {duration ? <p>{formatTime(duration)}</p> : null}
+          {duration || detalle ? <p>{[duration ? formatTime(duration) : null, detalle].filter(Boolean).join(' · ')}</p> : null}
         </div>
       </button>
 
@@ -97,7 +110,29 @@ function FilaAudio({
               <LibraryIcon name="options-vertical" />
             </button>
 
-            {isMenuOpen ? (
+            {isMenuOpen && opciones ? (
+              <div className="library-audio-row__menu" role="menu">
+                {opciones.map((opcion) => (
+                  <button
+                    key={opcion.etiqueta}
+                    type="button"
+                    className="library-audio-row__menu-item"
+                    role="menuitem"
+                    onClick={() => {
+                      setIsMenuOpen(false)
+                      opcion.onClick()
+                    }}
+                  >
+                    {opcion.icono ? (
+                      <span className="library-audio-row__menu-item-icon" aria-hidden="true">
+                        {opcion.icono}
+                      </span>
+                    ) : null}
+                    {opcion.etiqueta}
+                  </button>
+                ))}
+              </div>
+            ) : isMenuOpen ? (
               <MenuOpcionesAudio
                 isFavorite={isFavorite}
                 onAddToList={handleAddToListClick}

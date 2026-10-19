@@ -13,6 +13,7 @@ import MenuCuentaMovil from '../../library/components/MenuCuentaMovil'
 import ModalCrearLista from '../../library/components/ModalCrearLista'
 import ModalSubirAudio from '../../library/components/ModalSubirAudio'
 import { usePlayer } from '../../player/context/PlayerContext'
+import FilaTusProfesionales from '../../perfilProfesional/vista/FilaTusProfesionales'
 
 function AudioStatIcon() {
   return (
@@ -348,6 +349,9 @@ function DashboardHome() {
             />
           </article>
         </div>
+
+        {/* Profesionales: debajo de las tarjetas «Invita a un amigo» y «Conoce a profesionales». */}
+        <FilaTusProfesionales />
 
         <div className="dashboard-home-page__stats">
           {statCards.map((stat) => (

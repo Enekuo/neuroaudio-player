@@ -204,5 +204,7 @@ describe('iniciales', () => {
     expect(iniciales('lucía martín ferrer')).toBe('LF')
     expect(iniciales('Ana')).toBe('A')
     expect(iniciales('  ')).toBe('?')
+    expect(iniciales('Lucía - Martín')).toBe('LM')
+    expect(iniciales('«Ana» (psicóloga)')).toBe('AP')
   })
 })

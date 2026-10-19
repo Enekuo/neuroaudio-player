@@ -11,6 +11,9 @@ import DashboardHomePage from './features/dashboard/pages/DashboardHomePage'
 import FavoritosPage from './pages/FavoritosPage'
 import PremiumPage from './pages/PremiumPage'
 import HabitosPage from './pages/HabitosPage'
+import PerfilProfesionalOyentePage from './features/perfilProfesional/pages/PerfilProfesionalOyentePage'
+import TodosLosProfesionalesPage from './features/perfilProfesional/pages/TodosLosProfesionalesPage'
+import ListaProfesionalOyentePage from './features/perfilProfesional/pages/ListaProfesionalOyentePage'
 
 // Panel de profesional: se carga bajo demanda para que Material UI (que solo
 // usa el panel) no entre en el bundle de la parte de usuario.
@@ -30,6 +33,9 @@ function App() {
           <Route path="/app/favoritos" element={<FavoritosPage />} />
           <Route path="/app/premium" element={<PremiumPage />} />
           <Route path="/app/habitos" element={<HabitosPage />} />
+          <Route path="/app/profesionales" element={<TodosLosProfesionalesPage />} />
+          <Route path="/app/profesional/:uid" element={<PerfilProfesionalOyentePage />} />
+          <Route path="/app/profesional/:uid/lista/:listaId" element={<ListaProfesionalOyentePage />} />
         </Route>
 
         {/* Dashboard de profesional (esqueleto; sin control de acceso aún).

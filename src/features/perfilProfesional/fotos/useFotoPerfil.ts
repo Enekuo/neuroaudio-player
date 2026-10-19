@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { urlFoto } from './fotoService'
+import { adquirirFoto, soltarFoto } from './fotoService'
 import type { VarianteFoto } from './procesarFoto'
 
 /**
  * URL lista para <img src> de una foto del perfil, descargada de forma
- * privada (ver urlFoto). Devuelve null mientras carga, si no hay foto o si
- * quien mira no tiene permiso; quien la usa muestra entonces las iniciales.
+ * privada (ver adquirirFoto); al desmontarse, la suelta. Devuelve null
+ * mientras carga, si no hay foto o si quien mira no tiene permiso; quien la
+ * usa muestra entonces las iniciales.
  */
 export function useFotoPerfil(
   profesionalUid: string | null,
@@ -22,11 +23,12 @@ export function useFotoPerfil(
   useEffect(() => {
     if (!profesionalUid || !fotoId || !clave) return
     let vigente = true
-    urlFoto(profesionalUid, fotoId, variante)
+    adquirirFoto(profesionalUid, fotoId, variante)
       .then((url) => vigente && setResultado({ clave, url }))
       .catch(() => vigente && setResultado({ clave, url: null }))
     return () => {
       vigente = false
+      soltarFoto(profesionalUid, fotoId, variante)
     }
   }, [profesionalUid, fotoId, variante, clave])
 

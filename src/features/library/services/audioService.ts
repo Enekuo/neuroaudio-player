@@ -70,7 +70,7 @@ function getFileExtension(file: File) {
   return file.type.split('/').pop() ?? 'mp3'
 }
 
-function getAudioDuration(file: File): Promise<number | null> {
+export function getAudioDuration(file: File): Promise<number | null> {
   return new Promise((resolve) => {
     const objectUrl = URL.createObjectURL(file)
     const audioEl = new Audio()

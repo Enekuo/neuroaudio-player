@@ -5,6 +5,8 @@ import QueueMusicOutlined from '@mui/icons-material/QueueMusicOutlined'
 import ChatBubbleOutlineOutlined from '@mui/icons-material/ChatBubbleOutlineOutlined'
 import InsightsOutlined from '@mui/icons-material/InsightsOutlined'
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined'
+import FolderSpecialOutlined from '@mui/icons-material/FolderSpecialOutlined'
+import PeopleOutlined from '@mui/icons-material/PeopleOutlined'
 import PaymentsOutlined from '@mui/icons-material/PaymentsOutlined'
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined'
 
@@ -24,7 +26,7 @@ export const DASHBOARD_PROFESIONAL = {
   icon: <SpaceDashboardOutlined />,
 }
 
-// Las 7 páginas del dashboard de profesional, en el orden del menú.
+// Las páginas del dashboard de profesional, en el orden del menú.
 export const SECCIONES_PROFESIONAL: SeccionProfesional[] = [
   {
     path: 'perfil',
@@ -32,6 +34,20 @@ export const SECCIONES_PROFESIONAL: SeccionProfesional[] = [
     description:
       'Aquí podrás preparar el perfil que verán las personas que te encuentren.',
     icon: <AccountCircleOutlined />,
+  },
+  {
+    path: 'oyentes',
+    label: 'Oyentes',
+    description:
+      'Las personas que te siguen: qué audios tiene cada una y su estado.',
+    icon: <PeopleOutlined />,
+  },
+  {
+    path: 'mis-audios',
+    label: 'Mis audios',
+    description:
+      'Tu biblioteca privada: sube un audio una vez y envíalo a quien lo necesite.',
+    icon: <FolderSpecialOutlined />,
   },
   {
     path: 'audios',

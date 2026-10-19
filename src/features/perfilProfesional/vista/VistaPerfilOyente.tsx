@@ -18,6 +18,11 @@ type VistaPerfilOyenteProps = {
   perfil: PerfilProfesional
   /** Muestra arriba el mensaje de bienvenida (la primera vez que entra). */
   mostrarBienvenida?: boolean
+  /**
+   * Sin foto, nombre ni frase: para la pestaña «Sobre» de la página del
+   * profesional, que ya los muestra en su cabecera.
+   */
+  sinIdentidad?: boolean
 }
 
 /**
@@ -31,6 +36,7 @@ function VistaPerfilOyente({
   profesionalUid,
   perfil,
   mostrarBienvenida = false,
+  sinIdentidad = false,
 }: VistaPerfilOyenteProps) {
   // Solo enlaces https (las reglas ya lo exigen; esto es una segunda barrera).
   const enlaces = REDES.filter((red) =>
@@ -58,40 +64,46 @@ function VistaPerfilOyente({
         </section>
       )}
 
-      <header className="perfil-oyente__cabecera">
-        <AvatarProfesional
-          profesionalUid={profesionalUid}
-          nombre={perfil.nombre}
-          fotos={perfil.fotos}
-          fotoPrincipalId={perfil.fotoPrincipalId}
-          tamano={112}
-        />
-        {perfil.nombre && (
-          <h1 className="perfil-oyente__nombre">{perfil.nombre}</h1>
-        )}
-        {perfil.frase && <p className="perfil-oyente__frase">{perfil.frase}</p>}
-        {respuesta && (
-          <p className="perfil-oyente__respuesta">
-            Suele responder {respuesta.etiqueta.toLowerCase()}
-          </p>
-        )}
-        {enlaces.length > 0 && (
-          <ul className="perfil-oyente__enlaces" aria-label="Enlaces">
-            {enlaces.map((red) => (
-              <li key={red}>
-                <a
-                  className="perfil-oyente__enlace"
-                  href={perfil.enlaces[red]}
-                  target="_blank"
-                  rel="noopener nofollow"
-                >
-                  {ETIQUETA_RED[red]}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </header>
+      {(!sinIdentidad || respuesta || enlaces.length > 0) && (
+        <header className="perfil-oyente__cabecera">
+          {!sinIdentidad && (
+            <AvatarProfesional
+              profesionalUid={profesionalUid}
+              nombre={perfil.nombre}
+              fotos={perfil.fotos}
+              fotoPrincipalId={perfil.fotoPrincipalId}
+              tamano={112}
+            />
+          )}
+          {!sinIdentidad && perfil.nombre && (
+            <h1 className="perfil-oyente__nombre">{perfil.nombre}</h1>
+          )}
+          {!sinIdentidad && perfil.frase && (
+            <p className="perfil-oyente__frase">{perfil.frase}</p>
+          )}
+          {respuesta && (
+            <p className="perfil-oyente__respuesta">
+              Suele responder {respuesta.etiqueta.toLowerCase()}
+            </p>
+          )}
+          {enlaces.length > 0 && (
+            <ul className="perfil-oyente__enlaces" aria-label="Enlaces">
+              {enlaces.map((red) => (
+                <li key={red}>
+                  <a
+                    className="perfil-oyente__enlace"
+                    href={perfil.enlaces[red]}
+                    target="_blank"
+                    rel="noopener nofollow"
+                  >
+                    {ETIQUETA_RED[red]}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </header>
+      )}
 
       {perfil.dedicacion.trim() && (
         <section className="perfil-oyente__bloque">

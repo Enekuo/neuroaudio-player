@@ -11020,8 +11020,8 @@ input[type='submit']:active,
 
 /* ============================================================
    Perfil del profesional, tal como lo ve su oyente (perfil-*).
-   Lo usan el Inicio del oyente, su ruta de perfil y la vista
-   previa del panel profesional («así te ve un oyente»).
+   Lo usan su ruta de perfil, «Tus profesionales» del Inicio y
+   la vista previa del panel profesional («así te ve un oyente»).
    Todo el texto es plano: los saltos de línea se respetan con
    white-space: pre-line, nunca se interpreta HTML.
    ============================================================ */
@@ -11045,71 +11045,6 @@ input[type='submit']:active,
 .perfil-foto--cargando {
   display: block;
   background: rgba(255, 255, 255, 0.05);
-}
-
-/* Tarjeta del Inicio: foto, nombre y frase. */
-.perfil-tarjeta {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  border-radius: 20px;
-  background: var(--surface-soft);
-  border: 1px solid var(--border-soft);
-  color: var(--text);
-  text-decoration: none;
-}
-
-.perfil-tarjeta--enlace {
-  transition: background-color 180ms ease, transform 160ms var(--ease-out-strong);
-}
-
-.perfil-tarjeta--enlace:active {
-  transform: scale(0.98);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .perfil-tarjeta--enlace:hover {
-    background: var(--surface);
-  }
-}
-
-.perfil-tarjeta__texto {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  flex: 1;
-}
-
-.perfil-tarjeta__etiqueta {
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.perfil-tarjeta__nombre {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.perfil-tarjeta__frase {
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: var(--text-secondary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.perfil-tarjeta__flecha {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  color: var(--text-muted);
 }
 
 /* Perfil completo. */
@@ -12118,4 +12053,531 @@ input[type='submit']:active,
   .hoja-dia__secundario:active {
     transform: none;
   }
+}
+
+/* ============================================================
+   Avisos del profesional en la app del oyente (pro-audios__aviso)
+   y la página «Tus profesionales» (perfil-pagina-*). Mismo lenguaje que las filas de audio de
+   la biblioteca: superficie casi negra, azul solo en lo activo.
+   ============================================================ */
+.perfil-pagina__contenido {
+  width: min(640px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 2rem 2rem 7rem;
+}
+
+.perfil-pagina__volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 6px 10px 6px 4px;
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.perfil-pagina__volver svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .perfil-pagina__volver:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.pro-audios__aviso {
+  margin: 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .perfil-pagina__contenido {
+    padding: 1rem 1rem 6rem;
+  }
+}
+
+/* ============================================================
+   «Tus profesionales» en Inicio (prof-fila-*, prof-circulo-*) y
+   «Mostrar todos» (prof-todos-*). Fila horizontal que se desliza,
+   como el carrusel de promos: mismos tokens, mismo scroll-snap.
+   ============================================================ */
+.prof-fila {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.prof-fila__cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prof-fila__todos {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .prof-fila__todos:hover {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.prof-fila__lista {
+  display: flex;
+  gap: 8px;
+  /* La foto del primero, alineada con el borde de las tarjetas de arriba:
+     compensa el relleno interior del círculo (12px, su fondo al pasar). */
+  margin: 0 0 0 -12px;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.prof-fila__lista::-webkit-scrollbar {
+  display: none;
+}
+
+.prof-fila__lista > li {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+.prof-circulo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 128px;
+  padding: 12px;
+  border-radius: 14px;
+  color: var(--text);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.prof-circulo--enlace {
+  transition: background-color 180ms ease, transform 160ms var(--ease-out-strong);
+}
+
+.prof-circulo--enlace:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .prof-circulo--enlace:hover {
+    background: var(--surface-soft);
+  }
+}
+
+.prof-circulo .prof-circulo__foto {
+  margin-bottom: 8px;
+}
+
+.prof-circulo__nombre {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.prof-circulo__esqueleto {
+  display: block;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.prof-circulo__linea {
+  display: block;
+  width: 80%;
+  height: 12px;
+  margin-top: 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.prof-fila--error {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.prof-fila__aviso {
+  margin: 0;
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.prof-fila__reintentar {
+  padding: 8px 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prof-todos__rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Móvil: la fila llega a los bordes de la pantalla al deslizar (como el
+   carrusel de promos) y va justo debajo de las tarjetas «Invita a un amigo»
+   y «Conoce a profesionales» (carrusel: -20; estadísticas: -10). */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .prof-fila {
+    order: -15;
+  }
+
+  /* Título y primera foto alineados con el borde de las tarjetas (14px):
+     la lista llega a los bordes de la pantalla y su relleno (6px) más el
+     hueco interior del círculo (8px) suman esos 14px. */
+  .prof-fila__lista {
+    margin: 0 -14px;
+    padding: 0 6px;
+    scroll-padding-left: 6px;
+  }
+
+  .prof-circulo {
+    width: 120px;
+    padding: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prof-circulo--enlace:active {
+    transform: none;
+  }
+}
+
+/* ============================================================
+   Página del profesional en la app del oyente (prof-pagina-*).
+   Usa la cabecera rica de las listas (lista-detalle--rica): aquí
+   solo lo propio de un profesional — su foto o sus iniciales en
+   la portada, los grupos «Para ti» / «Sus audios», el esqueleto
+   de carga y la ficha «Ver descripción».
+   ============================================================ */
+.prof-pagina__cover {
+  background-color: #000000;
+}
+
+.prof-pagina__cover-iniciales {
+  background: linear-gradient(160deg, #2f6fd6 0%, #142a52 100%);
+  color: #ffffff;
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.prof-pagina__cover-cargando,
+.prof-pagina__linea,
+.prof-pagina__esqueleto-fila {
+  background: rgba(255, 255, 255, 0.06);
+  animation: prof-pagina-latir 1400ms ease-in-out infinite;
+}
+
+.lista-detalle--rica .prof-pagina__cover-cargando {
+  box-shadow: none;
+}
+
+.prof-pagina__linea {
+  display: block;
+  width: 160px;
+  max-width: 60vw;
+  height: 14px;
+  margin: 10px auto 0;
+  border-radius: 7px;
+}
+
+.prof-pagina__linea--titulo {
+  width: 240px;
+  height: 26px;
+  margin-top: 0;
+  border-radius: 8px;
+}
+
+@keyframes prof-pagina-latir {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.lista-detalle--rica .lista-detalle__hero-info .prof-pagina__frase {
+  max-width: 34rem;
+  font-variant-numeric: normal;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.prof-pagina__bienvenida {
+  margin-bottom: 1.4rem;
+}
+
+.prof-pagina__pestanas {
+  margin-bottom: 1.2rem;
+}
+
+.prof-pagina__panel {
+  animation: prof-pagina-entrar 220ms var(--ease-out-strong, ease-out) both;
+}
+
+@keyframes prof-pagina-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.prof-pagina__grupo + .prof-pagina__grupo {
+  margin-top: 1.6rem;
+}
+
+.prof-pagina__subtitulo {
+  margin: 0 0 0.6rem;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.prof-pagina__esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prof-pagina__esqueleto-fila {
+  display: block;
+  height: 60px;
+  border-radius: 12px;
+}
+
+.prof-pagina__esqueleto-fila:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.prof-pagina__esqueleto-fila:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.prof-pagina__estado {
+  padding-top: 1.5rem;
+}
+
+.prof-pagina__ficha h2 {
+  overflow-wrap: anywhere;
+}
+
+.prof-pagina__descripcion {
+  margin: 0;
+  max-height: 50vh;
+  overflow-y: auto;
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  line-height: 1.55;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.prof-pagina__salud {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 196, 0, 0.08);
+  border: 1px solid rgba(255, 196, 0, 0.22);
+  color: #e8cf86;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (min-width: 641px) and (hover: hover) and (pointer: fine) {
+  .prof-pagina__cover-iniciales {
+    font-size: 64px;
+  }
+
+  .prof-pagina__linea {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prof-pagina__cover-cargando,
+  .prof-pagina__linea,
+  .prof-pagina__esqueleto-fila,
+  .prof-pagina__panel {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   Reproductor con un audio de profesional: su foto en círculo
+   (o sus iniciales) y su nombre. En pantalla completa, bajo el
+   título y con enlace a su página; en el mini-reproductor, en el
+   hueco de la miniatura y como segunda línea, solo informativos.
+   El orbe y el resto del reproductor no cambian.
+   ============================================================ */
+.now-playing__profesional {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  margin: 2px 0 0;
+  padding: 4px 8px 4px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 160ms ease, transform 160ms var(--ease-out-strong);
+}
+
+.now-playing__profesional:active {
+  transform: scale(0.97);
+}
+
+.now-playing__profesional:focus-visible {
+  outline: 2px solid #2b7bff;
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .now-playing__profesional:hover {
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  .now-playing--claro .now-playing__profesional:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Marco: un aro fino separado de la foto, como en «Tus profesionales». */
+.now-playing__profesional-foto {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55), 0 0 0 3.5px rgba(143, 176, 255, 0.55);
+}
+
+.now-playing__profesional-nombre {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.now-playing__profesional-flecha {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-left: -2px;
+  opacity: 0.7;
+}
+
+/* Portada del audio de un profesional (la que eligió): en la miniatura del
+   reproductor pequeño y, si no es «Por defecto», en el sitio del orbe.
+   «Por defecto» es la onda de siempre (AudioWave). */
+.mini-player__thumb.mini-player__thumb--portada {
+  overflow: hidden;
+  background: #000000;
+}
+
+.mini-player__portada {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.now-playing__orb.now-playing__orb--portada {
+  border-radius: 24px;
+  overflow: hidden;
+  background: #000000;
+}
+
+.now-playing__orb--portada img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now-playing__profesional {
+    transition: none;
+  }
+}
+
+/* PRUEBA TEMPORAL (modo «todos»): «Cargar más» en /app/profesionales. */
+.prof-todos__mas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.prof-todos__mas .prof-fila__reintentar:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Lista de un profesional en la app del oyente (ListaProfesionalOyentePage)
+   y la pestaña «Listas» de su página: las mismas tarjetas y cabecera que las
+   listas de la app; aquí solo la descripción y el enlace como tarjeta. */
+.prof-pagina__listas .template-card {
+  text-decoration: none;
+}
+
+.prof-lista__descripcion {
+  margin: 0 0 1.4rem;
+  max-width: 46rem;
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  line-height: 1.55;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }

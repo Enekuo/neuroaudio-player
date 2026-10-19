@@ -24,7 +24,8 @@ import {
 import {
   reencuadrarFoto,
   subirFoto,
-  urlFoto,
+  adquirirFoto,
+  soltarFoto,
 } from '../../perfilProfesional/fotos/fotoService'
 import type { Encuadre } from '../../perfilProfesional/fotos/encuadre'
 import {
@@ -133,11 +134,15 @@ function EditorFotos({
     subidas.length -
     (ajuste?.tipo === 'nueva' ? 1 : 0)
 
-  // La URL local del archivo elegido se libera al cerrar «Ajustar foto».
+  // Al cerrar «Ajustar foto»: se libera la URL local del archivo elegido, o
+  // se suelta la versión normal de la foto que se estaba ajustando.
   useEffect(() => {
-    if (ajuste?.tipo !== 'nueva') return
-    return () => URL.revokeObjectURL(ajuste.src)
-  }, [ajuste])
+    if (!ajuste) return
+    return () => {
+      if (ajuste.tipo === 'nueva') URL.revokeObjectURL(ajuste.src)
+      else soltarFoto(uid, ajuste.foto.id, 'normal')
+    }
+  }, [ajuste, uid])
 
   const anotarError = (nombre: string, error: unknown) => {
     const motivo =
@@ -208,7 +213,7 @@ function EditorFotos({
   /** Abre «Ajustar foto» con la versión normal de una foto ya subida. */
   const ajustarExistente = async (foto: FotoPerfil) => {
     try {
-      const src = await urlFoto(uid, foto.id, 'normal')
+      const src = await adquirirFoto(uid, foto.id, 'normal')
       setAjuste({ tipo: 'existente', foto, src })
     } catch {
       setErrores((e) => [

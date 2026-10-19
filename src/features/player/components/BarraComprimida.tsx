@@ -1,6 +1,9 @@
 import { useEffect, useRef, type FormEvent, type PointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import LibraryIcon from '../../library/components/LibraryIcon'
+import { useProfesionalDePista } from '../../perfilProfesional/useProfesionalDePista'
+import AudioWave from '../../../components/AudioWave'
+import { usePortadaDePista } from '../../audiosProfesional/usePortadaDePista'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
 import { markOpenedWithViewTransition } from '../utils/playerTransition'
@@ -76,6 +79,14 @@ function BarraComprimida({ onDismiss }: BarraComprimidaProps) {
     retryLoad,
     dismissPlayer,
   } = usePlayer()
+
+  // Audio de un profesional: su portada y su nombre, solo informativos (tocar
+  // la barra abre el reproductor completo como siempre).
+  const profesional = useProfesionalDePista(
+    currentTrack?.origen === 'profesional' ? currentTrack.profesionalUid ?? null : null,
+  )
+  const nombreProfesional = profesional ? profesional.perfil.nombre.trim() || 'Tu profesional' : null
+  const portada = usePortadaDePista(profesional?.uid ?? null, profesional ? currentTrack?.id ?? null : null)
 
   const barRef = useRef<HTMLElement>(null)
   const dragRef = useRef<{ x: number; y: number; dx: number; dy: number; moved: boolean } | null>(null)
@@ -203,7 +214,7 @@ function BarraComprimida({ onDismiss }: BarraComprimidaProps) {
     ? 'No se pudo cargar. Toca para reintentar'
     : delayCountdown !== null
       ? `Empieza en ${formatTime(delayCountdown)}`
-      : null
+      : nombreProfesional
   const showSpinner = isBuffering && !loadError && delayCountdown === null
 
   return (
@@ -228,8 +239,18 @@ function BarraComprimida({ onDismiss }: BarraComprimidaProps) {
         aria-label={loadError ? 'Reintentar cargar el audio' : 'Abrir reproductor'}
       />
 
-      <div className="mini-player__thumb" aria-hidden="true">
-        <LibraryIcon name="music" />
+      <div className={`mini-player__thumb${profesional ? ' mini-player__thumb--portada' : ''}`} aria-hidden="true">
+        {profesional ? (
+          // La portada que eligió el profesional; «Por defecto», la onda de
+          // los audios de la app, que se mueve mientras suena.
+          portada ? (
+            <img className="mini-player__portada" src={portada} alt="" draggable={false} />
+          ) : (
+            <AudioWave variant="small" playing={isPlaying} />
+          )
+        ) : (
+          <LibraryIcon name="music" />
+        )}
       </div>
 
       <div className="mini-player__info">
@@ -240,7 +261,7 @@ function BarraComprimida({ onDismiss }: BarraComprimidaProps) {
           </div>
         </div>
         {subtitle ? (
-          <p className={delayCountdown !== null ? 'mini-player__countdown' : 'mini-player__error'}>{subtitle}</p>
+          <p className={loadError ? 'mini-player__error' : delayCountdown !== null ? 'mini-player__countdown' : undefined}>{subtitle}</p>
         ) : null}
       </div>
 

@@ -6,7 +6,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import CloseRounded from '@mui/icons-material/CloseRounded'
 import type { PerfilProfesional } from '../../perfilProfesional/modelo'
-import TarjetaProfesional from '../../perfilProfesional/vista/TarjetaProfesional'
+import ProfesionalCirculo from '../../perfilProfesional/vista/ProfesionalCirculo'
 import VistaPerfilOyente from '../../perfilProfesional/vista/VistaPerfilOyente'
 
 type DialogoVistaPreviaProps = {
@@ -111,7 +111,10 @@ function DialogoVistaPrevia({
         <Box component="p" sx={etiquetaSx}>
           En su inicio
         </Box>
-        <TarjetaProfesional profesionalUid={uid} perfil={perfil} />
+        {/* Como en «Tus profesionales» del Inicio (sin el resto de la fila). */}
+        <Box sx={{ display: 'flex' }}>
+          <ProfesionalCirculo profesionalUid={uid} perfil={perfil} />
+        </Box>
 
         <Box component="p" sx={{ ...etiquetaSx, mt: 4 }}>
           Al abrir tu perfil

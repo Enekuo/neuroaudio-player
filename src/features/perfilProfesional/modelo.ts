@@ -96,6 +96,86 @@ export type Vinculo = {
   profesionalUid: string
   oyenteUid: string
   estado: 'activo' | 'pausado'
+  // Opcionales: hoy se escriben a mano en la consola (`creadoEn`, como
+  // timestamp). `estadoCambiadoEn` lo pone el profesional al pausar o
+  // reanudar (hora del servidor).
+  creadoEn?: Date
+  oyenteNombre?: string
+  oyenteEmail?: string
+  estadoCambiadoEn?: Date
+}
+
+/** Máximo de oyentes que carga el panel de una vez. */
+export const MAX_OYENTES = 500
+
+/** Largo máximo de la nota privada del profesional sobre un oyente. */
+export const MAX_NOTA_PRIVADA = 2000
+
+/**
+ * Un oyente del profesional, visto desde el panel (sale de su vínculo: el
+ * profesional no puede leer el perfil de otro usuario). `nombre` es el campo
+ * opcional `oyenteNombre` del vínculo; hoy se escribe a mano en la consola y
+ * más adelante lo rellenará la página Oyentes al crear el vínculo.
+ */
+export type OyenteDelProfesional = {
+  oyenteUid: string
+  /** Vacío si el vínculo no tiene `oyenteNombre`. */
+  nombre: string
+  estado: Vinculo['estado']
+  /** `oyenteEmail` del vínculo (vacío si no lo tiene). */
+  email: string
+  /** Fecha de entrada (`creadoEn`); null si falta. */
+  creadoEn: Date | null
+  /** Último cambio de estado (para «En pausa desde…»); null si nunca. */
+  estadoCambiadoEn: Date | null
+}
+
+const fecha = (valor: unknown) =>
+  valor && typeof (valor as { toDate?: unknown }).toDate === 'function'
+    ? ((valor as { toDate: () => Date }).toDate() ?? null)
+    : null
+
+/**
+ * Un vínculo (tal cual viene de Firestore) visto como oyente del panel. Los
+ * datos que falten o tengan otro tipo quedan vacíos (se pintan como «—»).
+ * Null si el documento no tiene oyente.
+ */
+export function oyenteDesdeVinculo(
+  datos: Record<string, unknown>,
+): OyenteDelProfesional | null {
+  if (typeof datos.oyenteUid !== 'string' || !datos.oyenteUid) return null
+  return {
+    oyenteUid: datos.oyenteUid,
+    nombre: typeof datos.oyenteNombre === 'string' ? datos.oyenteNombre : '',
+    estado: datos.estado === 'activo' ? 'activo' : 'pausado',
+    email:
+      typeof datos.oyenteEmail === 'string' ? datos.oyenteEmail.trim() : '',
+    creadoEn: fecha(datos.creadoEn),
+    estadoCambiadoEn: fecha(datos.estadoCambiadoEn),
+  }
+}
+
+/** Del más reciente al más antiguo; sin fecha, al final (por nombre). */
+export function ordenarOyentes(oyentes: OyenteDelProfesional[]) {
+  return [...oyentes].sort(
+    (a, b) =>
+      (b.creadoEn?.getTime() ?? -Infinity) -
+        (a.creadoEn?.getTime() ?? -Infinity) ||
+      etiquetaOyente(a).localeCompare(etiquetaOyente(b), 'es'),
+  )
+}
+
+/**
+ * Cómo se llama a un oyente en el panel: su `oyenteNombre` o, si no lo hay,
+ * «Oyente» y los 4 últimos caracteres de su uid (estable y sin enseñar el uid
+ * entero).
+ */
+export function etiquetaOyente(
+  oyente: Pick<OyenteDelProfesional, 'oyenteUid' | 'nombre'>,
+) {
+  return (
+    oyente.nombre.trim() || `Oyente ${oyente.oyenteUid.slice(-4).toUpperCase()}`
+  )
 }
 
 export function idVinculo(profesionalUid: string, oyenteUid: string) {
@@ -104,9 +184,12 @@ export function idVinculo(profesionalUid: string, oyenteUid: string) {
 
 /** Iniciales para el avatar cuando no hay foto principal. */
 export function iniciales(nombre: string) {
-  const partes = nombre.trim().split(/\s+/).filter(Boolean)
-  if (partes.length === 0) return '?'
-  const primera = partes[0].charAt(0)
-  const ultima = partes.length > 1 ? partes[partes.length - 1].charAt(0) : ''
-  return (primera + ultima).toUpperCase()
+  // Primera letra (o número) de cada palabra, sin contar símbolos.
+  const letras = nombre
+    .split(/\s+/)
+    .map((palabra) => palabra.match(/[\p{L}\p{N}]/u)?.[0])
+    .filter((letra): letra is string => Boolean(letra))
+  if (letras.length === 0) return '?'
+  const ultima = letras.length > 1 ? letras[letras.length - 1] : ''
+  return (letras[0] + ultima).toUpperCase()
 }

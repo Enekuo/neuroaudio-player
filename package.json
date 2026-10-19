@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run src",
-    "test:reglas": "npx -y firebase-tools@latest emulators:exec --config firebase.test.json --only firestore,storage --project demo-neuroaudio \"vitest run tests/reglas\""
+    "test:reglas": "npx -y firebase-tools@latest emulators:exec --config firebase.test.json --only firestore,storage --project demo-neuroaudio \"vitest run tests/reglas --no-file-parallelism\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

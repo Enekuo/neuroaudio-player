@@ -11,12 +11,21 @@ import {
 import { useAuth } from '../../auth/context/AuthContext'
 import { deleteAudioSchedule, getAudioSchedule, saveAudioSchedule } from '../services/audioScheduleService'
 import { registrarReproduccion } from '../../library/services/audioService'
+import { useDataUrl, useProfesionalDePista } from '../../perfilProfesional/useProfesionalDePista'
+import { usePortadaDePista } from '../../audiosProfesional/usePortadaDePista'
 
 export type AudioTrack = {
   id: string
   name: string
   url: string
   duration?: number
+  /**
+   * 'profesional': audio que un profesional comparte con este oyente (no es
+   * de su biblioteca, así que no se registra en `audios`).
+   */
+  origen?: 'profesional'
+  /** Con origen 'profesional': quién lo comparte (su foto y nombre en el reproductor). */
+  profesionalUid?: string
 }
 
 export type RepeatMode = 'off' | 'infinite' | 'times'
@@ -165,6 +174,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // Playlists). Es el ÚNICO caso de toda la web en el que, al terminar un
   // audio, debe empezar a sonar directamente el siguiente de la cola.
   const autoAdvanceRef = useRef(false)
+  // Si la próxima pista que se cargue debe empezar a sonar sola. Solo true
+  // al pasar a la siguiente de una playlist (autoAdvance): al pulsar un audio,
+  // la pantalla completa se abre en pausa y hay que darle a play.
+  const autoStartNextRef = useRef(false)
+  // Pista cargada en pausa a la que aún no se le ha dado a play: el primer
+  // play aplica su retardo de inicio (si lo tiene) antes de sonar.
+  const pendingStartRef = useRef(false)
   // Se incrementa en cada cambio de pista: si la programación guardada de una
   // pista tarda en llegar de Firestore y mientras tanto se cambia otra vez de
   // pista, la respuesta tardía se descarta comparando este número.
@@ -357,7 +373,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-    const handleLoadedMetadata = () => setDuration(audioEl.duration || 0)
+    const handleLoadedMetadata = () => {
+      setDuration(audioEl.duration || 0)
+      if (audioEl.paused) {
+        setIsBuffering(false)
+      }
+    }
     const handlePlay = () => {
       setIsPlaying(true)
       setHasEnded(false)
@@ -459,6 +480,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       if (autoAdvanceRef.current && currentIndexRef.current !== null) {
         const nextIndex = currentIndexRef.current + 1
         if (nextIndex < queueRef.current.length) {
+          autoStartNextRef.current = true
           setCurrentIndex(nextIndex)
           return
         }
@@ -521,11 +543,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
 
     const isNewTrack = loadedTrackIdRef.current !== currentTrack.id
+    // Solo empieza a sonar sola la siguiente de una playlist; al pulsar un
+    // audio se queda en pausa hasta que se le da a play.
+    const autoStart = autoStartNextRef.current
+    autoStartNextRef.current = false
 
     if (!isNewTrack) {
       // Misma pista (solo cambió la referencia de currentTrack, p. ej. la cola
       // se recompuso): usa la programación que ya está cargada, sin volver a
-      // pedirla a Firestore ni resetear nada.
+      // pedirla a Firestore ni resetear nada. Si no toca arrancar sola, se
+      // deja como esté (sonando o en pausa).
+      if (!autoStart) {
+        return
+      }
       if (startDelayEnabledRef.current && startDelaySecondsRef.current > 0) {
         startDelayCountdown(startDelaySecondsRef.current)
       } else {
@@ -541,11 +571,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     const restore = restoreRef.current?.trackId === currentTrack.id ? restoreRef.current : null
     restoreRef.current = null
+    // Pulsada a mano: queda en pausa y el primer play aplica su retardo.
+    pendingStartRef.current = !autoStart && !restore
+    if (!autoStart) {
+      // Si sonaba otra, el navegador la para al cambiar de archivo sin
+      // avisar con 'pause': se marca la pausa a mano.
+      expectedPlayingRef.current = false
+      setIsPlaying(false)
+    }
 
     // "Audios recientes": una sola escritura por cada audio que se pone a
     // sonar (solo al cambiar de pista, nunca en bucle ni en cada repetición).
     // Restaurar con "Deshacer" no cuenta como reproducción nueva.
-    if (uid && !restore) {
+    if (uid && !restore && currentTrack.origen !== 'profesional') {
       registrarReproduccion(currentTrack.id).catch((error) => {
         console.error('No se pudo registrar la última reproducción del audio', error)
       })
@@ -623,6 +661,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         return
       }
 
+      // Pulsada a mano: se queda en pausa, lista para darle a play.
+      if (!autoStart) {
+        return
+      }
+
       if (schedule?.startDelayEnabled && schedule.startDelaySeconds > 0) {
         startDelayCountdown(schedule.startDelaySeconds)
       } else {
@@ -632,6 +675,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     loadScheduleAndPlay()
   }, [currentTrack, uid, startDelayCountdown, playRobust, setSavedScheduleTrackId])
+
+  // Audio de un profesional: su nombre en la pantalla de bloqueo y, de
+  // imagen, la portada que eligió (como data: URL, que cargan todos los
+  // sistemas). «Por defecto», o mientras carga, el logo de NeuroAudio.
+  const uidProfesionalDePista = currentTrack?.origen === 'profesional' ? currentTrack.profesionalUid ?? null : null
+  const profesionalDePista = useProfesionalDePista(uidProfesionalDePista)
+  const arteProfesional = useDataUrl(usePortadaDePista(uidProfesionalDePista, uidProfesionalDePista ? currentTrack?.id ?? null : null))
+  const nombreProfesional = profesionalDePista?.perfil.nombre.trim() ?? ''
 
   // Media Session: declara la pista activa ante el sistema operativo/navegador
   // para que la reproducción sobreviva en segundo plano y aparezcan los
@@ -656,11 +707,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     // segundos — solo se usa aquí si hay cuenta atrás o no, nunca el valor.
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentTrack.name,
-      artist: delayCountdown !== null ? 'NeuroAudio · En espera para empezar' : 'NeuroAudio',
-      artwork: [{ src: '/images/logo_1.png', sizes: '512x512', type: 'image/png' }],
+      artist: `${nombreProfesional || 'NeuroAudio'}${delayCountdown !== null ? ' · En espera para empezar' : ''}`,
+      artwork: arteProfesional
+        ? [{ src: arteProfesional, sizes: '512x512', type: arteProfesional.slice(5, arteProfesional.indexOf(';')) }]
+        : [{ src: '/images/logo_1.png', sizes: '512x512', type: 'image/png' }],
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentTrack, delayCountdown !== null])
+  }, [currentTrack, delayCountdown !== null, arteProfesional, nombreProfesional])
 
   useEffect(() => {
     if (!('mediaSession' in navigator)) {
@@ -686,6 +739,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       // reproducción anterior): si no se pasa `autoAdvance: true`, queda en
       // false, tal cual pide "en toda la web" salvo desde una playlist.
       autoAdvanceRef.current = options?.autoAdvance ?? false
+      autoStartNextRef.current = false
 
       // Cualquier cuenta atrás pendiente de una pista anterior deja de tener
       // sentido: la nueva pista decide desde cero si le toca esperar o no
@@ -712,13 +766,22 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
 
     if (audioEl.paused) {
+      // Primer play de una pista recién abierta: si tiene retardo de
+      // inicio, empieza la cuenta atrás (antes empezaba sola al abrirla).
+      if (pendingStartRef.current) {
+        pendingStartRef.current = false
+        if (startDelayEnabledRef.current && startDelaySecondsRef.current > 0) {
+          startDelayCountdown(startDelaySecondsRef.current)
+          return
+        }
+      }
       playRobust()
     } else {
       intentionalPauseRef.current = true
       expectedPlayingRef.current = false
       audioEl.pause()
     }
-  }, [currentTrack, delayCountdown, cancelStartDelay, playRobust])
+  }, [currentTrack, delayCountdown, cancelStartDelay, playRobust, startDelayCountdown])
 
   // Referencia siempre-actualizada a togglePlay para los actionHandler de
   // Media Session: así el efecto que los registra no necesita reinscribirlos
@@ -744,6 +807,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       return
     }
     setLoadError(false)
+    pendingStartRef.current = false
     audioEl.load()
     playRobust()
   }, [currentTrack, playRobust])
@@ -766,6 +830,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       audioEl.pause()
     }
     loadedTrackIdRef.current = null
+    pendingStartRef.current = false
     setIsPlaying(false)
     setIsExpanded(false)
     setCurrentIndex(null)
@@ -925,6 +990,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       }
 
       if (enabled) {
+        pendingStartRef.current = false
         cancelStartDelay()
         intentionalPauseRef.current = true
         expectedPlayingRef.current = false

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type AnimationEvent, type ChangeEvent, type CSSProperties } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
 import AudioWave from '../../../components/AudioWave'
@@ -12,6 +13,9 @@ import MenuOpcionesAudio from '../../library/components/MenuOpcionesAudio'
 import { useUserAudios } from '../../library/hooks/useUserAudios'
 import { deleteAudio } from '../../library/services/audioService'
 import { alternarFavorito } from '../../library/services/favoritoService'
+import { useProfesionalDePista } from '../../perfilProfesional/useProfesionalDePista'
+import { usePortadaDePista } from '../../audiosProfesional/usePortadaDePista'
+import { AvatarProfesional } from '../../perfilProfesional/vista/FotoPerfil'
 
 type PantallaCompletaReproductorProps = {
   isClosing: boolean
@@ -34,6 +38,23 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
   const { audios } = useUserAudios()
   const currentAudio = currentTrack ? audios.find((audio) => audio.id === currentTrack.id) ?? null : null
   const isFavorite = currentAudio?.isFavorite ?? false
+
+  // Audio de un profesional: no es de la biblioteca del oyente (sin favorito,
+  // eliminar ni listas) y, bajo el título, su círculo y su nombre llevan a
+  // su página.
+  const navigate = useNavigate()
+  const esDeProfesional = currentTrack?.origen === 'profesional'
+  const profesional = useProfesionalDePista(esDeProfesional ? currentTrack?.profesionalUid ?? null : null)
+  // Su portada; «Por defecto» (null), el orbe de siempre.
+  const portada = usePortadaDePista(esDeProfesional ? currentTrack?.profesionalUid ?? null : null, esDeProfesional ? currentTrack?.id ?? null : null)
+
+  function handleOpenProfesional() {
+    if (!profesional) {
+      return
+    }
+    collapse()
+    navigate(`/app/profesional/${profesional.uid}`)
+  }
 
   function handleToggleFavorite() {
     if (currentAudio) {
@@ -144,7 +165,10 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
             </svg>
           </button>
 
-          {isMobileLayout ? (
+          {isMobileLayout && esDeProfesional ? (
+            // Audio de un profesional: el menú no tiene opciones que ofrecer.
+            null
+          ) : isMobileLayout ? (
             // En móvil la cabecera solo lleva la flecha y el menú de tres
             // puntos; tema, repetición, volumen y favorito bajan a
             // .now-playing__extras (encima del play).
@@ -185,15 +209,48 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
         </header>
 
         <div className="now-playing__body">
-          <div className="now-playing__orb now-playing__orb--wave">
-            <AudioWave variant="large" playing={isPlaying} />
-          </div>
+          {portada ? (
+            // Audio de un profesional con «Foto del profesional» u «Otra
+            // imagen»: esa imagen ocupa el sitio del orbe.
+            <div className="now-playing__orb now-playing__orb--portada">
+              <img src={portada} alt="" draggable={false} />
+            </div>
+          ) : (
+            <div className="now-playing__orb now-playing__orb--wave">
+              <AudioWave variant="large" playing={isPlaying} />
+            </div>
+          )}
 
           <div className="now-playing__info">
             <h2>{currentTrack.name}</h2>
-            <p className={delayCountdown !== null ? 'now-playing__countdown' : undefined}>
-              {delayCountdown !== null ? `Empieza en ${formatTime(delayCountdown)}` : 'Tu audio de NeuroAudio'}
-            </p>
+            {delayCountdown === null && profesional ? (
+              <p>
+                <button
+                  type="button"
+                  className="now-playing__profesional"
+                  onClick={handleOpenProfesional}
+                  aria-label={`Ver la página de ${profesional.perfil.nombre.trim() || 'tu profesional'}`}
+                >
+                  <AvatarProfesional
+                    profesionalUid={profesional.uid}
+                    nombre={profesional.perfil.nombre.trim()}
+                    fotos={profesional.perfil.fotos}
+                    fotoPrincipalId={profesional.perfil.fotoPrincipalId}
+                    tamano={28}
+                    alt=""
+                    className="now-playing__profesional-foto"
+                  />
+                  <span className="now-playing__profesional-nombre">{profesional.perfil.nombre.trim() || 'Tu profesional'}</span>
+                  <svg className="now-playing__profesional-flecha" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="m9 6 6 6-6 6" />
+                  </svg>
+                </button>
+              </p>
+            ) : (
+              <p className={delayCountdown !== null ? 'now-playing__countdown' : undefined}>
+                {delayCountdown !== null ? `Empieza en ${formatTime(delayCountdown)}` : 'Tu audio de NeuroAudio'}
+              </p>
+            )}
           </div>
 
           <div className="now-playing__progress">
@@ -218,18 +275,20 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
               <RepeatButton triggerClassName="now-playing__icon-button" showVolume hideVolumeSection pinTopOnOpen />
               <ThemeButton triggerClassName="now-playing__icon-button" theme={theme} onThemeChange={setTheme} />
               <VolumeButton triggerClassName="now-playing__icon-button" />
-              <button
-                type="button"
-                className={`now-playing__icon-button now-playing__favorite${isFavorite ? ' is-active' : ''}`}
-                aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
-                aria-pressed={isFavorite}
-                disabled={!currentAudio}
-                onClick={handleToggleFavorite}
-              >
-                <svg viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-              </button>
+              {esDeProfesional ? null : (
+                <button
+                  type="button"
+                  className={`now-playing__icon-button now-playing__favorite${isFavorite ? ' is-active' : ''}`}
+                  aria-label={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+                  aria-pressed={isFavorite}
+                  disabled={!currentAudio}
+                  onClick={handleToggleFavorite}
+                >
+                  <svg viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                </button>
+              )}
             </div>
           ) : null}
 

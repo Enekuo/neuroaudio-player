@@ -48,6 +48,8 @@ type AvatarProfesionalProps = {
   /** Lado en píxeles. */
   tamano: number
   className?: string
+  /** Texto alternativo de la foto (por defecto, el de la foto o el nombre). */
+  alt?: string
 }
 
 /**
@@ -61,6 +63,7 @@ export function AvatarProfesional({
   fotoPrincipalId,
   tamano,
   className,
+  alt,
 }: AvatarProfesionalProps) {
   const principal = fotos.find((f) => f.id === fotoPrincipalId) ?? null
   const url = useFotoPerfil(profesionalUid, principal?.id ?? null, 'cuadrada')
@@ -72,7 +75,7 @@ export function AvatarProfesional({
       <img
         className={clase}
         src={url}
-        alt={principal?.alt || nombre}
+        alt={alt ?? (principal?.alt || nombre)}
         style={estilo}
         draggable={false}
       />

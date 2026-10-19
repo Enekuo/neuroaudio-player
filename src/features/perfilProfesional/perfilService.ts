@@ -1,17 +1,28 @@
 import {
   collection,
   doc,
+  getDocs,
+  limit,
   onSnapshot,
+  orderBy,
   query,
   serverTimestamp,
   setDoc,
+  startAfter,
+  updateDoc,
   where,
   type DocumentData,
+  type QueryDocumentSnapshot,
 } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import {
+  MAX_OYENTES,
   REDES,
+  idVinculo,
+  oyenteDesdeVinculo,
+  ordenarOyentes,
   perfilVacio,
+  type OyenteDelProfesional,
   type Enlaces,
   type FotoPerfil,
   type PerfilProfesional,
@@ -142,13 +153,19 @@ export async function guardarPerfil(
   })
 }
 
+export type VinculoDelOyente = {
+  profesionalUid: string
+  /** Cuándo se creó el vínculo (campo opcional `creadoEn`), si lo tiene. */
+  creadoEn: Date | null
+}
+
 /**
- * Escucha los profesionales con los que el oyente tiene un vínculo activo y
- * devuelve sus uid.
+ * Escucha los vínculos activos del oyente. La consulta pide solo los suyos
+ * (oyenteUid == su uid) y activos: es lo que permiten las reglas.
  */
 export function escucharProfesionalesDelOyente(
   oyenteUid: string,
-  onProfesionales: (profesionalUids: string[]) => void,
+  onVinculos: (vinculos: VinculoDelOyente[]) => void,
   onError?: (error: Error) => void,
 ) {
   const vinculos = query(
@@ -159,11 +176,134 @@ export function escucharProfesionalesDelOyente(
   return onSnapshot(
     vinculos,
     (snap) =>
-      onProfesionales(
+      onVinculos(
         snap.docs
-          .map((d) => d.data().profesionalUid)
-          .filter((uid): uid is string => typeof uid === 'string'),
+          .map((d) => {
+            const data = d.data()
+            return {
+              profesionalUid: data.profesionalUid,
+              creadoEn:
+                typeof data.creadoEn?.toDate === 'function'
+                  ? (data.creadoEn.toDate() as Date)
+                  : null,
+            }
+          })
+          .filter(
+            (v): v is VinculoDelOyente => typeof v.profesionalUid === 'string',
+          ),
       ),
     (error) => onError?.(error),
   )
+}
+
+/** Profesionales por consulta en «todos los profesionales». */
+export const PROFESIONALES_POR_PAGINA = 50
+
+export type PaginaProfesionales = {
+  profesionales: { uid: string; perfil: PerfilProfesional }[]
+  /** Para pedir la siguiente página; null si no hay más. */
+  siguiente: QueryDocumentSnapshot | null
+}
+
+/**
+ * PRUEBA TEMPORAL (modo «todos», ver modoProfesionales.ts): una página de
+ * todos los perfiles con nombre, por orden de nombre en Firestore (por bytes:
+ * quien la usa reordena con el orden alfabético español). Una sola lectura,
+ * no en vivo, para no releer 50 perfiles con cada cambio de cualquiera.
+ * Necesita las reglas «modo todos».
+ */
+export async function obtenerProfesionales(
+  desde: QueryDocumentSnapshot | null = null,
+): Promise<PaginaProfesionales> {
+  const filtros = [
+    where('nombre', '>', ''),
+    orderBy('nombre'),
+    ...(desde ? [startAfter(desde)] : []),
+    limit(PROFESIONALES_POR_PAGINA),
+  ]
+  const snap = await getDocs(
+    query(collection(db, 'perfilesProfesionales'), ...filtros),
+  )
+  return {
+    profesionales: snap.docs.map((d) => ({
+      uid: d.id,
+      perfil: perfilDesdeDocumento(d.data()),
+    })),
+    siguiente:
+      snap.docs.length === PROFESIONALES_POR_PAGINA
+        ? snap.docs[snap.docs.length - 1]
+        : null,
+  }
+}
+
+/**
+ * ¿Tiene el oyente con sesión un vínculo activo con este profesional? En
+ * vivo (si se pausa o se activa, la página cambia sola). Es una consulta y no
+ * una lectura del documento para que «no hay vínculo» llegue como `false` y
+ * no como un error de permiso.
+ */
+export function escucharVinculoActivo(
+  profesionalUid: string,
+  oyenteUid: string,
+  onVinculado: (vinculado: boolean) => void,
+  onError?: (error: Error) => void,
+) {
+  return onSnapshot(
+    query(
+      collection(db, 'vinculos'),
+      where('profesionalUid', '==', profesionalUid),
+      where('oyenteUid', '==', oyenteUid),
+      where('estado', '==', 'activo'),
+    ),
+    (snap) => onVinculado(!snap.empty),
+    (error) => onError?.(error),
+  )
+}
+
+/**
+ * Los oyentes del profesional con sesión: sus vínculos (activos y en pausa),
+ * en vivo, con nombre, correo y fechas si los tienen; hasta MAX_OYENTES, del
+ * más reciente al más antiguo (se ordenan aquí: sin índice nuevo). En «Para
+ * una persona» los activos se pueden elegir como destinatario; los pausados
+ * sirven para nombrar los audios que ya tenían.
+ */
+export function escucharMisOyentes(
+  profesionalUid: string,
+  onOyentes: (oyentes: OyenteDelProfesional[]) => void,
+  onError?: (error: Error) => void,
+) {
+  return onSnapshot(
+    query(
+      collection(db, 'vinculos'),
+      where('profesionalUid', '==', profesionalUid),
+      limit(MAX_OYENTES),
+    ),
+    (snap) =>
+      onOyentes(
+        ordenarOyentes(
+          snap.docs.flatMap((d) => {
+            const oyente = oyenteDesdeVinculo(
+              d.data({ serverTimestamps: 'estimate' }),
+            )
+            return oyente ? [oyente] : []
+          }),
+        ),
+      ),
+    (error) => onError?.(error),
+  )
+}
+
+/**
+ * Pausa o reanuda a un oyente (página «Oyentes»). En pausa deja de ver tus
+ * audios al momento; al reanudar vuelve a verlo todo (no se borra nada).
+ */
+export async function cambiarEstadoVinculo(
+  profesionalUid: string,
+  oyenteUid: string,
+  estado: 'activo' | 'pausado',
+) {
+  await updateDoc(doc(db, 'vinculos', idVinculo(profesionalUid, oyenteUid)), {
+    estado,
+    estadoCambiadoEn: serverTimestamp(),
+  })
 }

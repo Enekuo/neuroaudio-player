@@ -2,6 +2,7 @@ import { doc, runTransaction, serverTimestamp } from 'firebase/firestore'
 import { deleteObject, getBlob, ref, uploadBytes } from 'firebase/storage'
 import { db, storage } from '../../../lib/firebase'
 import type { FotoPerfil } from '../modelo'
+import { crearCacheBlobs } from './cacheBlobs'
 import type { Encuadre } from './encuadre'
 import {
   ErrorFoto,
@@ -28,9 +29,10 @@ export function rutaFoto(uid: string, fotoId: string, variante: VarianteFoto) {
  * Reserva el permiso para subir UNA foto nueva. Es una escritura en
  * `limitesSubida/{uid}` que las reglas solo aceptan si no se ha pasado el
  * límite del minuto; Storage solo admite archivos de la foto reservada.
- * Así el límite lo comprueba el servidor, no solo esta pantalla.
+ * Así el límite lo comprueba el servidor, no solo esta pantalla. También lo
+ * usa la imagen propia de las listas del profesional (mismo contador).
  */
-async function reservarSubida(uid: string, fotoId: string) {
+export async function reservarSubida(uid: string, fotoId: string) {
   const limite = doc(db, 'limitesSubida', uid)
   try {
     await runTransaction(db, async (tx) => {
@@ -161,25 +163,44 @@ export async function borrarFoto(uid: string, fotoId: string) {
 // Nunca se usa getDownloadURL (daría un enlace público permanente). La foto
 // se descarga con getBlob, que pasa por las reglas de Storage en cada
 // petición, y se muestra con una URL local (blob:) que solo existe en esta
-// pestaña. Se guarda en memoria para no descargarla en cada render.
+// pestaña.
+//
+// Cada pantalla que muestra una foto la «adquiere» y la «suelta» al salir.
+// La misma foto se descarga una sola vez aunque la usen varias pantallas, y
+// su enlace blob: se libera cuando ninguna la usa, tras un margen (para no
+// volver a descargarla al ir y volver entre pantallas).
 
-const cache = new Map<string, Promise<string>>()
+/** Margen antes de liberar una foto que ya no usa ninguna pantalla. */
+export const MARGEN_LIBERAR_FOTO_MS = 10_000
 
+const cache = crearCacheBlobs(
+  (ruta) => getBlob(ref(storage, ruta)),
+  MARGEN_LIBERAR_FOTO_MS,
+)
+
+/** La foto se ha borrado: fuera de memoria ya. */
 function olvidarFoto(ruta: string) {
-  const enCache = cache.get(ruta)
-  cache.delete(ruta)
-  enCache?.then((url) => URL.revokeObjectURL(url)).catch(() => {})
+  cache.olvidar(ruta)
 }
 
-/** URL local (blob:) de una versión de la foto, si quien la pide tiene permiso. */
-export function urlFoto(uid: string, fotoId: string, variante: VarianteFoto) {
-  const ruta = rutaFoto(uid, fotoId, variante)
-  let url = cache.get(ruta)
-  if (!url) {
-    url = getBlob(ref(storage, ruta)).then((blob) => URL.createObjectURL(blob))
-    // Si falla (sin permiso, borrada…), que el próximo intento lo reintente.
-    url.catch(() => cache.delete(ruta))
-    cache.set(ruta, url)
-  }
-  return url
+/**
+ * URL local (blob:) de una versión de la foto, si quien la pide tiene
+ * permiso. Hay que llamar a `soltarFoto` con los mismos datos al dejar de
+ * usarla.
+ */
+export function adquirirFoto(
+  uid: string,
+  fotoId: string,
+  variante: VarianteFoto,
+) {
+  return cache.adquirir(rutaFoto(uid, fotoId, variante))
+}
+
+/** Deja de usar una foto; si nadie más la usa, se libera tras el margen. */
+export function soltarFoto(
+  uid: string,
+  fotoId: string,
+  variante: VarianteFoto,
+) {
+  cache.soltar(rutaFoto(uid, fotoId, variante))
 }

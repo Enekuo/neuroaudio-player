@@ -18,6 +18,8 @@ type AvisoSalirSinGuardarProps = {
    */
   pedirSalida?: { accion: () => void } | null
   onCerrarPeticion?: () => void
+  /** Texto del aviso (por defecto, el del perfil). */
+  texto?: string
 }
 
 function esEnlaceInterno(destino: HTMLAnchorElement) {
@@ -41,6 +43,7 @@ function AvisoSalirSinGuardar({
   onDescartar,
   pedirSalida,
   onCerrarPeticion,
+  texto = 'Tienes cambios en tu perfil que todavía no has guardado. Si sales ahora, se perderán.',
 }: AvisoSalirSinGuardarProps) {
   const navigate = useNavigate()
   const { pathname, search } = useLocation()
@@ -111,10 +114,7 @@ function AvisoSalirSinGuardar({
     >
       <DialogTitle id="aviso-salir-titulo">¿Salir sin guardar?</DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          Tienes cambios en tu perfil que todavía no has guardado. Si sales
-          ahora, se perderán.
-        </DialogContentText>
+        <DialogContentText>{texto}</DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={salir} color="error">

@@ -41,6 +41,16 @@ type DialogoAjustarFotoProps = {
   onCancelar: () => void
   /** Sube o regenera la foto con el encuadre elegido. Si falla, lanza. */
   onGuardar: (encuadre: Encuadre) => Promise<void>
+  /**
+   * Forma de lo que se verá: el círculo de la foto de perfil (por defecto) o
+   * un cuadrado (la imagen de una lista). El recorte guardado es cuadrado en
+   * los dos casos.
+   */
+  forma?: 'circulo' | 'cuadrado'
+  /** Título y ayuda propios (por defecto, los de la foto de perfil). */
+  titulo?: string
+  ayuda?: string
+  textoGuardar?: string
 }
 
 /** Parte del lado del escenario que ocupa el círculo. */
@@ -59,6 +69,10 @@ function DialogoAjustarFoto({
   encuadreGuardado,
   onCancelar,
   onGuardar,
+  forma = 'circulo',
+  titulo = 'Ajustar foto',
+  textoGuardar = 'Guardar foto',
+  ayuda = 'Lo que queda dentro del círculo es tu foto de perfil. Arrastra para moverla y usa el zoom para acercarla. Con teclado: flechas para mover, + y − para el zoom.',
 }: DialogoAjustarFotoProps) {
   const theme = useTheme()
   const pantallaCompleta = useMediaQuery(theme.breakpoints.down('sm'))
@@ -243,7 +257,7 @@ function DialogoAjustarFoto({
       fullWidth
       aria-labelledby="ajustar-foto-titulo"
     >
-      <DialogTitle id="ajustar-foto-titulo">Ajustar foto</DialogTitle>
+      <DialogTitle id="ajustar-foto-titulo">{titulo}</DialogTitle>
       <DialogContent>
         <Typography
           id={idAyuda}
@@ -251,9 +265,7 @@ function DialogoAjustarFoto({
           color="text.secondary"
           sx={{ mb: 2 }}
         >
-          Lo que queda dentro del círculo es tu foto de perfil. Arrastra para
-          moverla y usa el zoom para acercarla. Con teclado: flechas para mover,
-          + y − para el zoom.
+          {ayuda}
         </Typography>
 
         <Box
@@ -305,7 +317,7 @@ function DialogoAjustarFoto({
                   pointerEvents: 'none',
                 }}
               />
-              {/* Círculo: todo lo de fuera queda oscurecido con su sombra. */}
+              {/* Círculo (o cuadrado): lo de fuera queda oscurecido con su sombra. */}
               <Box
                 aria-hidden="true"
                 sx={{
@@ -315,7 +327,7 @@ function DialogoAjustarFoto({
                   width: `${PROPORCION_CIRCULO * 100}%`,
                   aspectRatio: '1',
                   transform: 'translate(-50%, -50%)',
-                  borderRadius: '50%',
+                  borderRadius: forma === 'circulo' ? '50%' : '12px',
                   boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.62)',
                   outline: '2px solid rgba(255, 255, 255, 0.9)',
                   pointerEvents: 'none',
@@ -386,7 +398,7 @@ function DialogoAjustarFoto({
             ) : undefined
           }
         >
-          Guardar foto
+          {textoGuardar}
         </Button>
       </DialogActions>
     </Dialog>

@@ -10,6 +10,10 @@ import ProfesionalLayout from './layouts/ProfesionalLayout'
 import DashboardProfesionalPage from './pages/DashboardProfesionalPage'
 import SeccionProfesionalPage from './pages/SeccionProfesionalPage'
 import PerfilPage from './perfil/PerfilPage'
+import AudiosPage from './audios/AudiosPage'
+import ListasPage from './listas/ListasPage'
+import MisAudiosPage from './misAudios/MisAudiosPage'
+import OyentesPage from './oyentes/OyentesPage'
 import { SECCIONES_PROFESIONAL } from './data/secciones'
 import { profesionalTheme } from './theme/profesionalTheme'
 import { EASE_OUT } from './theme/movimiento'
@@ -83,10 +87,24 @@ function ProfesionalApp() {
             {SECCIONES_PROFESIONAL.map((seccion) => (
               <Route
                 key={seccion.path}
-                path={seccion.path}
+                // «Listas y programas» (pestañas y editor) y «Oyentes»
+                // (ficha de cada persona) tienen subrutas.
+                path={
+                  seccion.path === 'listas' || seccion.path === 'oyentes'
+                    ? `${seccion.path}/*`
+                    : seccion.path
+                }
                 element={
                   seccion.path === 'perfil' ? (
                     <PerfilPage />
+                  ) : seccion.path === 'audios' ? (
+                    <AudiosPage />
+                  ) : seccion.path === 'listas' ? (
+                    <ListasPage />
+                  ) : seccion.path === 'mis-audios' ? (
+                    <MisAudiosPage />
+                  ) : seccion.path === 'oyentes' ? (
+                    <OyentesPage />
                   ) : (
                     <SeccionProfesionalPage seccion={seccion} />
                   )
