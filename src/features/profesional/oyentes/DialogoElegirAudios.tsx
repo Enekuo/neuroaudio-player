@@ -46,6 +46,15 @@ type DialogoElegirAudiosProps = {
   /** Devuelve un error para mostrar o null si ha ido bien (y se cierra). */
   onConfirmar: (audioIds: string[]) => Promise<string | null>
   onCerrar: () => void
+  /** Textos propios (por defecto, los de enviar a una persona). */
+  textos?: {
+    /** Tras «Aún no tienes audios en Biblioteca. Sube el primero». */
+    finSinAudios?: string
+    /** Cuando ya no queda ninguno por elegir. */
+    todosElegidos?: string
+    /** Cuando se llega al máximo de una vez. */
+    limite?: string
+  }
 }
 
 /**
@@ -61,6 +70,7 @@ function DialogoElegirAudios({
   accion,
   onConfirmar,
   onCerrar,
+  textos = {},
 }: DialogoElegirAudiosProps) {
   const theme = useTheme()
   const pantallaCompleta = useMediaQuery(theme.breakpoints.down('sm'))
@@ -122,17 +132,17 @@ function DialogoElegirAudios({
   if (audios.length === 0) {
     lista = (
       <Typography variant="body2" color="text.secondary">
-        Aún no tienes audios en Mis audios.{' '}
+        Aún no tienes audios en Biblioteca.{' '}
         <EnlaceRouter to="/profesional/mis-audios">
           Sube el primero
         </EnlaceRouter>{' '}
-        y podrás enviárselo.
+        {textos.finSinAudios ?? 'y podrás enviárselo.'}
       </Typography>
     )
   } else if (candidatos.length === 0) {
     lista = (
       <Typography variant="body2" color="text.secondary">
-        Ya tiene todos tus audios de Mis audios.
+        {textos.todosElegidos ?? 'Ya tiene todos los audios de Biblioteca.'}
       </Typography>
     )
   } else {
@@ -176,7 +186,8 @@ function DialogoElegirAudios({
         )}
         {lleno && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Puedes enviar {LIMITES_BIBLIOTECA.enviosALaVez} audios de una vez.
+            {textos.limite ??
+              `Puedes enviar ${LIMITES_BIBLIOTECA.enviosALaVez} audios de una vez.`}
           </Typography>
         )}
         {visibles.length === 0 ? (

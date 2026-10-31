@@ -322,6 +322,31 @@ html {
   animation: panel-in 220ms var(--ease-out-strong);
 }
 
+/* Salidas (se quitan al terminar, ver useSalidaAnimada): el menú de la
+   cuenta se encoge y funde hacia su botón; la ventana de Ajustes, igual que
+   «Subir audio». */
+@keyframes popover-out {
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+.mobile-topbar__menu.is-closing,
+.library-sidebar__account-menu.is-closing {
+  pointer-events: none;
+  animation: popover-out 120ms ease-in forwards;
+}
+
+.settings-overlay.is-closing {
+  pointer-events: none;
+  animation: modal-overlay-out 180ms ease forwards;
+}
+
+.settings-modal.is-closing {
+  animation: modal-panel-out 180ms var(--ease-out-strong) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .repeat-menu,
   .library-sidebar__account-menu,
@@ -334,6 +359,10 @@ html {
   .modal-card,
   .settings-modal,
   .buscador-panel,
+  .mobile-topbar__menu.is-closing,
+  .library-sidebar__account-menu.is-closing,
+  .settings-overlay.is-closing,
+  .settings-modal.is-closing,
   .now-playing,
   .now-playing.is-closing,
   .now-playing__wave span,
@@ -855,6 +884,33 @@ input[type='submit']:active,
   width: 26px;
   height: 32px;
   color: var(--text-secondary);
+}
+
+/* Botón de la cuenta: al pulsarlo, el mismo efecto que los botones de la
+   barra de abajo (se atenúa y encoge mientras se mantiene pulsado, sin
+   rebote). En ordenador, igual la fila de la cuenta de la barra lateral. */
+.mobile-topbar__avatar-button,
+.library-sidebar__account-trigger {
+  transition: transform 100ms ease-out, opacity 100ms ease-out, background-color 160ms ease;
+}
+
+.mobile-topbar__avatar-button:active,
+.library-sidebar__account-trigger:active {
+  opacity: 0.55;
+  transform: scale(0.94);
+}
+
+/* Reducir animaciones: sin encogerse; solo se atenúa. */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-topbar__avatar-button:active,
+  .library-sidebar__account-trigger:active {
+    transform: none;
+  }
+}
+
+.reduce-motion .mobile-topbar__avatar-button:active,
+.reduce-motion .library-sidebar__account-trigger:active {
+  transform: none;
 }
 
 .mobile-topbar__menu {
@@ -2093,6 +2149,45 @@ input[type='submit']:active,
   flex-shrink: 0;
   color: var(--text-muted);
   font-size: 0.78rem;
+}
+
+/* Audios de profesionales en el buscador: el título y, debajo, de quién es
+   («Nombre · duración» o «Nombre · Para ti»); si coincide solo por la
+   descripción, un aviso pequeño. */
+.buscador-panel__texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.buscador-panel__texto .buscador-panel__name {
+  flex: none;
+}
+
+.buscador-panel__detalle,
+.buscador-panel__aviso {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buscador-panel__detalle {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.buscador-panel__aviso {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-style: italic;
+}
+
+.buscador-panel__error {
+  margin: 0.4rem 0.55rem 0.2rem;
+  color: #ff6b6b;
+  font-size: 0.84rem;
 }
 
 .buscador-panel__play {
@@ -4349,6 +4444,162 @@ input[type='submit']:active,
 .now-playing__header-actions .repeat-control__trigger svg {
   width: 24px;
   height: 24px;
+}
+
+/* «Ver descripción» (audios de profesionales) mientras carga su audio. */
+.now-playing__info-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Su ventana: solo encima de la parte de arriba del reproductor (de la
+   cabecera al título y el profesional), con el mismo velo y desenfoque que
+   la ventana de la lista. La barra de minutos y los controles quedan fuera,
+   sin velo y funcionando. El alto lo pone el componente al medir. */
+.now-playing__descripcion {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  padding: 1rem;
+  background: rgba(10, 10, 12, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  overflow-y: auto;
+  /* Entrada: el velo y su desenfoque crecen desde cero. */
+  animation: np-desc-velo-in 260ms var(--ease-out-strong) both;
+}
+
+/* Salida: el velo se va (al terminar, el componente se quita). */
+.now-playing__descripcion.is-cerrando {
+  pointer-events: none;
+  animation: np-desc-velo-out 220ms var(--ease-out-strong) both;
+}
+
+/* La tarjeta cabe en la zona: si la descripción es larga, se desplaza dentro.
+   Nace desde la esquina de la «i» (arriba a la derecha) y vuelve a ella. */
+.now-playing__descripcion-tarjeta {
+  max-height: 100%;
+  overflow-y: auto;
+  transform-origin: 100% 0;
+  animation: np-desc-tarjeta-in 340ms var(--ease-out-strong) 40ms both;
+}
+
+.now-playing__descripcion.is-cerrando .now-playing__descripcion-tarjeta {
+  animation: np-desc-tarjeta-out 200ms var(--ease-out-strong) both;
+}
+
+/* Su contenido entra en cascada (título, texto, aviso de salud y «Cerrar»). */
+.now-playing__descripcion-tarjeta > * {
+  animation: np-desc-parte-in 300ms var(--ease-out-strong) both;
+}
+
+.now-playing__descripcion-tarjeta > :nth-child(1) { animation-delay: 110ms; }
+.now-playing__descripcion-tarjeta > :nth-child(2) { animation-delay: 150ms; }
+.now-playing__descripcion-tarjeta > :nth-child(3) { animation-delay: 190ms; }
+.now-playing__descripcion-tarjeta > :nth-child(4) { animation-delay: 230ms; }
+
+/* Mientras está abierta, el orbe (o la portada) y el título se alejan un
+   poco (la descripción queda delante) y vuelven al cerrarla. Solo ellos: en
+   móvil comparten bloque con los minutos y los controles, que no se tocan. */
+.now-playing__orb,
+.now-playing__info {
+  /* «scale» (no transform): se suma al transform que ya tiene el orbe en
+     móvil (subido 28px) en vez de pisarlo. */
+  transition:
+    scale 340ms var(--ease-out-strong),
+    opacity 340ms var(--ease-out-strong);
+}
+
+.now-playing:has(> .now-playing__descripcion:not(.is-cerrando)) .now-playing__orb,
+.now-playing:has(> .now-playing__descripcion:not(.is-cerrando)) .now-playing__info {
+  scale: 0.96;
+  opacity: 0.55;
+}
+
+@keyframes np-desc-velo-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes np-desc-velo-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes np-desc-tarjeta-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes np-desc-tarjeta-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.95);
+  }
+}
+
+@keyframes np-desc-parte-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Reducir movimiento: solo fundidos, sin escalas ni desplazamientos (el
+   velo conserva una animación corta para que el cierre siga terminando). */
+@media (prefers-reduced-motion: reduce) {
+  .now-playing__descripcion {
+    animation: overlay-in 160ms ease both;
+  }
+
+  .now-playing__descripcion.is-cerrando {
+    animation: np-desc-velo-out 140ms ease both;
+  }
+
+  .now-playing__descripcion-tarjeta,
+  .now-playing__descripcion.is-cerrando .now-playing__descripcion-tarjeta,
+  .now-playing__descripcion-tarjeta > * {
+    animation: none;
+  }
+
+  .now-playing__orb,
+  .now-playing__info {
+    transition: opacity 160ms ease;
+  }
+
+  .now-playing:has(> .now-playing__descripcion:not(.is-cerrando)) .now-playing__orb,
+  .now-playing:has(> .now-playing__descripcion:not(.is-cerrando)) .now-playing__info {
+    scale: none;
+  }
 }
 
 /* El "orbe": la gran esfera que corona la pantalla, con el ecualizador vivo
@@ -8090,6 +8341,420 @@ input[type='submit']:active,
   }
 }
 
+/* ---------- Ajustes del oyente: «Plan y uso» ----------
+   Tres tarjetas (Tu plan, Uso, Facturación) con el mismo fondo y borde que
+   la tarjeta de plan de antes; títulos en versalitas apagadas. */
+.settings-pu__card {
+  margin: 0 0 1rem;
+  padding: 1.1rem 1.2rem;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.settings-pu__title {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.settings-pu__plan {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.settings-pu__plan-name {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.settings-pu__chip {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(38, 128, 235, 0.18);
+  color: #8fbff5;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Botón de lo que aún no existe: ancho, de contorno y apagado. */
+.settings-pu__button {
+  width: 100%;
+  margin-top: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.settings-pu__button:disabled {
+  cursor: not-allowed;
+}
+
+/* El texto del botón no se parte; si no cabe con «Próximamente», la
+   etiqueta baja debajo. */
+.settings-pu__button-text {
+  white-space: nowrap;
+}
+
+.settings-pu__usage {
+  margin: 0;
+}
+
+.settings-pu__usage-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 1rem;
+  padding: 0.6rem 0;
+}
+
+.settings-pu__usage-row + .settings-pu__usage-row {
+  border-top: 1px solid var(--border-soft);
+}
+
+.settings-pu__usage-row dt {
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.settings-pu__usage-row dd {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-pu__usage-row .settings-row__hint {
+  flex-basis: 100%;
+}
+
+.settings-pu__payment {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.settings-pu__payment p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.settings-pu__payment-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(38, 128, 235, 0.14);
+  color: var(--brand-500);
+  flex-shrink: 0;
+}
+
+.settings-pu__payment-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.settings-pu__empty {
+  margin: 1rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-soft);
+  color: var(--text-muted);
+  color: color-mix(in srgb, var(--text-muted), var(--text-secondary));
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+/* En ordenador, el botón no ocupa todo el ancho de la tarjeta. */
+@media (min-width: 681px) {
+  .settings-pu__button {
+    width: auto;
+  }
+}
+
+/* ---------- Ajustes del oyente: retoques visuales ---------- */
+
+/* 1) «Nombre completo» y «¿Cómo quieres que te llamemos?», del mismo ancho
+   (antes el primero se quedaba en el ancho natural del campo). En móvil,
+   los dos a todo el ancho. */
+.settings-field__input {
+  width: 100%;
+  max-width: 360px;
+}
+
+@media (max-width: 560px) {
+  .settings-field__input {
+    max-width: none;
+  }
+}
+
+/* 2) «Guardar» desactivado: apagado y discreto; azul solo cuando se puede
+   pulsar. El borde transparente mantiene el mismo tamaño en los dos estados. */
+.settings-field__save {
+  border: 1px solid transparent;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.settings-field__save:disabled {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+/* 3) Pestañas: la franja azul y la pestaña activa, más suaves (el mismo azul
+   de la app, menos intenso). */
+.settings-modal__nav {
+  background: rgba(10, 37, 64, 0.55);
+}
+
+.settings-modal__nav-item {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.settings-modal__nav-item.is-active {
+  background: rgba(38, 128, 235, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(38, 128, 235, 0.4);
+  color: #ffffff;
+}
+
+/* En móvil (pestañas en fila): sin la barra de desplazamiento fina, que
+   parecía otra línea; en su lugar, el borde derecho se desvanece para que
+   se vea que hay más pestañas al deslizar. El hueco final deja ver entera
+   la última pestaña al llegar al final. */
+@media (max-width: 680px) {
+  .settings-modal__nav {
+    scrollbar-width: none;
+    padding-right: 2.5rem;
+    /* Al deslizar sola hasta una pestaña, se para antes del difuminado. */
+    scroll-padding-inline-end: 2.5rem;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+  }
+
+  .settings-modal__nav::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* 4) Textos pequeños de ayuda: un gris algo más claro (a medio camino entre
+   el apagado y el secundario de la app) para que se lean mejor. */
+.settings-field__hint,
+.settings-row__hint,
+.settings-account-photo__hint,
+.settings-section__hint {
+  color: var(--text-muted);
+  color: color-mix(in srgb, var(--text-muted), var(--text-secondary));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-field__save,
+  .settings-modal__nav-item {
+    transition: none;
+  }
+}
+
+/* Ajustes del oyente en el móvil, un escalón más compactos (a la escala de
+   apps como Claude): letra base de 14 px, ayudas de 12 px, títulos más
+   contenidos y márgenes más ajustados. Mismos colores y estructura. El texto
+   de los campos no baja (por debajo de 16 px, iOS acerca la pantalla). */
+@media (max-width: 680px) {
+  .settings-modal__header {
+    padding: 0.8rem 1rem;
+  }
+
+  .settings-modal__header h2 {
+    font-size: 1.05rem;
+  }
+
+  .settings-modal__close {
+    width: 32px;
+    height: 32px;
+  }
+
+  .settings-modal__nav {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .settings-modal__nav-item {
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .settings-modal__nav-item svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .settings-modal__content {
+    padding: 1.15rem 1rem 1.5rem;
+  }
+
+  .settings-section h3 {
+    font-size: 1.05rem;
+  }
+
+  .settings-section__intro {
+    margin-bottom: 1.15rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .settings-section__hint {
+    font-size: 0.78rem;
+  }
+
+  .settings-apartado {
+    margin-bottom: 1.8rem;
+  }
+
+  .settings-apartado > h4,
+  .settings-apartado__header h4 {
+    font-size: 0.92rem;
+  }
+
+  .settings-apartado > h4,
+  .settings-apartado__header {
+    margin-bottom: 0.75rem;
+  }
+
+  .settings-row {
+    padding: 0.75rem 0;
+  }
+
+  .settings-row__label {
+    font-size: 0.875rem;
+  }
+
+  .settings-row__hint,
+  .settings-field__hint {
+    font-size: 0.76rem;
+  }
+
+  .settings-row__value,
+  .settings-legal-list li {
+    font-size: 0.86rem;
+  }
+
+  .settings-legal-list li {
+    padding: 0.75rem 0.2rem;
+  }
+
+  .settings-field {
+    margin-bottom: 1.1rem;
+  }
+
+  .settings-field__label {
+    margin-bottom: 0.35rem;
+    font-size: 0.84rem;
+  }
+
+  .settings-field__input {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .settings-field__save,
+  .settings-signout-button,
+  .settings-danger-button,
+  .settings-danger-confirm__cancel {
+    padding: 0.6rem 1rem;
+    font-size: 0.86rem;
+  }
+
+  .settings-field__success,
+  .settings-field__error {
+    font-size: 0.78rem;
+  }
+
+  .settings-segmented__option {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  .settings-select {
+    font-size: 0.85rem;
+  }
+
+  .settings-profile-row,
+  .settings-account-photo {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .settings-account-photo__avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 1.15rem;
+  }
+
+  .settings-account-photo__hint {
+    font-size: 0.78rem;
+  }
+
+  .settings-danger-zone {
+    margin-top: 1.5rem;
+    padding: 1rem;
+  }
+
+  .settings-danger-zone__header h4 {
+    font-size: 0.92rem;
+  }
+
+  .settings-danger-zone p,
+  .settings-danger-confirm__notice {
+    font-size: 0.82rem;
+  }
+
+  .settings-pu__card {
+    padding: 1rem;
+  }
+
+  .settings-pu__plan-name {
+    font-size: 1.1rem;
+  }
+
+  .settings-pu__usage-row dt,
+  .settings-pu__usage-row dd,
+  .settings-pu__payment p {
+    font-size: 0.86rem;
+  }
+
+  .settings-pu__button {
+    padding: 0.6rem 1rem;
+    font-size: 0.86rem;
+  }
+
+  .settings-pu__empty {
+    font-size: 0.82rem;
+  }
+}
+
 /* ============================================================
    Móvil en horizontal: la detección táctil de arriba (ver el
    comentario junto al primer "@media (max-width: 640px), (hover: none)
@@ -10536,9 +11201,11 @@ input[type='submit']:active,
    `translate` para no pisar los `transform` de posición que ya tienen
    el círculo y la fila del play.
    ============================================================ */
+/* --np-desde: altura del mini-reproductor cuando se abre desde él (la hoja
+   empieza ahí, como si este creciera); si no, desde abajo del todo. */
 @keyframes now-playing-sheet-in {
   from {
-    transform: translateY(100%);
+    transform: translateY(var(--np-desde, 100%));
     border-radius: 28px 28px 0 0;
   }
   to {
@@ -10905,29 +11572,6 @@ input[type='submit']:active,
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Apertura con View Transitions: la imagen del recuadro crece hasta la
-   imagen grande del reproductor y la barra se funde (~300ms, ease-out).
-   Mientras dura, la pantalla completa no hace su animación de hoja. */
-.np-vt-open .mini-player__thumb,
-.np-vt-open .now-playing__orb {
-  view-transition-name: np-artwork;
-}
-
-.now-playing--vt {
-  animation: none !important;
-}
-
-::view-transition-group(np-artwork) {
-  animation-duration: 320ms;
-  animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 300ms;
-  animation-timing-function: ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -20,6 +20,7 @@ import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import AddRounded from '@mui/icons-material/AddRounded'
+import LibraryAddOutlined from '@mui/icons-material/LibraryAddOutlined'
 import ArrowDownwardRounded from '@mui/icons-material/ArrowDownwardRounded'
 import ArrowUpwardRounded from '@mui/icons-material/ArrowUpwardRounded'
 import DeleteOutlineRounded from '@mui/icons-material/DeleteOutlineRounded'
@@ -32,15 +33,22 @@ import SearchRounded from '@mui/icons-material/SearchRounded'
 import UnpublishedOutlined from '@mui/icons-material/UnpublishedOutlined'
 import {
   actualizarAudio,
+  anadirDesdeBiblioteca,
   borrarAudio,
+  escucharMiBiblioteca,
   escucharMisAudiosGenerales,
   guardarOrden,
 } from '../../audiosProfesional/audioProfesionalService'
-import type { AudioProfesional } from '../../audiosProfesional/modelo'
+import {
+  LIMITES_BIBLIOTECA,
+  carpetaDePortada,
+  type AudioProfesional,
+} from '../../audiosProfesional/modelo'
 import PortadaAudio from '../../audiosProfesional/PortadaAudio'
 import { escucharPerfil } from '../../perfilProfesional/perfilService'
 import { formatTime } from '../../library/utils/formatTime'
 import { animacionEntrada } from '../theme/movimiento'
+import DialogoElegirAudios from '../oyentes/DialogoElegirAudios'
 import DialogoAudio from './DialogoAudio'
 
 type Filtro = 'todos' | 'publicado' | 'borrador'
@@ -75,6 +83,9 @@ function AudiosGenerales({ uid }: { uid: string }) {
     audio: AudioProfesional
   } | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)
+  // «Añadir desde Biblioteca»: abierto, y sus audios (se leen solo entonces).
+  const [anadiendo, setAnadiendo] = useState(false)
+  const [biblioteca, setBiblioteca] = useState<AudioProfesional[] | null>(null)
   // Orden provisional mientras se guarda un reordenamiento (evita saltos).
   const [ordenLocal, setOrdenLocal] = useState<string[] | null>(null)
   // El que se arrastra: en estado (para pintarlo) y en una referencia (para
@@ -98,6 +109,14 @@ function AudiosGenerales({ uid }: { uid: string }) {
       ),
     [uid],
   )
+
+  useEffect(() => {
+    if (!anadiendo) return
+    return escucharMiBiblioteca(uid, setBiblioteca, () => {
+      setAnadiendo(false)
+      setAviso('No se pudo cargar tu Biblioteca. Inténtalo de nuevo.')
+    })
+  }, [uid, anadiendo])
 
   // Para la portada: la foto principal del propio profesional.
   useEffect(
@@ -135,6 +154,49 @@ function AudiosGenerales({ uid }: { uid: string }) {
     audios && audios.length > 0
       ? Math.min(...audios.map((a) => a.orden)) - 1
       : 0
+
+  // Los añadidos desde Biblioteca van al final de la lista.
+  const ordenAlFinal =
+    audios && audios.length > 0
+      ? Math.max(...audios.map((a) => a.orden)) + 1
+      : 0
+  const yaEnAudios = useMemo(
+    () =>
+      new Set(
+        (audios ?? []).flatMap((a) => (a.deMisAudios ? [a.deMisAudios] : [])),
+      ),
+    [audios],
+  )
+
+  const anadir = async (ids: string[]) => {
+    const origenes = ids
+      .map((id) => biblioteca?.find((a) => a.id === id))
+      .filter((a): a is AudioProfesional => !!a)
+    try {
+      await anadirDesdeBiblioteca(origenes, ordenAlFinal)
+      setAviso(
+        origenes.length === 1
+          ? `«${origenes[0].titulo}» añadido a Audios y publicado.`
+          : `${origenes.length} audios añadidos a Audios y publicados.`,
+      )
+      return null
+    } catch {
+      return 'No se pudieron añadir. Revisa tu conexión e inténtalo de nuevo.'
+    }
+  }
+
+  const botonAnadir = (
+    <Button
+      variant="outlined"
+      startIcon={<LibraryAddOutlined />}
+      onClick={() => {
+        setBiblioteca(null)
+        setAnadiendo(true)
+      }}
+    >
+      Añadir desde Biblioteca
+    </Button>
+  )
 
   const aplicarOrden = async (ids: string[]) => {
     setOrdenLocal(ids)
@@ -185,7 +247,11 @@ function AudiosGenerales({ uid }: { uid: string }) {
     setBorrando(true)
     try {
       await borrarAudio(aBorrar)
-      setAviso(`«${aBorrar.titulo}» borrado.`)
+      setAviso(
+        aBorrar.deMisAudios
+          ? `«${aBorrar.titulo}» quitado de Audios. Sigue en Biblioteca.`
+          : `«${aBorrar.titulo}» borrado.`,
+      )
       setABorrar(null)
     } catch {
       setAviso('No se pudo borrar el audio. Inténtalo de nuevo.')
@@ -244,13 +310,23 @@ function AudiosGenerales({ uid }: { uid: string }) {
           Los audios generales que publiques los escucharán todas las personas
           que tienen acceso a ti.
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddRounded />}
-          onClick={() => setEdicion({})}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 1.5,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
         >
-          Subir tu primer audio
-        </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddRounded />}
+            onClick={() => setEdicion({})}
+          >
+            Subir tu primer audio
+          </Button>
+          {botonAnadir}
+        </Box>
       </Paper>
     ) : (
       <>
@@ -293,6 +369,7 @@ function AudiosGenerales({ uid }: { uid: string }) {
             <MenuItem value="borrador">Borradores</MenuItem>
           </TextField>
           <Box sx={{ flex: 1 }} />
+          {botonAnadir}
           <Button
             variant="contained"
             startIcon={<AddRounded />}
@@ -365,7 +442,8 @@ function AudiosGenerales({ uid }: { uid: string }) {
                   profesionalUid={uid}
                   fotoPrincipalId={fotoPrincipalId}
                   portada={audio.portada}
-                  audioId={audio.id}
+                  audioId={carpetaDePortada(audio).audioId}
+                  biblioteca={carpetaDePortada(audio).biblioteca}
                   portadaImagen={audio.portadaImagen}
                   style={{
                     width: '100%',
@@ -401,6 +479,13 @@ function AudiosGenerales({ uid }: { uid: string }) {
                     />
                     {audio.contieneSalud && (
                       <Chip size="small" variant="outlined" label="Salud" />
+                    )}
+                    {audio.deMisAudios && (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label="De Biblioteca"
+                      />
                     )}
                     <Typography
                       variant="body2"
@@ -524,7 +609,7 @@ function AudiosGenerales({ uid }: { uid: string }) {
           <ListItemIcon sx={{ color: 'inherit' }}>
             <DeleteOutlineRounded fontSize="small" />
           </ListItemIcon>
-          Borrar
+          {audioMenu?.deMisAudios ? 'Quitar de Audios' : 'Borrar'}
         </MenuItem>
       </Menu>
 
@@ -546,11 +631,14 @@ function AudiosGenerales({ uid }: { uid: string }) {
         onClose={() => !borrando && setABorrar(null)}
         aria-labelledby="borrar-audio-titulo"
       >
-        <DialogTitle id="borrar-audio-titulo">¿Borrar este audio?</DialogTitle>
+        <DialogTitle id="borrar-audio-titulo">
+          {aBorrar?.deMisAudios ? '¿Quitar de Audios?' : '¿Borrar este audio?'}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Vas a borrar «{aBorrar?.titulo}». Tus oyentes dejarán de verlo y no
-            se puede deshacer.
+            {aBorrar?.deMisAudios
+              ? `Vas a quitar «${aBorrar.titulo}» de Audios. Tus oyentes dejarán de verlo aquí y en tus listas. Sigue en Biblioteca.`
+              : `Vas a borrar «${aBorrar?.titulo}». Tus oyentes dejarán de verlo y no se puede deshacer.`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -563,10 +651,28 @@ function AudiosGenerales({ uid }: { uid: string }) {
             onClick={confirmarBorrado}
             disabled={borrando}
           >
-            Borrar
+            {aBorrar?.deMisAudios ? 'Quitar' : 'Borrar'}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {anadiendo && biblioteca && (
+        <DialogoElegirAudios
+          titulo="Añadir desde Biblioteca"
+          explicacion="Se añaden publicados, al final de la lista. Siguen también en Biblioteca: título, descripción, imagen y salud serán los mismos en los dos sitios."
+          audios={biblioteca}
+          yaLoTiene={yaEnAudios}
+          varios
+          accion="Añadir"
+          onConfirmar={anadir}
+          onCerrar={() => setAnadiendo(false)}
+          textos={{
+            finSinAudios: 'y podrás añadirlo aquí.',
+            todosElegidos: 'Ya están en Audios todos los audios de Biblioteca.',
+            limite: `Puedes añadir ${LIMITES_BIBLIOTECA.enviosALaVez} audios de una vez.`,
+          }}
+        />
+      )}
 
       <Snackbar
         open={aviso !== null}

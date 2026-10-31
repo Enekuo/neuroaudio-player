@@ -1,12 +1,11 @@
 import { useEffect, useRef, type FormEvent, type PointerEvent } from 'react'
-import { flushSync } from 'react-dom'
 import LibraryIcon from '../../library/components/LibraryIcon'
 import { useProfesionalDePista } from '../../perfilProfesional/useProfesionalDePista'
 import AudioWave from '../../../components/AudioWave'
 import { usePortadaDePista } from '../../audiosProfesional/usePortadaDePista'
 import { usePlayer } from '../context/PlayerContext'
 import { formatTime } from '../utils/formatTime'
-import { markOpenedWithViewTransition } from '../utils/playerTransition'
+import { markOpenedFromMini } from '../utils/playerTransition'
 import RepeatButton from './RepeatButton'
 
 type BarraComprimidaProps = {
@@ -17,13 +16,6 @@ type BarraComprimidaProps = {
 // Umbrales del gesto sobre la barra (móvil).
 const SWIPE_OPEN_PX = 40 // hacia arriba: abre el reproductor completo
 const SWIPE_CLOSE_PX = 80 // hacia abajo o a un lado: cierra el mini-reproductor
-
-function prefersReducedMotion() {
-  return (
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-    document.documentElement.classList.contains('reduce-motion')
-  )
-}
 
 function SkipBackIcon() {
   return (
@@ -106,21 +98,16 @@ function BarraComprimida({ onDismiss }: BarraComprimidaProps) {
     setVolume(Number(event.currentTarget.value))
   }
 
-  // Abrir el reproductor completo: con View Transitions (si el navegador las
-  // tiene y no hay "reducir movimiento"), la imagen del recuadro crece hasta
-  // la imagen grande y la barra se funde; si no, la hoja que sube de siempre.
+  // Abrir el reproductor completo: la hoja opaca sube desde donde está el
+  // mini-reproductor (su borde de arriba empieza a esa altura), así parece
+  // que este crece hasta llenar la pantalla. Sin View Transitions: su
+  // fundido de pantalla entera dejaba ver página y reproductor mezclados.
   function openFull() {
-    const doc = document as Document & { startViewTransition?: (callback: () => void) => { finished: Promise<void> } }
-    if (!doc.startViewTransition || prefersReducedMotion()) {
-      expand()
-      return
+    const top = document.querySelector('.mini-player')?.getBoundingClientRect().top
+    if (top !== undefined && top > 0) {
+      markOpenedFromMini(top)
     }
-    document.documentElement.classList.add('np-vt-open')
-    markOpenedWithViewTransition()
-    const transition = doc.startViewTransition(() => {
-      flushSync(() => expand())
-    })
-    transition.finished.finally(() => document.documentElement.classList.remove('np-vt-open'))
+    expand()
   }
 
   function handleAreaClick() {

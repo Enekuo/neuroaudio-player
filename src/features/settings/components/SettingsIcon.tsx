@@ -1,4 +1,13 @@
-export type SettingsIconName = 'settings' | 'cuenta' | 'privacidad' | 'plan' | 'uso' | 'logout' | 'close' | 'warning'
+export type SettingsIconName =
+  | 'settings'
+  | 'cuenta'
+  | 'privacidad'
+  | 'plan'
+  | 'uso'
+  | 'logout'
+  | 'close'
+  | 'warning'
+  | 'tarjeta'
 
 type SettingsIconProps = {
   name: SettingsIconName
@@ -44,6 +53,17 @@ function SettingsIcon({ name }: SettingsIconProps) {
     return (
       <svg {...baseProps}>
         <path d="m12 3 2.4 5.2 5.6.6-4.2 3.8 1.2 5.6-4.8-3-4.8 3 1.2-5.6L4.4 8.8l5.6-.6L12 3Z" />
+      </svg>
+    )
+  }
+
+  // Método de pago (Plan y uso → Facturación).
+  if (name === 'tarjeta') {
+    return (
+      <svg {...baseProps}>
+        <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+        <path d="M3 10h18" />
+        <path d="M7 15h3" />
       </svg>
     )
   }

@@ -181,6 +181,15 @@ function AvatarCuenta() {
 function ProfesionalLayout() {
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
   const { pathname } = useLocation()
+  // Ajustes y «Listas y programas» cambian de pestaña cambiando de
+  // dirección: la página (título y pestañas) se queda y solo entra su
+  // contenido, como en «Audios». (El editor de una lista es otra pantalla.)
+  const sinBarra = pathname.replace(/\/+$/, '')
+  const claveTransicion = pathname.startsWith('/profesional/ajustes')
+    ? '/profesional/ajustes'
+    : sinBarra === '/profesional/listas/programas'
+      ? '/profesional/listas'
+      : sinBarra
   const seccionActual = SECCIONES_PROFESIONAL.find((seccion) =>
     pathname.startsWith(`/profesional/${seccion.path}`),
   )
@@ -312,7 +321,7 @@ function ProfesionalLayout() {
         {/* Transición entre secciones: cada página entra con fade + leve subida.
             La key fuerza a reiniciar la animación en cada cambio de ruta. */}
         <Box
-          key={pathname}
+          key={claveTransicion}
           sx={[
             { pt: { xs: 2, md: 3 }, maxWidth: 1200, mx: 'auto' },
             animacionEntrada({ duracion: 260, distancia: 6 }),

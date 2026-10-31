@@ -10,6 +10,7 @@ import {
 import type { AudioProfesional } from '../../audiosProfesional/modelo'
 import {
   juntarParaTi,
+  sinLosQueYaSonGenerales,
   vigilarRecibidos,
   type AudioRecibido,
 } from '../../audiosProfesional/recibidos'
@@ -97,15 +98,20 @@ function tieneSobre(perfil: PerfilProfesional) {
  *   solo si hay alguno.
  * - Pestaña «Listas»: sus listas publicadas, solo con vínculo activo y si
  *   alguna tiene audios que este oyente puede escuchar.
+ * - Su propia página: el profesional la ve como un oyente, sin vínculo (las
+ *   reglas ya le dejan leer lo suyo): sus audios y listas publicados, la
+ *   bienvenida siempre y una línea de vista previa; sin «Para ti».
  */
 function PerfilProfesionalOyentePage() {
   const { uid = '' } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
+  const esPropia = Boolean(user && user.uid === uid)
 
   const [intento, setIntento] = useState(0)
   // null: aún no se sabe · 'error': no se pudo comprobar.
+  // En su propia página, true sin consultar ningún vínculo.
   const [vinculado, setVinculado] = useState<boolean | 'error' | null>(null)
   const [perfil, setPerfil] = useState<Carga<PerfilProfesional>>({
     estado: 'cargando',
@@ -150,6 +156,11 @@ function PerfilProfesionalOyentePage() {
 
   useEffect(() => {
     if (!uid || !user) return
+    // Su propia página: la ve como un oyente, sin necesitar vínculo.
+    if (user.uid === uid) {
+      setVinculado(true)
+      return
+    }
     setVinculado(null)
     return escucharVinculoActivo(
       uid,
@@ -172,6 +183,11 @@ function PerfilProfesionalOyentePage() {
 
   useEffect(() => {
     if (!uid || !user || vinculado !== true) return
+    // En su propia página no hay «Para ti».
+    if (user.uid === uid) {
+      setParaMi({ estado: 'listo', datos: [] })
+      return
+    }
     setParaMi({ estado: 'cargando' })
     return escucharAudiosParaMi(
       uid,
@@ -183,6 +199,10 @@ function PerfilProfesionalOyentePage() {
 
   useEffect(() => {
     if (!uid || !user || vinculado !== true) return
+    if (user.uid === uid) {
+      setRecibidos({ estado: 'listo', datos: [] })
+      return
+    }
     setRecibidos({ estado: 'cargando' })
     return vigilarRecibidos(
       uid,
@@ -201,9 +221,11 @@ function PerfilProfesionalOyentePage() {
     return escucharListasPublicadas(uid, setListas, () => setListas([]))
   }, [uid, intento, vinculado])
 
-  // La bienvenida (solo para sus oyentes) ya se ha visto: la próxima vez no sale.
+  // La bienvenida (solo para sus oyentes) ya se ha visto: la próxima vez no
+  // sale. En su propia página no se da por vista: se le enseña siempre.
   useEffect(() => {
     if (
+      esPropia ||
       vinculado !== true ||
       perfil.estado !== 'listo' ||
       !perfil.datos.bienvenida.trim()
@@ -214,7 +236,7 @@ function PerfilProfesionalOyentePage() {
     } catch {
       // Sin almacenamiento (modo privado…): se volverá a ver, sin más.
     }
-  }, [perfil, uid, vinculado])
+  }, [perfil, uid, vinculado, esPropia])
 
   // Como en las listas: al bajar, la barra superior muestra el nombre.
   useEffect(() => {
@@ -334,11 +356,16 @@ function PerfilProfesionalOyentePage() {
       (generales.estado === 'cargando' ||
         paraMi.estado === 'cargando' ||
         recibidos.estado === 'cargando'))
+  const listaGenerales = generales.estado === 'listo' ? generales.datos : []
+  // Un recibido que el profesional también ha puesto en Audios se ve una sola
+  // vez, como general.
   const listaParaMi = juntarParaTi(
     paraMi.estado === 'listo' ? paraMi.datos : [],
-    recibidos.estado === 'listo' ? recibidos.datos : [],
+    sinLosQueYaSonGenerales(
+      recibidos.estado === 'listo' ? recibidos.datos : [],
+      listaGenerales,
+    ),
   )
-  const listaGenerales = generales.estado === 'listo' ? generales.datos : []
 
   let contenidoAudios
   if (errorAudios) {
@@ -488,6 +515,11 @@ function PerfilProfesionalOyentePage() {
                   {datosPerfil?.frase.trim() && (
                     <p className="prof-pagina__frase">{datosPerfil.frase}</p>
                   )}
+                  {esPropia && (
+                    <p>
+                      Así ven tu página tus oyentes. Los borradores no aparecen.
+                    </p>
+                  )}
                 </>
               )}
             </div>
@@ -496,7 +528,7 @@ function PerfilProfesionalOyentePage() {
       </div>
 
       <div className="lista-detalle__body">
-        {mostrarBienvenida &&
+        {(mostrarBienvenida || esPropia) &&
           vinculado === true &&
           datosPerfil?.bienvenida.trim() && (
             <section

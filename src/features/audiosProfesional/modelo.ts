@@ -111,8 +111,46 @@ export type AudioProfesional = {
   portadaImagen: string | null
   /** Temas (solo en la biblioteca), normalizados. */
   etiquetas: string[]
+  /**
+   * En un general añadido desde Biblioteca: el id de su audio original (usa
+   * su mismo archivo y su imagen). null en los demás.
+   */
+  deMisAudios: string | null
+  /** En uno de Biblioteca: también está en Audios (su general existe). */
+  enAudios: boolean
   creadoEn: Date | null
   actualizadoEn: Date | null
+}
+
+/** Id del audio general que se crea al añadir a Audios uno de Biblioteca. */
+export function idGeneralDeBiblioteca(audioId: string) {
+  return `${audioId}__general`
+}
+
+/**
+ * El otro documento del mismo audio (el de Biblioteca y su general en
+ * Audios), si lo tiene: título, descripción, imagen y salud se guardan en
+ * los dos a la vez.
+ */
+export function audioEnlazado(
+  audio: Pick<AudioProfesional, 'id' | 'tipo' | 'deMisAudios' | 'enAudios'>,
+) {
+  if (audio.deMisAudios) return audio.deMisAudios
+  return audio.tipo === 'biblioteca' && audio.enAudios
+    ? idGeneralDeBiblioteca(audio.id)
+    : null
+}
+
+/**
+ * Dónde está la imagen propia de un audio: un general añadido desde
+ * Biblioteca usa la de su original.
+ */
+export function carpetaDePortada(
+  audio: Pick<AudioProfesional, 'id' | 'tipo' | 'deMisAudios'>,
+) {
+  return audio.deMisAudios
+    ? { audioId: audio.deMisAudios, biblioteca: true }
+    : { audioId: audio.id, biblioteca: audio.tipo === 'biblioteca' }
 }
 
 /** Carpeta de Storage de un audio: la de la biblioteca va aparte. */

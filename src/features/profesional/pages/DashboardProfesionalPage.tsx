@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import Paper from '@mui/material/Paper'
@@ -9,7 +9,9 @@ import HeadphonesOutlined from '@mui/icons-material/HeadphonesOutlined'
 import PaymentsOutlined from '@mui/icons-material/PaymentsOutlined'
 import { useAuth } from '../../auth/context/AuthContext'
 import { useUserProfile } from '../../auth/hooks/useUserProfile'
-import { animacionEntrada } from '../theme/movimiento'
+import { escucharPerfil } from '../../perfilProfesional/perfilService'
+import { animacionEntrada, animacionFundido } from '../theme/movimiento'
+import { nombreDelSaludo } from './saludo'
 
 type TarjetaResumen = {
   label: string
@@ -47,10 +49,30 @@ const TARJETAS_RESUMEN: TarjetaResumen[] = [
  */
 function DashboardProfesionalPage() {
   const { user } = useAuth()
-  const { profile } = useUserProfile()
-  // Mismo criterio que el saludo del Inicio de usuario: nombre preferido o el primer nombre de la cuenta.
-  const nombre =
-    profile?.displayNamePref?.trim() || user?.displayName?.split(' ')[0] || null
+  const uid = user?.uid ?? null
+  const { profile, isLoading } = useUserProfile()
+  // Nombre del perfil profesional, en vivo. Sin entrada para este uid: aún
+  // cargando · null: sin perfil o no se pudo leer (se usa el de Google).
+  const [perfil, setPerfil] = useState<{
+    uid: string
+    nombre: string | null
+  } | null>(null)
+
+  useEffect(() => {
+    if (!uid) return
+    return escucharPerfil(
+      uid,
+      (p) => setPerfil({ uid, nombre: p?.nombre ?? null }),
+      () => setPerfil({ uid, nombre: null }),
+    )
+  }, [uid])
+
+  const preferido = profile?.displayNamePref?.trim()
+  const nombrePerfil = perfil?.uid === uid ? perfil.nombre : undefined
+  // Hasta saber qué nombre toca, el saludo no se pinta (ocupa su sitio): así
+  // no aparece primero el de Google y luego cambia.
+  const listo = !isLoading && (Boolean(preferido) || nombrePerfil !== undefined)
+  const nombre = nombreDelSaludo(preferido, nombrePerfil, user?.displayName)
 
   return (
     <Box component="section" aria-labelledby="pro-dashboard-saludo">
@@ -58,14 +80,17 @@ function DashboardProfesionalPage() {
         <Typography
           id="pro-dashboard-saludo"
           component="h1"
-          sx={{
-            fontSize: { xs: 30, md: 40 },
-            lineHeight: 1.2,
-            fontWeight: 400,
-            letterSpacing: '-0.01em',
-          }}
+          sx={[
+            {
+              fontSize: { xs: 30, md: 40 },
+              lineHeight: 1.2,
+              fontWeight: 400,
+              letterSpacing: '-0.01em',
+            },
+            listo ? animacionFundido() : { visibility: 'hidden' },
+          ]}
         >
-          {nombre ? `Hola, ${nombre}` : 'Hola'}
+          {listo && nombre ? `Hola, ${nombre}` : 'Hola'}
         </Typography>
         <Typography
           sx={{

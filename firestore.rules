@@ -163,13 +163,28 @@ service cloud.firestore {
           && etiquetaValida(d.etiquetas, 4));
     }
 
+    // Audio general añadido desde Biblioteca (id {B}__general, con
+    // deMisAudios: B): usa el mismo archivo que el audio B de la Biblioteca de
+    // quien lo crea, sin copiarlo. B tiene que existir, ser suyo y de la
+    // Biblioteca, y pesar lo mismo.
+    function generalDeBibliotecaValido(audioId, d) {
+      let origen = get(/databases/$(database)/documents/audiosProfesional/$(d.deMisAudios)).data;
+      return d.deMisAudios is string
+        && audioId == d.deMisAudios + '__general'
+        && d.archivo == 'bibliotecaPro/' + request.auth.uid + '/' + d.deMisAudios + '/archivo'
+        && origen.profesionalUid == request.auth.uid
+        && origen.tipo == 'biblioteca'
+        && d.tamanoBytes == origen.tamanoBytes;
+    }
+
     function audioProValido(audioId) {
       let d = request.resource.data;
       let campos = ['profesionalUid', 'titulo', 'descripcion', 'estado', 'tipo',
                     'destinatarioUid', 'archivo', 'duracionSegundos', 'tamanoBytes',
                     'contieneSalud', 'orden', 'creadoEn', 'actualizadoEn'];
       return d.keys().hasAll(campos)
-        && d.keys().hasOnly(campos.concat(['portada', 'portadaImagen', 'etiquetas']))
+        && d.keys().hasOnly(campos.concat(['portada', 'portadaImagen', 'etiquetas',
+                                           'deMisAudios', 'enAudios']))
         && portadaAudioValida(d)
         && etiquetasAudioValidas(d)
         && d.profesionalUid == request.auth.uid
@@ -179,11 +194,16 @@ service cloud.firestore {
         && ((d.tipo == 'general' && d.destinatarioUid == null)
             || (d.tipo == 'personal' && d.destinatarioUid is string && d.destinatarioUid.size() > 0)
             || (d.tipo == 'biblioteca' && d.destinatarioUid == null))
-        // Los de «Mis audios» guardan su archivo en su propia carpeta.
-        && ((d.tipo == 'biblioteca'
+        // Los de «Mis audios» guardan su archivo en su propia carpeta; un
+        // general añadido desde ellos usa el archivo de su audio de origen.
+        && ((d.tipo == 'biblioteca' && !('deMisAudios' in d)
               && d.archivo == 'bibliotecaPro/' + request.auth.uid + '/' + audioId + '/archivo')
-            || (d.tipo != 'biblioteca'
+            || (d.tipo == 'general' && 'deMisAudios' in d
+              && generalDeBibliotecaValido(audioId, d))
+            || (d.tipo != 'biblioteca' && !('deMisAudios' in d)
               && d.archivo == 'audiosPro/' + request.auth.uid + '/' + audioId + '/archivo'))
+        // La marca «En Audios», solo en los de «Mis audios».
+        && (!('enAudios' in d) || (d.tipo == 'biblioteca' && d.enAudios is bool))
         && d.duracionSegundos is number && d.duracionSegundos >= 0
         && d.tamanoBytes is int && d.tamanoBytes > 0 && d.tamanoBytes <= 104857600
         && d.contieneSalud is bool
@@ -226,7 +246,8 @@ service cloud.firestore {
         && request.resource.data.tipo == resource.data.tipo
         && request.resource.data.destinatarioUid == resource.data.destinatarioUid
         && request.resource.data.archivo == resource.data.archivo
-        && request.resource.data.tamanoBytes == resource.data.tamanoBytes;
+        && request.resource.data.tamanoBytes == resource.data.tamanoBytes
+        && request.resource.data.get('deMisAudios', null) == resource.data.get('deMisAudios', null);
       allow delete: if request.auth != null
         && resource.data.profesionalUid == request.auth.uid;
     }

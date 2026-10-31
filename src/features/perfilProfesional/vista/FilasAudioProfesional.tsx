@@ -1,90 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { urlAudio } from '../../audiosProfesional/audioProfesionalService'
+import { useState } from 'react'
 import type { AudioProfesional } from '../../audiosProfesional/modelo'
+import { useReproducirAudioProfesional } from '../../audiosProfesional/useReproducirAudioProfesional'
 import FilaAudio from '../../library/components/FilaAudio'
-import { usePlayer, type AudioTrack } from '../../player/context/PlayerContext'
-
-function IconoInfo() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 11v5" />
-      <path d="M12 8h.01" />
-    </svg>
-  )
-}
-
-/** Descripción de un audio (y su aviso de salud), en una pequeña ventana. */
-function DescripcionAudio({
-  audio,
-  onCerrar,
-}: {
-  audio: AudioProfesional
-  onCerrar: () => void
-}) {
-  const cerrar = useRef<HTMLButtonElement>(null)
-  // Ref: la página se repinta con el reproductor y no debe robar el foco.
-  const alCerrar = useRef(onCerrar)
-  alCerrar.current = onCerrar
-  useEffect(() => {
-    const anterior = document.activeElement as HTMLElement | null
-    cerrar.current?.focus()
-    const alPulsar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') alCerrar.current()
-    }
-    document.addEventListener('keydown', alPulsar)
-    return () => {
-      document.removeEventListener('keydown', alPulsar)
-      anterior?.focus()
-    }
-  }, [])
-
-  return createPortal(
-    <div
-      className="modal-overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onCerrar()
-      }}
-    >
-      <div
-        className="modal-card prof-pagina__ficha"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="descripcion-audio-titulo"
-      >
-        <h2 id="descripcion-audio-titulo">{audio.titulo}</h2>
-        <p className="prof-pagina__descripcion">
-          {audio.descripcion.trim() || 'Este audio no tiene descripción.'}
-        </p>
-        {audio.contieneSalud && (
-          <p className="prof-pagina__salud">
-            Este audio trata temas de salud. No sustituye la atención de un
-            profesional sanitario; si lo necesitas, acude a uno.
-          </p>
-        )}
-        <div className="modal-actions">
-          <button
-            ref={cerrar}
-            type="button"
-            className="modal-actions__submit"
-            onClick={onCerrar}
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body,
-  )
-}
+import { usePlayer } from '../../player/context/PlayerContext'
+import { DescripcionAudio, IconoInfo } from './DescripcionAudio'
 
 type FilasAudioProfesionalProps = {
   profesionalUid: string
@@ -101,7 +20,8 @@ function FilasAudioProfesional({
   profesionalUid,
   audios,
 }: FilasAudioProfesionalProps) {
-  const { currentTrack, isPlaying, playTrack, togglePlay } = usePlayer()
+  const { currentTrack, isPlaying, togglePlay } = usePlayer()
+  const reproducirAudio = useReproducirAudioProfesional()
   const [descripcion, setDescripcion] = useState<AudioProfesional | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -111,20 +31,7 @@ function FilasAudioProfesional({
       return
     }
     setError(null)
-    try {
-      const url = await urlAudio(audio.archivo)
-      const pista: AudioTrack = {
-        id: audio.id,
-        name: audio.titulo,
-        url,
-        duration: audio.duracionSegundos,
-        origen: 'profesional',
-        profesionalUid,
-      }
-      // Cola de una sola pista: los demás aún no tienen su enlace privado
-      // (se descargan al tocarlos).
-      playTrack(pista, [pista])
-    } catch {
+    if (!(await reproducirAudio(audio, profesionalUid))) {
       setError(`No se pudo cargar «${audio.titulo}». Inténtalo de nuevo.`)
     }
   }

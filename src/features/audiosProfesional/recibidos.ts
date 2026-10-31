@@ -95,3 +95,18 @@ export function juntarParaTi(
     .sort((a, b) => (b.fecha?.getTime() ?? 0) - (a.fecha?.getTime() ?? 0))
     .map(({ audio }) => audio)
 }
+
+/**
+ * Los recibidos que no están ya entre los generales: si el profesional ha
+ * añadido a Audios un audio de Biblioteca que te envió, se ve una sola vez
+ * (como general), no también en «Para ti».
+ */
+export function sinLosQueYaSonGenerales<T extends { audio: AudioProfesional }>(
+  recibidos: T[],
+  generales: AudioProfesional[],
+): T[] {
+  const enAudios = new Set(
+    generales.flatMap((g) => (g.deMisAudios ? [g.deMisAudios] : [])),
+  )
+  return recibidos.filter((r) => !enAudios.has(r.audio.id))
+}

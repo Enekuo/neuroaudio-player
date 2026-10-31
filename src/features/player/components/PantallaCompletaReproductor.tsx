@@ -8,13 +8,15 @@ import SkipButton from './SkipButton'
 import ThemeButton, { type ThemeOption } from './ThemeButton'
 import VolumeButton from './VolumeButton'
 import { useIsMobileLayout } from '../utils/useIsMobileLayout'
-import { consumeOpenedWithViewTransition } from '../utils/playerTransition'
+import { consumeOpenedFromMini } from '../utils/playerTransition'
 import MenuOpcionesAudio from '../../library/components/MenuOpcionesAudio'
 import { useUserAudios } from '../../library/hooks/useUserAudios'
 import { deleteAudio } from '../../library/services/audioService'
 import { alternarFavorito } from '../../library/services/favoritoService'
 import { useProfesionalDePista } from '../../perfilProfesional/useProfesionalDePista'
 import { usePortadaDePista } from '../../audiosProfesional/usePortadaDePista'
+import { useAudioDePista } from '../../audiosProfesional/useAudioDePista'
+import { DescripcionAudioEnZona, IconoInfo } from '../../perfilProfesional/vista/DescripcionAudio'
 import { AvatarProfesional } from '../../perfilProfesional/vista/FotoPerfil'
 
 type PantallaCompletaReproductorProps = {
@@ -29,7 +31,8 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
   const isMobileLayout = useIsMobileLayout()
   // Abierto desde el mini-reproductor con View Transitions: sin la animación
   // de hoja (la entrada ya la hace la imagen que crece).
-  const [openedWithViewTransition] = useState(consumeOpenedWithViewTransition)
+  // Abierto desde el mini-reproductor: la hoja sube desde su altura.
+  const [desdeMini] = useState(consumeOpenedFromMini)
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
   const moreMenuRef = useRef<HTMLDivElement>(null)
 
@@ -47,6 +50,22 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
   const profesional = useProfesionalDePista(esDeProfesional ? currentTrack?.profesionalUid ?? null : null)
   // Su portada; «Por defecto» (null), el orbe de siempre.
   const portada = usePortadaDePista(esDeProfesional ? currentTrack?.profesionalUid ?? null : null, esDeProfesional ? currentTrack?.id ?? null : null)
+  // Su descripción, con la misma ventana que «Ver descripción» de la lista.
+  // Se guarda de qué pista se abrió: al cambiar de audio, se cierra sola.
+  const audioProfesional = useAudioDePista(esDeProfesional ? currentTrack?.profesionalUid ?? null : null, esDeProfesional ? currentTrack?.id ?? null : null)
+  const [descripcionDe, setDescripcionDe] = useState<string | null>(null)
+  const botonDescripcion = esDeProfesional ? (
+    <button
+      type="button"
+      className="now-playing__icon-button now-playing__info-button"
+      onClick={() => setDescripcionDe(currentTrack?.id ?? null)}
+      disabled={!audioProfesional}
+      aria-label="Ver descripción"
+      title="Ver descripción"
+    >
+      <IconoInfo />
+    </button>
+  ) : null
 
   function handleOpenProfesional() {
     if (!profesional) {
@@ -146,7 +165,8 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
 
   return (
     <div
-      className={`now-playing${isPlaying ? ' is-playing' : ''}${isClosing ? ' is-closing' : ''}${theme !== 'normal' ? ` now-playing--${theme}` : ''}${openedWithViewTransition ? ' now-playing--vt' : ''}`}
+      className={`now-playing${isPlaying ? ' is-playing' : ''}${isClosing ? ' is-closing' : ''}${theme !== 'normal' ? ` now-playing--${theme}` : ''}`}
+      style={desdeMini !== null ? ({ '--np-desde': `${desdeMini}px` } as CSSProperties) : undefined}
       role="dialog"
       aria-modal="true"
       aria-label="Reproductor a pantalla completa"
@@ -166,8 +186,9 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
           </button>
 
           {isMobileLayout && esDeProfesional ? (
-            // Audio de un profesional: el menú no tiene opciones que ofrecer.
-            null
+            // Audio de un profesional: el menú no tiene opciones que ofrecer;
+            // en su lugar, su descripción.
+            botonDescripcion
           ) : isMobileLayout ? (
             // En móvil la cabecera solo lleva la flecha y el menú de tres
             // puntos; tema, repetición, volumen y favorito bajan a
@@ -202,6 +223,7 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
               <ThemeButton triggerClassName="now-playing__icon-button" theme={theme} onThemeChange={setTheme} />
 
               <div className="now-playing__header-actions">
+                {botonDescripcion}
                 <RepeatButton triggerClassName="now-playing__icon-button" showVolume />
               </div>
             </>
@@ -325,6 +347,9 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
           </div>
         </div>
       </div>
+      {descripcionDe !== null && descripcionDe === currentTrack?.id && audioProfesional ? (
+        <DescripcionAudioEnZona audio={audioProfesional} onCerrar={() => setDescripcionDe(null)} />
+      ) : null}
     </div>
   )
 }

@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useAuth } from '../../auth/context/AuthContext'
+import { useUserProfile } from '../../auth/hooks/useUserProfile'
 import { deleteAudioSchedule, getAudioSchedule, saveAudioSchedule } from '../services/audioScheduleService'
 import { registrarReproduccion } from '../../library/services/audioService'
 import { useDataUrl, useProfesionalDePista } from '../../perfilProfesional/useProfesionalDePista'
@@ -178,6 +179,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // al pasar a la siguiente de una playlist (autoAdvance): al pulsar un audio,
   // la pantalla completa se abre en pausa y hay que darle a play.
   const autoStartNextRef = useRef(false)
+  // Ajustes → Reproducción → «Reproducir al abrir un audio» (en la cuenta,
+  // users/{uid}). Apagada por defecto y mientras no ha llegado: se abre parado.
+  const { profile } = useUserProfile()
+  const reproducirAlAbrirRef = useRef(false)
+  reproducirAlAbrirRef.current = profile?.reproducirAlAbrir === true
   // Pista cargada en pausa a la que aún no se le ha dado a play: el primer
   // play aplica su retardo de inicio (si lo tiene) antes de sonar.
   const pendingStartRef = useRef(false)
@@ -739,7 +745,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       // reproducción anterior): si no se pasa `autoAdvance: true`, queda en
       // false, tal cual pide "en toda la web" salvo desde una playlist.
       autoAdvanceRef.current = options?.autoAdvance ?? false
-      autoStartNextRef.current = false
+      // Pulsado a mano: parado hasta darle a play, salvo que el usuario haya
+      // activado «Reproducir al abrir un audio». Si el navegador no deja que
+      // suene solo, se queda parado con el play visible, como sin la opción.
+      autoStartNextRef.current = reproducirAlAbrirRef.current
 
       // Cualquier cuenta atrás pendiente de una pista anterior deja de tener
       // sentido: la nueva pista decide desde cero si le toca esperar o no

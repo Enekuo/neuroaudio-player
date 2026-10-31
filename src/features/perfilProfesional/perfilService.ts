@@ -285,7 +285,8 @@ export function escucharMisOyentes(
             const oyente = oyenteDesdeVinculo(
               d.data({ serverTimestamps: 'estimate' }),
             )
-            return oyente ? [oyente] : []
+            // Un vínculo de prueba consigo mismo no cuenta como oyente.
+            return oyente && oyente.oyenteUid !== profesionalUid ? [oyente] : []
           }),
         ),
       ),

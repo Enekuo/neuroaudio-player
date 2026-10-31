@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext'
 export type UserProfile = {
   displayNamePref?: string
   avatarGender?: 'male' | 'female'
+  /** Ajustes → Reproducción: el audio suena al abrirlo. Apagada si no está. */
+  reproducirAlAbrir?: boolean
 }
 
 export function useUserProfile() {
@@ -27,6 +29,7 @@ export function useUserProfile() {
       setProfile({
         displayNamePref: typeof data?.displayNamePref === 'string' ? data.displayNamePref : undefined,
         avatarGender: data?.avatarGender === 'male' || data?.avatarGender === 'female' ? data.avatarGender : undefined,
+        reproducirAlAbrir: data?.reproducirAlAbrir === true,
       })
       setIsLoading(false)
     })

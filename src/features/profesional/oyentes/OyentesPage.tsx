@@ -371,7 +371,7 @@ function FilaOyente({
             textAlign: 'right',
             fontVariantNumeric: 'tabular-nums',
           }}
-          title="Audios de «Mis audios» que tiene"
+          title="Audios de Biblioteca que tiene"
         >
           {audiosTexto(audios)}
         </Typography>

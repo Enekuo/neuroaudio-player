@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../auth/context/AuthContext'
 import { signOutUser } from '../../auth/services/authService'
 import { useUserProfile } from '../../auth/hooks/useUserProfile'
+import { useSalidaAnimada } from '../../../hooks/useSalidaAnimada'
 import ModalAjustes from '../../settings/components/ModalAjustes'
 import SettingsIcon from '../../settings/components/SettingsIcon'
 
@@ -14,6 +15,8 @@ function MenuCuentaMovil() {
   const displayName =
     profile?.displayNamePref?.trim() || user?.displayName || user?.email || 'Mi cuenta'
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  // El menú sale con su animación al cerrarse (no desaparece de golpe).
+  const menuCuenta = useSalidaAnimada(isMenuOpen, 120)
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const accountRef = useRef<HTMLDivElement>(null)
 
@@ -66,8 +69,8 @@ function MenuCuentaMovil() {
         </svg>
       </button>
 
-      {isMenuOpen ? (
-        <div className="mobile-topbar__menu" role="menu">
+      {menuCuenta.visible ? (
+        <div className={`mobile-topbar__menu${menuCuenta.saliendo ? ' is-closing' : ''}`} role="menu">
           <p className="mobile-topbar__menu-name">{displayName}</p>
           {user?.email ? <p className="mobile-topbar__menu-email">{user.email}</p> : null}
           <button

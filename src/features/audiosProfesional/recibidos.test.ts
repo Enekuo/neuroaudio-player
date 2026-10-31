@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { AudioProfesional, EnvioAudio } from './modelo'
-import { juntarParaTi, vigilarRecibidos, type AudioRecibido } from './recibidos'
+import {
+  juntarParaTi,
+  sinLosQueYaSonGenerales,
+  vigilarRecibidos,
+  type AudioRecibido,
+} from './recibidos'
 
 const audio = (
   id: string,
@@ -130,5 +135,23 @@ describe('juntarParaTi', () => {
       'r1',
       'p2',
     ])
+  })
+})
+
+describe('sinLosQueYaSonGenerales', () => {
+  it('quita los recibidos que el profesional también ha puesto en Audios', () => {
+    const recibidos = [{ audio: audio('b1') }, { audio: audio('b2') }]
+    const generales = [
+      audio('b1__general', { tipo: 'general', deMisAudios: 'b1' }),
+      audio('g', { tipo: 'general', deMisAudios: null }),
+    ]
+    expect(
+      sinLosQueYaSonGenerales(recibidos, generales).map((r) => r.audio.id),
+    ).toEqual(['b2'])
+  })
+
+  it('sin generales de Biblioteca, los deja todos', () => {
+    const recibidos = [{ audio: audio('b1') }]
+    expect(sinLosQueYaSonGenerales(recibidos, [])).toEqual(recibidos)
   })
 })

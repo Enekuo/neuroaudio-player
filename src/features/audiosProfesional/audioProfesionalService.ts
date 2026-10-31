@@ -27,6 +27,7 @@ import {
   SUBIDAS_AUDIO_POR_MINUTO,
   TIPOS_PORTADA_AUDIO,
   idEnvio,
+  idGeneralDeBiblioteca,
   normalizarEtiquetas,
   rutaAudio,
   rutaPortadaAudio,
@@ -90,6 +91,8 @@ function audioDesdeDocumento(id: string, d: DocumentData): AudioProfesional {
     etiquetas: Array.isArray(d.etiquetas)
       ? d.etiquetas.filter((e: unknown): e is string => typeof e === 'string')
       : [],
+    deMisAudios: typeof d.deMisAudios === 'string' ? d.deMisAudios : null,
+    enAudios: d.enAudios === true,
     creadoEn: fecha(d.creadoEn),
     actualizadoEn: fecha(d.actualizadoEn),
   }
@@ -407,10 +410,25 @@ export async function crearAudio(
   })
 }
 
-/** Edita título, descripción, salud o estado (publicar / despublicar). */
+/** Lo que comparten un audio de Biblioteca y su general en Audios. */
+const CAMPOS_COMPARTIDOS = [
+  'titulo',
+  'descripcion',
+  'contieneSalud',
+  'portada',
+  'portadaImagen',
+]
+
+/**
+ * Edita título, descripción, salud o estado (publicar / despublicar). Con
+ * `enlazado` (ver audioEnlazado), lo compartido se guarda también en el
+ * otro documento del mismo audio, en una sola escritura; el estado y las
+ * etiquetas, solo en este.
+ */
 export async function actualizarAudio(
   audioId: string,
   cambios: Partial<DatosAudio>,
+  enlazado: string | null = null,
 ) {
   const datos: Record<string, unknown> = { actualizadoEn: serverTimestamp() }
   if (cambios.titulo !== undefined) datos.titulo = cambios.titulo.trim()
@@ -426,7 +444,61 @@ export async function actualizarAudio(
     datos.portadaImagen =
       cambios.portada === 'propia' ? (cambios.portadaImagen ?? null) : null
   }
-  await updateDoc(doc(db, COLECCION, audioId), datos)
+  const compartidos = Object.fromEntries(
+    Object.entries(datos).filter(([campo]) =>
+      CAMPOS_COMPARTIDOS.includes(campo),
+    ),
+  )
+  if (!enlazado || Object.keys(compartidos).length === 0) {
+    await updateDoc(doc(db, COLECCION, audioId), datos)
+    return
+  }
+  const lote = writeBatch(db)
+  lote.update(doc(db, COLECCION, audioId), datos)
+  lote.update(doc(db, COLECCION, enlazado), {
+    ...compartidos,
+    actualizadoEn: serverTimestamp(),
+  })
+  await lote.commit()
+}
+
+/**
+ * Añade a Audios (generales y publicados) audios de Biblioteca sin volver a
+ * subirlos: por cada uno, un general {id}__general con el mismo archivo y su
+ * título, descripción, imagen y salud (sin etiquetas), al final de la lista
+ * desde `ordenDesde`; y la marca «En Audios» en el original. Todo en una
+ * sola escritura.
+ */
+export async function anadirDesdeBiblioteca(
+  origenes: AudioProfesional[],
+  ordenDesde: number,
+) {
+  const lote = writeBatch(db)
+  origenes.forEach((b, i) => {
+    lote.set(doc(db, COLECCION, idGeneralDeBiblioteca(b.id)), {
+      profesionalUid: b.profesionalUid,
+      titulo: b.titulo,
+      descripcion: b.descripcion,
+      estado: 'publicado',
+      tipo: 'general',
+      destinatarioUid: null,
+      deMisAudios: b.id,
+      archivo: b.archivo,
+      duracionSegundos: b.duracionSegundos,
+      tamanoBytes: b.tamanoBytes,
+      contieneSalud: b.contieneSalud,
+      orden: ordenDesde + i,
+      portada: b.portada,
+      portadaImagen: b.portada === 'propia' ? b.portadaImagen : null,
+      creadoEn: serverTimestamp(),
+      actualizadoEn: serverTimestamp(),
+    })
+    lote.update(doc(db, COLECCION, b.id), {
+      enAudios: true,
+      actualizadoEn: serverTimestamp(),
+    })
+  })
+  await lote.commit()
 }
 
 /** Guarda el nuevo orden (0, 1, 2…) de los audios, en una sola escritura. */
@@ -452,8 +524,23 @@ export async function borrarArchivoAudio(archivo: string) {
   }
 }
 
-/** Borra un audio: primero el documento (deja de verse) y después su archivo. */
+/**
+ * Borra un audio: primero el documento (deja de verse) y después su archivo.
+ * Uno añadido desde Biblioteca solo se quita de Audios (el archivo y la
+ * imagen son del original, que sigue allí); uno de Biblioteca que también
+ * está en Audios se quita de los dos.
+ */
 export async function borrarAudio(audio: AudioProfesional) {
+  if (audio.deMisAudios) {
+    const lote = writeBatch(db)
+    lote.delete(doc(db, COLECCION, audio.id))
+    lote.update(doc(db, COLECCION, audio.deMisAudios), {
+      enAudios: false,
+      actualizadoEn: serverTimestamp(),
+    })
+    await lote.commit()
+    return
+  }
   const biblioteca = audio.tipo === 'biblioteca'
   if (biblioteca) {
     // De la biblioteca: el audio y todos sus envíos a la vez (se lo quita a
@@ -468,6 +555,8 @@ export async function borrarAudio(audio: AudioProfesional) {
     )
     const lote = writeBatch(db)
     lote.delete(doc(db, COLECCION, audio.id))
+    if (audio.enAudios)
+      lote.delete(doc(db, COLECCION, idGeneralDeBiblioteca(audio.id)))
     envios.docs.forEach((e) => lote.delete(e.ref))
     await lote.commit()
   } else {

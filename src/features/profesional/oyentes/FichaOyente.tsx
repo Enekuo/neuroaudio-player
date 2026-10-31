@@ -364,13 +364,6 @@ function FichaOyente({ uid }: { uid: string }) {
         />
       </Paper>
 
-      <NotaPrivadaOyente
-        uid={uid}
-        oyenteUid={oyenteUid}
-        onAviso={setAviso}
-        onCambios={setNotaSinGuardar}
-      />
-
       {/* Audios de «Mis audios» que tiene. */}
       <Box
         sx={{
@@ -387,7 +380,7 @@ function FichaOyente({ uid }: { uid: string }) {
           component="h2"
           sx={{ fontWeight: 400 }}
         >
-          Audios de Mis audios
+          Audios de Biblioteca
         </Typography>
         <Typography color="text.secondary">({recibidos.length})</Typography>
         <Box sx={{ flex: 1 }} />
@@ -399,7 +392,7 @@ function FichaOyente({ uid }: { uid: string }) {
               onClick={() => setEleccion({ modo: 'enviar' })}
               disabled={!activo}
             >
-              Enviar audio
+              Enviar desde Biblioteca
             </Button>
           </span>
         </Tooltip>
@@ -418,7 +411,7 @@ function FichaOyente({ uid }: { uid: string }) {
           sx={{ py: 5, px: 2, textAlign: 'center', mb: 3 }}
         >
           <Typography color="text.secondary">
-            Todavía no le has enviado ningún audio de Mis audios.
+            Todavía no le has enviado ningún audio de Biblioteca.
           </Typography>
         </Paper>
       ) : (
@@ -541,6 +534,7 @@ function FichaOyente({ uid }: { uid: string }) {
           gap: 1,
           alignItems: 'center',
           color: 'text.secondary',
+          mb: 3,
         }}
       >
         <InfoOutlined fontSize="small" />
@@ -548,6 +542,13 @@ function FichaOyente({ uid }: { uid: string }) {
           Los audios generales los ve mientras el vínculo esté activo.
         </Typography>
       </Box>
+
+      <NotaPrivadaOyente
+        uid={uid}
+        oyenteUid={oyenteUid}
+        onAviso={setAviso}
+        onCambios={setNotaSinGuardar}
+      />
 
       {eleccion?.modo === 'enviar' && (
         <DialogoElegirAudios
@@ -581,7 +582,7 @@ function FichaOyente({ uid }: { uid: string }) {
         <DialogTitle id="pausar-titulo">¿Pausar a {nombre}?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Dejará de ver tus audios (los generales, los de Mis audios y los
+            Dejará de ver tus audios (los generales, los de Biblioteca y los
             hechos para esta persona) hasta que reanudes su vínculo. No se borra
             nada: al reanudar, lo vuelve a ver todo.
           </DialogContentText>

@@ -61,3 +61,14 @@ export function animacionEntrada({
 export function animacionFundido(duracion = 200): CSSObject {
   return { animation: `${fundir} ${duracion}ms ease both` }
 }
+
+/**
+ * Cambio de pestaña: el contenido de la pestaña entra como un solo bloque
+ * (fundido + leve subida). Mismos valores que la referencia, «Audios»
+ * (AudiosPage: 220 ms, 6 px, EASE_OUT), que conserva su propia llamada.
+ * Hereda de animacionEntrada el fundido corto con prefers-reduced-motion; el
+ * interruptor «Reducir animaciones» (.reduce-motion) la anula del todo.
+ */
+export function animacionPestana(): CSSObject {
+  return animacionEntrada({ duracion: 220, distancia: 6 })
+}

@@ -127,12 +127,33 @@ service firebase.storage {
       return envio.profesionalUid == uid;
     }
 
-    // bibliotecaPro/{uid}/{audioId}/archivo. Lo lee su dueño o quien lo ha
-    // recibido con vínculo activo; solo lo sube o borra su dueño, como los
+    // ¿Está también en Audios? Su audio general ({audioId}__general, con
+    // deMisAudios) es de este profesional y está publicado, y quien lo pide
+    // tiene vínculo activo. Si no está en Audios, la lectura falla y no se
+    // permite. Igual en los dos modos.
+    function esGeneralPublicado(uid, audioId) {
+      let general = firestore.get(/databases/(default)/documents/audiosProfesional/$(audioId + '__general')).data;
+      return general.profesionalUid == uid
+        && general.tipo == 'general'
+        && general.estado == 'publicado'
+        && general.deMisAudios == audioId
+        && esOyenteVinculado(uid);
+    }
+    // Y además esta es la portada que usa ese audio general.
+    function esPortadaDeGeneralPublicado(uid, audioId, imagenId) {
+      let general = firestore.get(/databases/(default)/documents/audiosProfesional/$(audioId + '__general')).data;
+      return general.get('portadaImagen', null) == imagenId
+        && esGeneralPublicado(uid, audioId);
+    }
+    // bibliotecaPro/{uid}/{audioId}/archivo. Lo lee su dueño, quien lo ha
+    // recibido con vínculo activo o, si también está en Audios, cualquier
+    // oyente con vínculo activo; solo lo sube o borra su dueño, como los
     // demás audios: solo audio, 100 MB como mucho y reservado.
     match /bibliotecaPro/{uid}/{audioId}/archivo {
       allow read: if request.auth != null
-        && (request.auth.uid == uid || (tieneEnvio(uid, audioId) && esOyenteVinculado(uid)));
+        && (request.auth.uid == uid
+            || (tieneEnvio(uid, audioId) && esOyenteVinculado(uid))
+            || esGeneralPublicado(uid, audioId));
       allow create, update: if request.auth != null
         && request.auth.uid == uid
         && request.resource.size <= 100 * 1024 * 1024
@@ -142,11 +163,14 @@ service firebase.storage {
     }
 
     // bibliotecaPro/{uid}/{audioId}/portadas/{imagenId}: su portada propia.
-    // La ve quien puede escuchar el audio; la sube o borra solo su dueño:
-    // solo imagen, 3 MB como mucho y reservada (limitesSubida).
+    // La ve quien puede escuchar el audio (si está en Audios, solo la
+    // portada que usa allí); la sube o borra solo su dueño: solo imagen,
+    // 3 MB como mucho y reservada (limitesSubida).
     match /bibliotecaPro/{uid}/{audioId}/portadas/{imagenId} {
       allow read: if request.auth != null
-        && (request.auth.uid == uid || (tieneEnvio(uid, audioId) && esOyenteVinculado(uid)));
+        && (request.auth.uid == uid
+            || (tieneEnvio(uid, audioId) && esOyenteVinculado(uid))
+            || esPortadaDeGeneralPublicado(uid, audioId, imagenId));
       allow create, update: if request.auth != null
         && request.auth.uid == uid
         && request.resource.size <= 3 * 1024 * 1024

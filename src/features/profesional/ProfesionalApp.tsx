@@ -14,6 +14,7 @@ import AudiosPage from './audios/AudiosPage'
 import ListasPage from './listas/ListasPage'
 import MisAudiosPage from './misAudios/MisAudiosPage'
 import OyentesPage from './oyentes/OyentesPage'
+import AjustesPage from './ajustes/AjustesPage'
 import { SECCIONES_PROFESIONAL } from './data/secciones'
 import { profesionalTheme } from './theme/profesionalTheme'
 import { EASE_OUT } from './theme/movimiento'
@@ -42,6 +43,10 @@ function ProfesionalApp() {
           ':root': {
             colorScheme: 'light',
             scrollbarColor: 'rgba(0, 0, 0, 0.28) transparent',
+            // Hueco de la barra de desplazamiento siempre reservado: al pasar
+            // de una página corta a una larga (p. ej. Cuenta → General en
+            // Ajustes) no se mueve todo de lado cuando aparece la barra.
+            scrollbarGutter: 'stable',
           },
           body: { backgroundColor: theme.palette.background.default },
           '::-webkit-scrollbar-thumb': {
@@ -87,10 +92,12 @@ function ProfesionalApp() {
             {SECCIONES_PROFESIONAL.map((seccion) => (
               <Route
                 key={seccion.path}
-                // «Listas y programas» (pestañas y editor) y «Oyentes»
-                // (ficha de cada persona) tienen subrutas.
+                // «Listas y programas» (pestañas y editor), «Oyentes» (ficha
+                // de cada persona) y «Ajustes» (sus páginas) tienen subrutas.
                 path={
-                  seccion.path === 'listas' || seccion.path === 'oyentes'
+                  seccion.path === 'listas' ||
+                  seccion.path === 'oyentes' ||
+                  seccion.path === 'ajustes'
                     ? `${seccion.path}/*`
                     : seccion.path
                 }
@@ -105,6 +112,8 @@ function ProfesionalApp() {
                     <MisAudiosPage />
                   ) : seccion.path === 'oyentes' ? (
                     <OyentesPage />
+                  ) : seccion.path === 'ajustes' ? (
+                    <AjustesPage />
                   ) : (
                     <SeccionProfesionalPage seccion={seccion} />
                   )

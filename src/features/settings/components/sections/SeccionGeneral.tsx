@@ -2,7 +2,7 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../../../auth/context/AuthContext'
 import UserAvatar from '../../../auth/components/UserAvatar'
 import { useUserProfile } from '../../../auth/hooks/useUserProfile'
-import { updateDisplayNamePref } from '../../../auth/services/userProfileService'
+import { updateDisplayNamePref, updateReproducirAlAbrir } from '../../../auth/services/userProfileService'
 import { applyReducedMotion, getStoredReducedMotion } from '../../utils/reducedMotion'
 import SettingsSwitch from '../SettingsSwitch'
 
@@ -16,6 +16,11 @@ function SeccionGeneral() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [justSaved, setJustSaved] = useState(false)
   const [reduceMotion, setReduceMotion] = useState(() => getStoredReducedMotion())
+  // «Reproducir al abrir un audio»: se ve al momento y se guarda en la cuenta;
+  // si no se puede guardar, vuelve a como estaba.
+  const [reproducirAlAbrir, setReproducirAlAbrir] = useState<boolean | null>(null)
+  const [errorReproducir, setErrorReproducir] = useState<string | null>(null)
+  const reproducirAlAbrirActivo = reproducirAlAbrir ?? profile?.reproducirAlAbrir === true
 
   useEffect(() => {
     if (!isNameTouched && profile?.displayNamePref !== undefined) {
@@ -48,6 +53,22 @@ function SeccionGeneral() {
       setSaveError('No se pudo guardar. Inténtalo de nuevo.')
     } finally {
       setIsSavingName(false)
+    }
+  }
+
+  async function handleToggleReproducirAlAbrir(checked: boolean) {
+    if (!user) {
+      return
+    }
+
+    setReproducirAlAbrir(checked)
+    setErrorReproducir(null)
+
+    try {
+      await updateReproducirAlAbrir(user.uid, checked)
+    } catch {
+      setReproducirAlAbrir(!checked)
+      setErrorReproducir('No se pudo guardar. Inténtalo de nuevo.')
     }
   }
 
@@ -162,28 +183,26 @@ function SeccionGeneral() {
         </div>
       </section>
 
-      <section className="settings-apartado settings-apartado--coming-soon">
+      <section className="settings-apartado">
         <div className="settings-apartado__header">
           <h4>Reproducción</h4>
-          <span className="settings-badge">Próximamente</span>
         </div>
 
         <div className="settings-row">
           <div>
-            <p className="settings-row__label">Velocidad por defecto</p>
-            <p className="settings-row__hint">Elige la velocidad con la que empiezan tus audios.</p>
+            <p className="settings-row__label">Reproducir al abrir un audio</p>
+            {errorReproducir ? (
+              <p className="settings-field__error">{errorReproducir}</p>
+            ) : (
+              <p className="settings-row__hint">Al abrir un audio, empieza a sonar sin tener que darle al play.</p>
+            )}
           </div>
-          <select className="settings-select" disabled defaultValue="normal" aria-label="Velocidad por defecto">
-            <option value="normal">Normal</option>
-          </select>
-        </div>
-
-        <div className="settings-row">
-          <div>
-            <p className="settings-row__label">Continuar donde lo dejaste</p>
-            <p className="settings-row__hint">Retoma automáticamente tus audios desde el último punto.</p>
-          </div>
-          <SettingsSwitch checked={false} disabled ariaLabel="Continuar donde lo dejaste" />
+          <SettingsSwitch
+            checked={reproducirAlAbrirActivo}
+            onChange={handleToggleReproducirAlAbrir}
+            disabled={isLoadingProfile || !user}
+            ariaLabel="Reproducir al abrir un audio"
+          />
         </div>
       </section>
 

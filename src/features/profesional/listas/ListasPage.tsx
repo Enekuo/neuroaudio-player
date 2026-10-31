@@ -12,7 +12,7 @@ import { escucharMisAudiosGenerales } from '../../audiosProfesional/audioProfesi
 import type { AudioProfesional } from '../../audiosProfesional/modelo'
 import { escucharMisListas } from '../../listasProfesional/listaProfesionalService'
 import type { ListaProfesional } from '../../listasProfesional/modelo'
-import { animacionEntrada } from '../theme/movimiento'
+import { animacionEntrada, animacionPestana } from '../theme/movimiento'
 import EditorLista from './EditorLista'
 import ListasDelProfesional from './ListasDelProfesional'
 
@@ -127,9 +127,11 @@ function Cabecera({
       </Tabs>
 
       <Box
+        key={pestana}
         id="panel-listas"
         role="tabpanel"
         aria-labelledby={`pestana-${pestana}`}
+        sx={animacionPestana()}
       >
         {pestana === 'listas' ? (
           <ListasDelProfesional datos={datos} />

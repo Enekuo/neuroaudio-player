@@ -185,7 +185,7 @@ function Biblioteca({ uid }: { uid: string }) {
         component="h1"
         sx={{ fontWeight: 400 }}
       >
-        Mis audios
+        Biblioteca
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
         Tu biblioteca privada: sube un audio una vez y envíalo a las personas
@@ -416,6 +416,13 @@ function Biblioteca({ uid }: { uid: string }) {
                       {audio.contieneSalud && (
                         <Chip size="small" variant="outlined" label="Salud" />
                       )}
+                      {audio.enAudios && (
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          label="En Audios"
+                        />
+                      )}
                       <Typography
                         variant="body2"
                         color="text.secondary"
@@ -552,6 +559,11 @@ function Biblioteca({ uid }: { uid: string }) {
               ? `Vas a borrar «${aBorrar?.titulo}». Se lo quitarás a ${personas(enviosABorrar)} que lo tienen en «Para ti». No se puede deshacer.`
               : `Vas a borrar «${aBorrar?.titulo}» de tu biblioteca. No se puede deshacer.`}
           </DialogContentText>
+          {aBorrar?.enAudios && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              También está en Audios; se quitará de allí y de tus listas.
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setABorrar(null)} disabled={borrando}>

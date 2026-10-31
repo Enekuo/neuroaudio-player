@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type DragEvent } from 'react'
 import Alert from '@mui/material/Alert'
 import Autocomplete from '@mui/material/Autocomplete'
 import Chip from '@mui/material/Chip'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox'
@@ -11,16 +12,19 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import FormControlLabel from '@mui/material/FormControlLabel'
+import IconButton from '@mui/material/IconButton'
 import LinearProgress from '@mui/material/LinearProgress'
 import MenuItem from '@mui/material/MenuItem'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import TextField from '@mui/material/TextField'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import CloudUploadOutlined from '@mui/icons-material/CloudUploadOutlined'
 import ImageOutlined from '@mui/icons-material/ImageOutlined'
+import InfoOutlined from '@mui/icons-material/InfoOutlined'
 import {
   ACEPTAR_AUDIO,
   ErrorAudio,
@@ -41,6 +45,8 @@ import {
 } from '../../audiosProfesional/audioProfesionalService'
 import {
   LIMITES_AUDIO,
+  audioEnlazado,
+  carpetaDePortada,
   MAX_TAMANO_AUDIO,
   LIMITES_BIBLIOTECA,
   normalizarEtiqueta,
@@ -128,6 +134,11 @@ function DialogoAudio({
   // Id del audio: el suyo o, si es nuevo, uno pedido ya (su portada se sube
   // a una ruta con ese id antes de guardar).
   const [audioId] = useState(() => audio?.id ?? nuevoIdAudio())
+  // Carpeta de su imagen propia: uno añadido desde Biblioteca usa la de su
+  // original (la imagen es la misma en los dos sitios).
+  const portadaEn = audio
+    ? carpetaDePortada(audio)
+    : { audioId, biblioteca: enBiblioteca }
 
   // Portada que elige el profesional. Las imágenes subidas en este diálogo y
   // aún sin guardar se borran al guardar otra, al cerrar o al salir.
@@ -193,12 +204,15 @@ function DialogoAudio({
         .catch(() => {})
       subidas.forEach(
         (id) =>
-          void borrarPortadaAudio(uid, audioId, id, enBiblioteca).catch(
-            () => {},
-          ),
+          void borrarPortadaAudio(
+            uid,
+            portadaEn.audioId,
+            id,
+            portadaEn.biblioteca,
+          ).catch(() => {}),
       )
     }
-  }, [uid, audioId, enBiblioteca])
+  }, [uid, portadaEn.audioId, portadaEn.biblioteca])
 
   useEffect(
     () => () => {
@@ -222,10 +236,10 @@ function DialogoAudio({
     try {
       const { imagenId, imagen } = await subirPortadaAudio(
         uid,
-        audioId,
+        portadaEn.audioId,
         ajuste.file,
         encuadre,
-        enBiblioteca,
+        portadaEn.biblioteca,
       )
       pendientes.current.add(imagenId)
       setPortadaImagen(imagenId)
@@ -316,7 +330,7 @@ function DialogoAudio({
           enBiblioteca,
         )
       } else if (audio) {
-        await actualizarAudio(audio.id, datos)
+        await actualizarAudio(audio.id, datos, audioEnlazado(audio))
       }
       guardado.current = true
       // Guardado: fuera las imágenes de portada que ya no usa.
@@ -327,14 +341,17 @@ function DialogoAudio({
       }
       sobrantes.forEach(
         (id) =>
-          void borrarPortadaAudio(uid, audioId, id, enBiblioteca).catch(
-            () => {},
-          ),
+          void borrarPortadaAudio(
+            uid,
+            portadaEn.audioId,
+            id,
+            portadaEn.biblioteca,
+          ).catch(() => {}),
       )
       onCerrar(
         enBiblioteca
           ? esNuevo
-            ? 'Guardado en Mis audios. Nadie lo ve hasta que lo envíes.'
+            ? 'Guardado en Biblioteca. Nadie lo ve hasta que lo envíes.'
             : 'Cambios guardados.'
           : personal
             ? estado === 'publicado'
@@ -368,7 +385,7 @@ function DialogoAudio({
       <DialogTitle id="dialogo-audio-titulo">
         {esNuevo
           ? enBiblioteca
-            ? 'Subir a Mis audios'
+            ? 'Subir a Biblioteca'
             : personal
               ? 'Subir audio para una persona'
               : 'Subir audio'
@@ -377,6 +394,13 @@ function DialogoAudio({
       <DialogContent
         sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
       >
+        {audio && audioEnlazado(audio) && (
+          <Typography variant="body2" color="text.secondary">
+            {audio.deMisAudios
+              ? 'Este audio viene de Biblioteca: el título, la descripción, la imagen y la casilla de salud se guardan también allí.'
+              : 'Este audio también está en Audios: el título, la descripción, la imagen y la casilla de salud se guardan también allí.'}
+          </Typography>
+        )}
         {personal &&
           (esNuevo && !personal.destinatarioFijo ? (
             <TextField
@@ -588,6 +612,15 @@ function DialogoAudio({
                     helperText={`Por ejemplo «ansiedad» o «sueño». Hasta ${LIMITES_BIBLIOTECA.etiquetas}.`}
                     slotProps={{
                       ...params.slotProps,
+                      input: {
+                        ...params.slotProps.input,
+                        endAdornment: (
+                          <>
+                            <AyudaEtiquetas />
+                            {params.slotProps.input.endAdornment}
+                          </>
+                        ),
+                      },
                       htmlInput: {
                         ...params.slotProps.htmlInput,
                         maxLength: LIMITES_BIBLIOTECA.etiqueta,
@@ -630,9 +663,9 @@ function DialogoAudio({
                   profesionalUid={uid}
                   fotoPrincipalId={fotoPrincipalId}
                   portada={portada}
-                  audioId={audioId}
+                  audioId={portadaEn.audioId}
                   portadaImagen={portadaImagen}
-                  biblioteca={enBiblioteca}
+                  biblioteca={portadaEn.biblioteca}
                   imagenUrl={
                     portada === 'propia' &&
                     portadaImagen !== (audio?.portadaImagen ?? null)
@@ -724,7 +757,7 @@ function DialogoAudio({
             onClick={() => guardar('publicado')}
             disabled={!listoParaGuardar}
           >
-            {esNuevo ? 'Guardar en Mis audios' : 'Guardar cambios'}
+            {esNuevo ? 'Guardar en Biblioteca' : 'Guardar cambios'}
           </Button>
         ) : esNuevo || !publicadoAhora ? (
           <>
@@ -775,6 +808,60 @@ function DialogoAudio({
         />
       )}
     </Dialog>
+  )
+}
+
+const TEXTO_AYUDA_ETIQUETAS = `Palabras cortas para organizar tus audios por tema, como «sueño» o «calma». Puedes poner hasta ${LIMITES_BIBLIOTECA.etiquetas}. Te ayudan a encontrarlos con el buscador y el filtro. Son opcionales. Las personas a las que envías el audio no las ven, pero pueden encontrarlo por ellas en su buscador.`
+
+/**
+ * Botón «i» del campo Etiquetas: explica qué son. Se abre y se cierra con
+ * clic o toque (no solo al pasar el ratón, para que valga en el móvil) y se
+ * cierra al pulsar fuera o con Escape (sin cerrar también el diálogo).
+ */
+function AyudaEtiquetas() {
+  const [abierta, setAbierta] = useState(false)
+
+  // Escape la cierra a ella sola: se atiende antes que el diálogo (fase de
+  // captura), esté donde esté el foco.
+  useEffect(() => {
+    if (!abierta) return
+    const alPulsar = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.stopPropagation()
+      setAbierta(false)
+    }
+    document.addEventListener('keydown', alPulsar, true)
+    return () => document.removeEventListener('keydown', alPulsar, true)
+  }, [abierta])
+
+  return (
+    <ClickAwayListener onClickAway={() => setAbierta(false)}>
+      <span>
+        <Tooltip
+          title={TEXTO_AYUDA_ETIQUETAS}
+          open={abierta}
+          onClose={() => setAbierta(false)}
+          disableFocusListener
+          disableHoverListener
+          disableTouchListener
+        >
+          <IconButton
+            size="small"
+            aria-label="Qué son las etiquetas"
+            aria-expanded={abierta}
+            // Que el clic no llegue al campo (lo enfocaría y, en el móvil,
+            // abriría el teclado).
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              setAbierta((v) => !v)
+            }}
+          >
+            <InfoOutlined fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </span>
+    </ClickAwayListener>
   )
 }
 

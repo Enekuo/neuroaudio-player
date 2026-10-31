@@ -7,7 +7,6 @@ import InsightsOutlined from '@mui/icons-material/InsightsOutlined'
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined'
 import FolderSpecialOutlined from '@mui/icons-material/FolderSpecialOutlined'
 import PeopleOutlined from '@mui/icons-material/PeopleOutlined'
-import PaymentsOutlined from '@mui/icons-material/PaymentsOutlined'
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined'
 
 export type SeccionProfesional = {
@@ -44,7 +43,7 @@ export const SECCIONES_PROFESIONAL: SeccionProfesional[] = [
   },
   {
     path: 'mis-audios',
-    label: 'Mis audios',
+    label: 'Biblioteca',
     description:
       'Tu biblioteca privada: sube un audio una vez y envíalo a quien lo necesite.',
     icon: <FolderSpecialOutlined />,
@@ -75,12 +74,11 @@ export const SECCIONES_PROFESIONAL: SeccionProfesional[] = [
     description: 'Aquí podrás ver cómo escuchan tus clientes tus audios.',
     icon: <InsightsOutlined />,
   },
-  {
-    path: 'ingresos',
-    label: 'Ingresos',
-    description: 'Aquí podrás consultar tus ingresos y cobros.',
-    icon: <PaymentsOutlined />,
-  },
+  // «Ingresos» quitado del menú de momento. Para volver a ponerlo, añadir
+  // aquí (con `import PaymentsOutlined from '@mui/icons-material/PaymentsOutlined'`):
+  // { path: 'ingresos', label: 'Ingresos',
+  //   description: 'Aquí podrás consultar tus ingresos y cobros.',
+  //   icon: <PaymentsOutlined /> },
   {
     path: 'ajustes',
     label: 'Ajustes',

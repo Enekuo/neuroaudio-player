@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/context/AuthContext'
 import { signOutUser } from '../../auth/services/authService'
 import UserAvatar from '../../auth/components/UserAvatar'
 import { useUserProfile } from '../../auth/hooks/useUserProfile'
+import { useSalidaAnimada } from '../../../hooks/useSalidaAnimada'
 import ModalAjustes from '../../settings/components/ModalAjustes'
 import SettingsIcon from '../../settings/components/SettingsIcon'
 import { CUSTOM_TEMPLATE_ID, getTemplateById } from '../data/plantillasListas'
@@ -68,6 +69,8 @@ function MenuLateral() {
   const [isCreateListModalOpen, setIsCreateListModalOpen] = useState(false)
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
+  // El menú sale con su animación al cerrarse (no desaparece de golpe).
+  const menuCuenta = useSalidaAnimada(isAccountMenuOpen, 120)
   const sidebarAccountRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -187,8 +190,8 @@ function MenuLateral() {
               <span className="library-sidebar__account-name">{displayName}</span>
             </button>
 
-            {isAccountMenuOpen ? (
-              <div className="library-sidebar__account-menu" role="menu">
+            {menuCuenta.visible ? (
+              <div className={`library-sidebar__account-menu${menuCuenta.saliendo ? ' is-closing' : ''}`} role="menu">
                 <button
                   type="button"
                   role="menuitem"

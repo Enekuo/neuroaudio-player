@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useFotoPerfil } from '../perfilProfesional/fotos/useFotoPerfil'
 import { useProfesionalDePista } from '../perfilProfesional/useProfesionalDePista'
 import { escucharAudio } from './audioProfesionalService'
-import type { AudioProfesional } from './modelo'
+import { carpetaDePortada, type AudioProfesional } from './modelo'
 import { useImagenPortadaAudio } from './usePortadaAudio'
 
 /**
@@ -41,11 +41,13 @@ export function usePortadaDePista(
       : null,
     'cuadrada',
   )
+  // Uno añadido desde Biblioteca usa la imagen de su original.
+  const carpeta = audio ? carpetaDePortada(audio) : null
   const propia = useImagenPortadaAudio(
     profesionalUid,
-    audioId,
+    carpeta?.audioId ?? audioId,
     audio?.portada === 'propia' ? audio.portadaImagen : null,
-    audio?.tipo === 'biblioteca',
+    carpeta?.biblioteca ?? false,
   )
 
   if (!audio) return null
