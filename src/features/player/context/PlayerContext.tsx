@@ -12,6 +12,7 @@ import { useAuth } from '../../auth/context/AuthContext'
 import { useUserProfile } from '../../auth/hooks/useUserProfile'
 import { deleteAudioSchedule, getAudioSchedule, saveAudioSchedule } from '../services/audioScheduleService'
 import { registrarReproduccion } from '../../library/services/audioService'
+import { avisarFinDePista } from '../utils/finDePista'
 import { useDataUrl, useProfesionalDePista } from '../../perfilProfesional/useProfesionalDePista'
 import { usePortadaDePista } from '../../audiosProfesional/usePortadaDePista'
 
@@ -27,6 +28,8 @@ export type AudioTrack = {
   origen?: 'profesional'
   /** Con origen 'profesional': quién lo comparte (su foto y nombre en el reproductor). */
   profesionalUid?: string
+  /** Si suena como paso de un programa: cuál (para completarlo al terminar). */
+  programa?: { id: string; profesionalUid: string }
 }
 
 export type RepeatMode = 'off' | 'infinite' | 'times'
@@ -424,6 +427,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     const handleEnded = () => {
       const mode = repeatModeRef.current
+      // Para quien necesite saber que llegó al final (pasos de programas).
+      avisarFinDePista(loadedTrackIdRef.current)
 
       // TEMPORAL: log de depuración para el bug de repeticiones cortadas al
       // bloquear pantalla en móvil. Quitar cuando se resuelva.

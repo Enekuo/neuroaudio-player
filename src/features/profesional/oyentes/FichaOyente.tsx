@@ -33,6 +33,7 @@ import type {
   EnvioAudio,
 } from '../../audiosProfesional/modelo'
 import PortadaAudio from '../../audiosProfesional/PortadaAudio'
+import { useMantenerAccesos } from '../../programasProfesional/useMantenerAccesos'
 import {
   etiquetaOyente,
   type OyenteDelProfesional,
@@ -69,6 +70,9 @@ type Eleccion =
  * pero visto desde la persona: los cambios se ven en las dos páginas.
  */
 function FichaOyente({ uid }: { uid: string }) {
+  // Quién puede oír cada audio de Biblioteca: se mantiene al día (y se
+  // repara lo anterior) mientras esta página está abierta.
+  useMantenerAccesos(uid)
   const { oyenteUid = '' } = useParams()
   const navigate = useNavigate()
   const [intento, setIntento] = useState(0)

@@ -184,7 +184,8 @@ service cloud.firestore {
                     'contieneSalud', 'orden', 'creadoEn', 'actualizadoEn'];
       return d.keys().hasAll(campos)
         && d.keys().hasOnly(campos.concat(['portada', 'portadaImagen', 'etiquetas',
-                                           'deMisAudios', 'enAudios']))
+                                           'deMisAudios', 'enAudios',
+                                           'publicoEnAudios', 'enProgramaPublico']))
         && portadaAudioValida(d)
         && etiquetasAudioValidas(d)
         && d.profesionalUid == request.auth.uid
@@ -202,8 +203,11 @@ service cloud.firestore {
               && generalDeBibliotecaValido(audioId, d))
             || (d.tipo != 'biblioteca' && !('deMisAudios' in d)
               && d.archivo == 'audiosPro/' + request.auth.uid + '/' + audioId + '/archivo'))
-        // La marca «En Audios», solo en los de «Mis audios».
+        // Las marcas «En Audios», «publicado en Audios» y «en un programa
+        // para todos», solo en los de «Mis audios».
         && (!('enAudios' in d) || (d.tipo == 'biblioteca' && d.enAudios is bool))
+        && (!('publicoEnAudios' in d) || (d.tipo == 'biblioteca' && d.publicoEnAudios is bool))
+        && (!('enProgramaPublico' in d) || (d.tipo == 'biblioteca' && d.enProgramaPublico is bool))
         && d.duracionSegundos is number && d.duracionSegundos >= 0
         && d.tamanoBytes is int && d.tamanoBytes > 0 && d.tamanoBytes <= 104857600
         && d.contieneSalud is bool
@@ -226,11 +230,26 @@ service cloud.firestore {
         && esOyenteVinculado(audio.profesionalUid);
     }
 
+    // Programas: un audio de la biblioteca lo lee también quien tiene vínculo
+    // activo y, o bien está en un programa para todos publicado, o bien está
+    // en la lista de su vínculo (audiosBiblioteca: sus programas privados y
+    // sus envíos). No basta con que esté publicado en Audios: ese lo leen
+    // como audio general (su {id}__general), sin ver sus etiquetas.
+    function programaDaAccesoAudio(audioId, audio) {
+      let vinculo = get(/databases/$(database)/documents/vinculos/$(audio.profesionalUid + '_' + request.auth.uid)).data;
+      return audio.tipo == 'biblioteca'
+        && vinculo.oyenteUid == request.auth.uid
+        && vinculo.estado == 'activo'
+        && (audio.get('enProgramaPublico', false) == true
+            || audioId in vinculo.get('audiosBiblioteca', []));
+    }
+
     match /audiosProfesional/{audioId} {
       allow read: if request.auth != null
         && (resource.data.profesionalUid == request.auth.uid
             || puedeEscucharAudioPro(resource.data)
-            || tieneEnvioAudio(audioId, resource.data));
+            || tieneEnvioAudio(audioId, resource.data)
+            || programaDaAccesoAudio(audioId, resource.data));
       allow create: if request.auth != null
         && audioProValido(audioId)
         && request.resource.data.creadoEn == request.time
@@ -314,6 +333,112 @@ service cloud.firestore {
         && resource.data.profesionalUid == request.auth.uid;
     }
 
+    // ---------- Programas del profesional ----------
+    // programasProfesional/{programaId}: una lista ordenada de audios de su
+    // Biblioteca para seguir paso a paso. Los límites coinciden con
+    // src/features/programasProfesional/modelo.ts. Igual en los dos modos.
+    // - para 'todos': lo ve, publicado, cualquier oyente con vínculo activo.
+    // - para 'personas': solo quien tiene su acceso (accesosPrograma) y
+    //   vínculo activo.
+    // publicadoEn: la primera vez que se publica (el día 1 de un programa
+    // para todos); después ya no cambia. Los programas por profesional (30)
+    // los cuenta la app, como los audios de la Biblioteca.
+    function programaValido() {
+      let d = request.resource.data;
+      let campos = ['profesionalUid', 'titulo', 'descripcion', 'estado', 'apertura',
+                    'ritmo', 'ritmoDias', 'para', 'pasos', 'publicadoEn',
+                    'creadoEn', 'actualizadoEn'];
+      return d.keys().hasAll(campos) && d.keys().hasOnly(campos)
+        && d.profesionalUid == request.auth.uid
+        && d.titulo is string && d.titulo.size() > 0 && d.titulo.size() <= 80
+        && d.descripcion is string && d.descripcion.size() <= 2000
+        && d.estado in ['borrador', 'publicado']
+        && d.apertura in ['libre', 'orden', 'calendario']
+        && ((d.ritmo in ['diario', 'semanal', 'mensual'] && d.ritmoDias == null)
+            || (d.ritmo == 'dias' && d.ritmoDias is int
+                && d.ritmoDias >= 1 && d.ritmoDias <= 365))
+        && d.para in ['todos', 'personas']
+        // Pasos: ids de audios, sin repetir, como mucho 50; publicado, con alguno.
+        && d.pasos is list && d.pasos.size() <= 50
+        && d.pasos.toSet().size() == d.pasos.size()
+        && (d.estado == 'borrador' || d.pasos.size() > 0)
+        && d.actualizadoEn == request.time;
+    }
+
+    match /programasProfesional/{programaId} {
+      allow read: if request.auth != null
+        && (resource.data.profesionalUid == request.auth.uid
+            || (resource.data.estado == 'publicado'
+                && esOyenteVinculado(resource.data.profesionalUid)
+                && (resource.data.para == 'todos'
+                    || exists(/databases/$(database)/documents/accesosPrograma/$(programaId + '__' + request.auth.uid)))));
+      allow create: if request.auth != null
+        && programaValido()
+        && request.resource.data.creadoEn == request.time
+        && ((request.resource.data.estado == 'borrador' && request.resource.data.publicadoEn == null)
+            || (request.resource.data.estado == 'publicado' && request.resource.data.publicadoEn == request.time));
+      allow update: if request.auth != null
+        && resource.data.profesionalUid == request.auth.uid
+        && programaValido()
+        && request.resource.data.creadoEn == resource.data.creadoEn
+        && request.resource.data.para == resource.data.para
+        // publicadoEn: se pone al publicarlo la primera vez y ya no cambia.
+        && ((request.resource.data.publicadoEn == resource.data.publicadoEn
+              && (request.resource.data.estado == 'borrador' || resource.data.publicadoEn != null))
+            || (resource.data.publicadoEn == null
+              && request.resource.data.estado == 'publicado'
+              && request.resource.data.publicadoEn == request.time));
+      allow delete: if request.auth != null
+        && resource.data.profesionalUid == request.auth.uid;
+    }
+
+    // accesosPrograma/{programaId}__{oyenteUid}: una persona que tiene un
+    // programa privado. Su fecha (creadoEn) es su día 1. Lo crea solo el
+    // profesional, en su propio programa para personas y para alguien con
+    // vínculo activo; lo leen él y esa persona; quitarlo es borrarlo. Las
+    // personas por programa (100) las cuenta la app.
+    match /accesosPrograma/{accesoId} {
+      allow read: if request.auth != null
+        && (request.auth.uid == resource.data.profesionalUid
+            || request.auth.uid == resource.data.oyenteUid);
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(['profesionalUid', 'programaId', 'oyenteUid', 'creadoEn'])
+        && request.resource.data.keys().hasOnly(['profesionalUid', 'programaId', 'oyenteUid', 'creadoEn'])
+        && request.resource.data.profesionalUid == request.auth.uid
+        && request.resource.data.programaId is string
+        && request.resource.data.oyenteUid is string
+        && request.resource.data.oyenteUid != request.auth.uid
+        && accesoId == request.resource.data.programaId + '__' + request.resource.data.oyenteUid
+        && request.resource.data.creadoEn == request.time
+        && get(/databases/$(database)/documents/programasProfesional/$(request.resource.data.programaId)).data.profesionalUid == request.auth.uid
+        && get(/databases/$(database)/documents/programasProfesional/$(request.resource.data.programaId)).data.para == 'personas'
+        && get(/databases/$(database)/documents/vinculos/$(request.auth.uid + '_' + request.resource.data.oyenteUid)).data.estado == 'activo';
+      allow update: if false;
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.profesionalUid;
+    }
+
+    // progresoPrograma/{programaId}__{oyenteUid}: los pasos que ha completado
+    // un oyente (ids de audio, sin repetir). Es un dato suyo: solo él lo lee
+    // y lo escribe; su profesional no. (La lectura mira el id, que acaba en
+    // su uid, para que pueda consultarlo aunque aún no exista.)
+    match /progresoPrograma/{progresoId} {
+      allow read, delete: if request.auth != null
+        && progresoId.matches('.+__' + request.auth.uid);
+      allow create, update: if request.auth != null
+        && request.resource.data.keys().hasAll(['oyenteUid', 'programaId', 'profesionalUid', 'completados', 'actualizadoEn'])
+        && request.resource.data.keys().hasOnly(['oyenteUid', 'programaId', 'profesionalUid', 'completados', 'actualizadoEn'])
+        && request.resource.data.oyenteUid == request.auth.uid
+        && request.resource.data.programaId is string
+        && request.resource.data.profesionalUid is string
+        && progresoId == request.resource.data.programaId + '__' + request.auth.uid
+        && request.resource.data.completados is list
+        && request.resource.data.completados.size() <= 50
+        && request.resource.data.completados.toSet().size() == request.resource.data.completados.size()
+        && request.resource.data.actualizadoEn == request.time
+        && (resource == null || resource.data.oyenteUid == request.auth.uid);
+    }
+
     // ---------- «Mis audios»: envíos ----------
     // enviosAudio/{audioId}__{oyenteUid}: un audio de la biblioteca enviado a
     // una persona. Igual en los dos modos. Lo crea solo el profesional, con
@@ -348,17 +473,26 @@ service cloud.firestore {
       allow read: if request.auth != null
         && (request.auth.uid == resource.data.profesionalUid
             || request.auth.uid == resource.data.oyenteUid);
-      // Pausar o reanudar (página «Oyentes»): solo su profesional, solo el
-      // estado (entre activo y pausado; otros estados futuros, como una baja
-      // del oyente, no se pueden revertir) y la hora del cambio.
+      // Solo su profesional, y una de estas dos cosas:
+      // - Pausar o reanudar (página «Oyentes»): solo el estado (entre activo
+      //   y pausado; otros estados futuros, como una baja del oyente, no se
+      //   pueden revertir) y la hora del cambio.
+      // - audiosBiblioteca: los audios de su Biblioteca que esta persona
+      //   puede oír (sus envíos y sus programas privados). storage.rules lo
+      //   mira aquí para no pasar de dos documentos por descarga. Como mucho
+      //   200, los que caben en la Biblioteca.
       allow update: if request.auth != null
         && request.auth.uid == resource.data.profesionalUid
-        && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['estado', 'estadoCambiadoEn'])
-        && resource.data.estado in ['activo', 'pausado']
-        && request.resource.data.estado in ['activo', 'pausado']
-        && request.resource.data.estado != resource.data.estado
-        && request.resource.data.estadoCambiadoEn == request.time;
+        && ((request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['estado', 'estadoCambiadoEn'])
+             && resource.data.estado in ['activo', 'pausado']
+             && request.resource.data.estado in ['activo', 'pausado']
+             && request.resource.data.estado != resource.data.estado
+             && request.resource.data.estadoCambiadoEn == request.time)
+          || (request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['audiosBiblioteca'])
+              && request.resource.data.audiosBiblioteca is list
+              && request.resource.data.audiosBiblioteca.size() <= 200));
       allow create, delete: if false;
     }
 

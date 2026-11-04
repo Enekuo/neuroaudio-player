@@ -1,0 +1,165 @@
+/* ============================================================
+   Páginas legales (/legal/*): mismo fondo, colores, menú y pie que la
+   landing. Todo bajo .na-legal (solo existe en estas páginas).
+   ============================================================ */
+.na-legal {
+  --na-bg: #070a13;
+  --na-accent: #3461ff;
+  --na-ink: #f5f6fa;
+  --na-muted: #9aa3b8;
+  --na-muted-2: #6c7590;
+  --na-line: #1c2438;
+  min-height: 100dvh;
+  background: var(--na-bg);
+  color: var(--na-ink);
+}
+
+.na-legal .na-nav {
+  border-bottom: 1px solid var(--na-line);
+}
+
+.na-legal__contenido {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: clamp(56px, 9vw, 112px) clamp(20px, 4vw, 48px)
+    clamp(72px, 10vw, 128px);
+}
+
+.na-legal__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--na-muted);
+}
+
+.na-legal__eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--na-accent);
+}
+
+.landing-root.landing-root .na-legal__titulo {
+  margin: 0 0 20px;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(28px, 3.9vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--na-ink);
+  text-wrap: balance;
+}
+
+/* Texto legal: títulos, párrafos, listas y tablas. */
+.na-legal__cuerpo {
+  margin: 0 0 48px;
+  color: var(--na-muted);
+}
+
+.landing-root.landing-root .na-legal__cuerpo p,
+.landing-root.landing-root .na-legal__cuerpo li {
+  font-size: clamp(15.5px, 1.4vw, 17px);
+  line-height: 1.7;
+}
+
+.na-legal__cuerpo p {
+  margin: 0 0 16px;
+}
+
+.na-legal__cuerpo strong {
+  font-weight: 600;
+  color: var(--na-ink);
+}
+
+.landing-root.landing-root .na-legal__cuerpo h2 {
+  margin: 44px 0 14px;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(19px, 1.8vw, 22px);
+  line-height: 1.3;
+  color: var(--na-ink);
+}
+
+.na-legal__cuerpo ul,
+.na-legal__cuerpo ol {
+  margin: 0 0 16px;
+  padding-left: 22px;
+  display: grid;
+  gap: 8px;
+}
+
+.na-legal__cuerpo li::marker {
+  color: var(--na-accent);
+}
+
+/* Tablas: con desplazamiento propio en móvil, sin mover la página. */
+.na-legal__tabla {
+  margin: 8px 0 20px;
+  overflow-x: auto;
+  border: 1px solid var(--na-line);
+  border-radius: 12px;
+}
+
+.na-legal__tabla table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+}
+
+.landing-root.landing-root .na-legal__tabla th,
+.landing-root.landing-root .na-legal__tabla td {
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: top;
+  font-size: 14.5px;
+  line-height: 1.5;
+  border-bottom: 1px solid var(--na-line);
+}
+
+.na-legal__tabla th {
+  font-weight: 600;
+  color: var(--na-ink);
+  background: #0c1018;
+}
+
+.na-legal__tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.na-legal__tabla td:first-child {
+  min-width: 12em;
+  color: var(--na-ink);
+  overflow-wrap: break-word;
+}
+
+.na-legal__volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--na-ink);
+  text-decoration: none;
+  border: 1px solid #2a3350;
+  border-radius: 999px;
+  padding: 10px 18px;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.na-legal__volver:hover {
+  border-color: var(--na-accent);
+  background: rgba(52, 97, 255, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-legal__volver {
+    transition: none;
+  }
+}

@@ -128,6 +128,11 @@ export type OyenteDelProfesional = {
   creadoEn: Date | null
   /** Último cambio de estado (para «En pausa desde…»); null si nunca. */
   estadoCambiadoEn: Date | null
+  /**
+   * Audios de la Biblioteca que puede oír (sus envíos y sus programas
+   * privados), calculados por el panel (ver programasProfesional/accesos).
+   */
+  audiosBiblioteca: string[]
 }
 
 const fecha = (valor: unknown) =>
@@ -152,6 +157,11 @@ export function oyenteDesdeVinculo(
       typeof datos.oyenteEmail === 'string' ? datos.oyenteEmail.trim() : '',
     creadoEn: fecha(datos.creadoEn),
     estadoCambiadoEn: fecha(datos.estadoCambiadoEn),
+    audiosBiblioteca: Array.isArray(datos.audiosBiblioteca)
+      ? datos.audiosBiblioteca.filter(
+          (a: unknown): a is string => typeof a === 'string',
+        )
+      : [],
   }
 }
 

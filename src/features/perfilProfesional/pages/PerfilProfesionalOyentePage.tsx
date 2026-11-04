@@ -33,6 +33,8 @@ import {
   type PerfilProfesional,
 } from '../modelo'
 import { escucharPerfil, escucharVinculoActivo } from '../perfilService'
+import { useProgramasDelOyente } from '../../programasProfesional/useProgramasDelOyente'
+import FilaPrograma from '../vista/FilaPrograma'
 import FilasAudioProfesional from '../vista/FilasAudioProfesional'
 import VistaPerfilOyente from '../vista/VistaPerfilOyente'
 
@@ -129,6 +131,12 @@ function PerfilProfesionalOyentePage() {
   const [listas, setListas] = useState<ListaProfesional[]>([])
   const [pestana, setPestana] = useState<Pestana>('audios')
   const [compacta, setCompacta] = useState(false)
+  // Sus programas (para todos y los que le han dado), con su progreso.
+  const programas = useProgramasDelOyente(
+    uid,
+    user?.uid ?? null,
+    vinculado === true,
+  )
   const titulo = useRef<HTMLHeadingElement>(null)
   const [mostrarBienvenida] = useState(() => {
     try {
@@ -355,7 +363,12 @@ function PerfilProfesionalOyentePage() {
     (vinculado === true &&
       (generales.estado === 'cargando' ||
         paraMi.estado === 'cargando' ||
-        recibidos.estado === 'cargando'))
+        recibidos.estado === 'cargando' ||
+        !programas.paraTodos ||
+        !programas.privados))
+  // Programas: los para todos, en su grupo; los privados, en «Para ti».
+  const programasPublicos = programas.paraTodos ?? []
+  const programasPrivados = programas.privados ?? []
   const listaGenerales = generales.estado === 'listo' ? generales.datos : []
   // Un recibido que el profesional también ha puesto en Audios se ve una sola
   // vez, como general.
@@ -405,41 +418,87 @@ function PerfilProfesionalOyentePage() {
         </p>
       </div>
     )
-  } else if (listaParaMi.length === 0 && listaGenerales.length === 0) {
+  } else if (
+    listaParaMi.length === 0 &&
+    listaGenerales.length === 0 &&
+    programasPublicos.length === 0 &&
+    programasPrivados.length === 0
+  ) {
     contenidoAudios = (
       <div className="lista-detalle__empty">
         <p>Tu profesional aún no ha publicado audios.</p>
       </div>
     )
   } else {
+    const hayParaTi = listaParaMi.length > 0 || programasPrivados.length > 0
+    // Con un solo grupo, los audios generales van sin título (como antes).
+    const grupos = [
+      hayParaTi,
+      programasPublicos.length > 0,
+      listaGenerales.length > 0,
+    ].filter(Boolean).length
     contenidoAudios = (
       <>
-        {listaParaMi.length > 0 && (
+        {hayParaTi && (
           <section className="prof-pagina__grupo" aria-labelledby="para-ti">
             <h2 id="para-ti" className="prof-pagina__subtitulo">
               Para ti
             </h2>
-            <FilasAudioProfesional profesionalUid={uid} audios={listaParaMi} />
+            {programasPrivados.length > 0 && (
+              <div className="library-section__list library-section__list--plana">
+                {programasPrivados.map((p) => (
+                  <FilaPrograma
+                    key={p.programa.id}
+                    profesionalUid={uid}
+                    datos={p}
+                  />
+                ))}
+              </div>
+            )}
+            {listaParaMi.length > 0 && (
+              <FilasAudioProfesional
+                profesionalUid={uid}
+                audios={listaParaMi}
+              />
+            )}
           </section>
         )}
-        {listaGenerales.length > 0 && listaParaMi.length > 0 ? (
-          <section className="prof-pagina__grupo" aria-labelledby="sus-audios">
-            <h2 id="sus-audios" className="prof-pagina__subtitulo">
-              Sus audios
+        {programasPublicos.length > 0 && (
+          <section className="prof-pagina__grupo" aria-labelledby="programas">
+            <h2 id="programas" className="prof-pagina__subtitulo">
+              Programas
             </h2>
-            <FilasAudioProfesional
-              profesionalUid={uid}
-              audios={listaGenerales}
-            />
+            <div className="library-section__list library-section__list--plana">
+              {programasPublicos.map((p) => (
+                <FilaPrograma
+                  key={p.programa.id}
+                  profesionalUid={uid}
+                  datos={p}
+                />
+              ))}
+            </div>
           </section>
-        ) : (
-          listaGenerales.length > 0 && (
+        )}
+        {listaGenerales.length > 0 &&
+          (grupos > 1 ? (
+            <section
+              className="prof-pagina__grupo"
+              aria-labelledby="sus-audios"
+            >
+              <h2 id="sus-audios" className="prof-pagina__subtitulo">
+                Sus audios
+              </h2>
+              <FilasAudioProfesional
+                profesionalUid={uid}
+                audios={listaGenerales}
+              />
+            </section>
+          ) : (
             <FilasAudioProfesional
               profesionalUid={uid}
               audios={listaGenerales}
             />
-          )
-        )}
+          ))}
       </>
     )
   }

@@ -118,6 +118,13 @@ export type AudioProfesional = {
   deMisAudios: string | null
   /** En uno de Biblioteca: también está en Audios (su general existe). */
   enAudios: boolean
+  /**
+   * En uno de Biblioteca: su general en Audios está publicado. Lo mira
+   * Storage para dejar oírlo a cualquier oyente vinculado.
+   */
+  publicoEnAudios: boolean
+  /** En uno de Biblioteca: está en un programa para todos publicado. */
+  enProgramaPublico: boolean
   creadoEn: Date | null
   actualizadoEn: Date | null
 }

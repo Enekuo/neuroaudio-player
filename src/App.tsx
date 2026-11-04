@@ -4,6 +4,8 @@ import ProtectedRoute from './features/auth/components/ProtectedRoute'
 import LoginPage from './features/auth/pages/LoginPage'
 import MainLayout from './layouts/MainLayout'
 import LandingPage from './pages/LandingPage'
+import LegalPage from './pages/LegalPage'
+import ContactoPage from './pages/ContactoPage'
 import LibraryPage from './features/library/pages/LibraryPage'
 import ListaDetallePage from './features/library/pages/ListaDetallePage'
 import AudiosConjuntosPage from './pages/AudiosConjuntosPage'
@@ -14,6 +16,7 @@ import HabitosPage from './pages/HabitosPage'
 import PerfilProfesionalOyentePage from './features/perfilProfesional/pages/PerfilProfesionalOyentePage'
 import TodosLosProfesionalesPage from './features/perfilProfesional/pages/TodosLosProfesionalesPage'
 import ListaProfesionalOyentePage from './features/perfilProfesional/pages/ListaProfesionalOyentePage'
+import ProgramaOyentePage from './features/perfilProfesional/pages/ProgramaOyentePage'
 
 // Panel de profesional: se carga bajo demanda para que Material UI (que solo
 // usa el panel) no entre en el bundle de la parte de usuario.
@@ -24,6 +27,8 @@ function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/legal/:documento" element={<LegalPage />} />
+      <Route path="/contacto" element={<ContactoPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/app" element={<DashboardHomePage />} />
@@ -36,6 +41,7 @@ function App() {
           <Route path="/app/profesionales" element={<TodosLosProfesionalesPage />} />
           <Route path="/app/profesional/:uid" element={<PerfilProfesionalOyentePage />} />
           <Route path="/app/profesional/:uid/lista/:listaId" element={<ListaProfesionalOyentePage />} />
+          <Route path="/app/profesional/:uid/programa/:programaId" element={<ProgramaOyentePage />} />
         </Route>
 
         {/* Dashboard de profesional (esqueleto; sin control de acceso aún).

@@ -1,0 +1,206 @@
+/* ============================================================
+   Landing: «Tus audios, directos al móvil de tu cliente» (entre la
+   franja de confianza y «Para profesionales»). Mismos colores y fuentes
+   que la landing. Todo bajo .na-cliente (solo existe en la landing).
+   ============================================================ */
+.na-cliente {
+  --na-bg: #070a13;
+  --na-accent: #3461ff;
+  --na-ink: #f5f6fa;
+  --na-muted: #9aa3b8;
+  --na-line: #1c2438;
+  position: relative;
+  overflow: hidden;
+  background: var(--na-bg);
+  padding: clamp(72px, 9vw, 120px) clamp(20px, 4vw, 48px);
+  color: var(--na-ink);
+}
+
+.na-cliente__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: clamp(40px, 6vw, 96px);
+}
+
+/* ----- Móvil ----- */
+.na-cliente__movil {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+/* Degradado azul suave detrás del móvil. */
+.na-cliente__brillo {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: min(560px, 120%);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(52, 97, 255, 0.42) 0%,
+    rgba(52, 97, 255, 0.16) 38%,
+    rgba(52, 97, 255, 0) 70%
+  );
+  pointer-events: none;
+}
+
+/* Marco del móvil (HTML/CSS, sin imágenes). Todo se escala con --ancho. */
+.na-cliente__telefono {
+  --ancho: clamp(230px, 24vw, 320px);
+  --bisel: calc(var(--ancho) * 0.034);
+  --radio: calc(var(--ancho) * 0.165);
+  position: relative;
+  width: var(--ancho);
+  padding: var(--bisel);
+  border-radius: var(--radio);
+  background: linear-gradient(150deg, #2b3249 0%, #161b2b 45%, #0e1220 100%);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.07),
+    0 0 0 1px #0a0d17,
+    0 30px 70px rgba(0, 0, 0, 0.55),
+    0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Pantalla: negra sin captura; la captura se recorta al radio del marco. */
+.na-cliente__pantalla {
+  position: relative;
+  aspect-ratio: 484 / 947;
+  border-radius: calc(var(--radio) - var(--bisel));
+  overflow: hidden;
+  background: #000;
+}
+
+.na-cliente__captura {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Muesca superior (isla): pequeña, en la franja vacía sobre el título de la captura. */
+.na-cliente__isla {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--ancho) * 0.018);
+  left: 50%;
+  width: 27%;
+  height: calc(var(--ancho) * 0.056);
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #000;
+}
+
+/* Botones laterales discretos. */
+.na-cliente__boton {
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #1a2032, #2b3249);
+}
+
+.na-cliente__boton--vol1,
+.na-cliente__boton--vol2 {
+  left: -3px;
+  height: 7%;
+  border-radius: 2px 0 0 2px;
+}
+
+.na-cliente__boton--vol1 {
+  top: 21%;
+}
+
+.na-cliente__boton--vol2 {
+  top: 30%;
+}
+
+.na-cliente__boton--encendido {
+  right: -3px;
+  top: 25%;
+  height: 10.5%;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ----- Texto ----- */
+.landing-root.landing-root .na-cliente__titulo {
+  margin: 0 0 22px;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(32px, 4.3vw, 60px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--na-ink);
+  text-wrap: balance;
+}
+
+.landing-root.landing-root .na-cliente__lead {
+  margin: 0 0 34px;
+  max-width: 34em;
+  font-size: clamp(17px, 1.6vw, 22px);
+  line-height: 1.6;
+  color: var(--na-muted);
+}
+
+.na-cliente__lineas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.na-cliente__lineas li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.landing-root.landing-root .na-cliente__lineas li {
+  font-size: clamp(16px, 1.45vw, 20px);
+  line-height: 1.5;
+  color: var(--na-ink);
+}
+
+.na-cliente__check {
+  flex-shrink: 0;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--na-accent);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(52, 97, 255, 0.35);
+}
+
+.na-cliente__check svg {
+  width: 62%;
+  height: 62%;
+}
+
+/* Escritorio: mismo aire visible arriba y abajo. «Para profesionales» sigue
+   con el mismo fondo y sin línea, así que su margen superior (96 px) ya
+   cuenta como espacio bajo el móvil: aquí abajo se deja lo que falta. */
+@media (min-width: 901px) {
+  .na-cliente {
+    --aire: clamp(96px, 11.5vw, 168px);
+    padding-top: var(--aire);
+    padding-bottom: max(24px, calc(var(--aire) - 96px));
+  }
+}
+
+/* Móvil y tableta: el texto arriba, el móvil debajo. */
+@media (max-width: 900px) {
+  .na-cliente__inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .na-cliente__texto {
+    order: -1;
+  }
+}

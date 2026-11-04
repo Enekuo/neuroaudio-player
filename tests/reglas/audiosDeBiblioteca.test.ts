@@ -155,8 +155,10 @@ describe.each(MODOS)('modo «$nombre»', (modo) => {
         doc(ctx.firestore(), 'audiosProfesional', G),
         general({ creadoEn: ahora, actualizadoEn: ahora, ...extra }),
       )
+      // Publicado en Audios: la marca que mira Storage (publicoEnAudios).
       await updateDoc(doc(ctx.firestore(), 'audiosProfesional', B), {
         enAudios: true,
+        publicoEnAudios: (extra.estado ?? 'publicado') === 'publicado',
       })
     })
   const crearComo = (uid: string, id: string, datos: Record<string, unknown>) =>
@@ -169,6 +171,7 @@ describe.each(MODOS)('modo «$nombre»', (modo) => {
       lote.set(doc(db, 'audiosProfesional', G), general())
       lote.update(doc(db, 'audiosProfesional', B), {
         enAudios: true,
+        publicoEnAudios: true,
         actualizadoEn: serverTimestamp(),
       })
       await assertSucceeds(lote.commit())
@@ -315,6 +318,22 @@ describe.each(MODOS)('modo «$nombre»', (modo) => {
       await assertSucceeds(lote.commit())
     })
 
+    it('despublicarlo en Audios quita la marca del original en la misma escritura', async () => {
+      await yaEnAudios()
+      const db = fs(PRO)
+      const lote = writeBatch(db)
+      lote.update(doc(db, 'audiosProfesional', G), {
+        estado: 'borrador',
+        actualizadoEn: serverTimestamp(),
+      })
+      lote.update(doc(db, 'audiosProfesional', B), {
+        publicoEnAudios: false,
+        actualizadoEn: serverTimestamp(),
+      })
+      await assertSucceeds(lote.commit())
+      await assertFails(bajar(OYENTE))
+    })
+
     it('deMisAudios no se puede cambiar ni quitar', async () => {
       await yaEnAudios()
       const ref = doc(fs(PRO), 'audiosProfesional', G)
@@ -357,6 +376,7 @@ describe.each(MODOS)('modo «$nombre»', (modo) => {
       lote.delete(doc(db, 'audiosProfesional', G))
       lote.update(doc(db, 'audiosProfesional', B), {
         enAudios: false,
+        publicoEnAudios: false,
         actualizadoEn: serverTimestamp(),
       })
       await assertSucceeds(lote.commit())

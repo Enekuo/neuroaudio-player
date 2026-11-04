@@ -1,0 +1,125 @@
+/* ============================================================
+   Tipografía de la landing (/). Solo fuentes y tamaños: ni colores, ni
+   espaciados de sección, ni estructura.
+   - Títulos: Poppins 600 (sin cursiva; el acento azul se mantiene).
+   - Subtítulos y párrafos: DM Sans, 20–21 px, interlineado 1.6.
+   - Listas y puntos: DM Sans, 18–20 px.
+   Todo bajo .landing-root (solo existe en la landing), con la clase doble
+   para ganar a las reglas de global.css sin depender del orden de carga:
+   no se filtra a la app ni al panel. Las fuentes van alojadas en el
+   proyecto (@fontsource, importadas en LandingPage.tsx), sin Google.
+   En móvil todo baja con clamp().
+   ============================================================ */
+
+/* Todo el texto de la landing: DM Sans (botones, menú, etiquetas, ilustración
+   del panel…), con sus tamaños de siempre salvo los de abajo. */
+.landing-root.landing-root,
+.landing-root.landing-root * {
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+/* ----- Títulos (Poppins) ----- */
+.landing-root.landing-root .na-hero__title {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(32px, 4.5vw, 50px);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.landing-root.landing-root .na-pro__titulo,
+.landing-root.landing-root .na-faq__title,
+.landing-root.landing-root .na-pricing__title {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(28px, 3.9vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+/* El acento («por fin en un solo lugar», «un reproductor»): misma fuente y
+   el mismo azul de siempre, sin cursiva. */
+.landing-root.landing-root .na-hero__title em,
+.landing-root.landing-root .na-pro__titulo em {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-style: normal;
+}
+
+.landing-root.landing-root .na-plan__name {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(19px, 1.7vw, 22px);
+}
+
+.landing-root.landing-root .na-plan__price {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+}
+
+.landing-root.landing-root .na-stat__value {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(17px, 1.6vw, 19px);
+}
+
+/* ----- Subtítulos y párrafos (DM Sans 18–19 px) ----- */
+.landing-root.landing-root .na-hero__lead {
+  font-size: clamp(15.5px, 1.5vw, 18px);
+  line-height: 1.6;
+}
+
+.landing-root.landing-root .na-pro__lead,
+.landing-root.landing-root .na-faq__lead,
+.landing-root.landing-root .na-pricing__lead {
+  font-size: clamp(16px, 1.7vw, 19px);
+  line-height: 1.6;
+}
+
+.landing-root.landing-root .na-proof__title {
+  font-size: clamp(16px, 1.6vw, 18px);
+  line-height: 1.5;
+}
+
+.landing-root.landing-root .na-proof__lead {
+  font-size: clamp(15.5px, 1.5vw, 18px);
+  line-height: 1.6;
+}
+
+/* ----- Listas y puntos (DM Sans 16–18 px) ----- */
+.landing-root.landing-root .na-pro__puntos strong {
+  font-size: clamp(16px, 1.6vw, 18px);
+}
+
+.landing-root.landing-root .na-pro__punto-texto {
+  font-size: clamp(15px, 1.5vw, 16.5px);
+  line-height: 1.6;
+}
+
+.landing-root.landing-root .na-faq__q {
+  font-size: clamp(16px, 1.6vw, 18px);
+}
+
+.landing-root.landing-root .na-plan__desc,
+.landing-root.landing-root .na-plan__features li {
+  font-size: clamp(15px, 1.4vw, 16.5px);
+  line-height: 1.6;
+}
+
+/* ----- Portada: texto más ancho hacia la derecha ----- */
+/* Con la imagen a la derecha (> 860 px), sin llegar a taparla. */
+@media (min-width: 861px) {
+  .landing-root.landing-root .na-hero__content {
+    max-width: min(750px, 54vw);
+  }
+}
+
+.landing-root.landing-root .na-hero__lead {
+  max-width: 55ch;
+}
+
+/* Letra algo menos gruesa en los textos destacados (DM Sans 500). */
+.landing-root.landing-root .na-pro__puntos strong,
+.landing-root.landing-root .na-faq__q,
+.landing-root.landing-root .na-proof__title {
+  font-weight: 500;
+}

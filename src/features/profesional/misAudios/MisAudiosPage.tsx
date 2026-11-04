@@ -38,6 +38,12 @@ import {
   type EnvioAudio,
 } from '../../audiosProfesional/modelo'
 import PortadaAudio from '../../audiosProfesional/PortadaAudio'
+import type { ProgramaProfesional } from '../../programasProfesional/modelo'
+import {
+  escucharMisProgramas,
+  quitarAudioDeProgramas,
+} from '../../programasProfesional/programaService'
+import { useMantenerAccesos } from '../../programasProfesional/useMantenerAccesos'
 import { formatTime } from '../../library/utils/formatTime'
 import type { OyenteDelProfesional } from '../../perfilProfesional/modelo'
 import {
@@ -80,6 +86,9 @@ function MisAudiosPage() {
 }
 
 function Biblioteca({ uid }: { uid: string }) {
+  // Quién puede oír cada audio de Biblioteca: se mantiene al día (y se
+  // repara lo anterior) mientras esta página está abierta.
+  useMantenerAccesos(uid)
   const [intento, setIntento] = useState(0)
   const [audios, setAudios] = useState<AudioProfesional[] | null>(null)
   const [envios, setEnvios] = useState<EnvioAudio[] | null>(null)
@@ -97,6 +106,8 @@ function Biblioteca({ uid }: { uid: string }) {
   } | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)
   const [oyentes, setOyentes] = useState<OyenteDelProfesional[]>([])
+  // Sus programas: al borrar un audio que está en alguno, se avisa y se quita.
+  const [programas, setProgramas] = useState<ProgramaProfesional[]>([])
   // Audio cuyo diálogo «Enviar» está abierto (por id: se refresca en vivo).
   const [enviandoId, setEnviandoId] = useState<string | null>(null)
 
@@ -108,6 +119,11 @@ function Biblioteca({ uid }: { uid: string }) {
   useEffect(
     () => escucharMisEnvios(uid, setEnvios, () => setError(true)),
     [uid, intento],
+  )
+
+  useEffect(
+    () => escucharMisProgramas(uid, setProgramas, () => setProgramas([])),
+    [uid],
   )
 
   // Sus oyentes (para enviar y para nombrar a quién se ha enviado).
@@ -167,6 +183,9 @@ function Biblioteca({ uid }: { uid: string }) {
     if (!aBorrar) return
     setBorrando(true)
     try {
+      // Primero fuera de sus programas (así ningún paso apunta a un audio
+      // que ya no existe) y después el audio.
+      await quitarAudioDeProgramas(programas, aBorrar.id)
       await borrarAudio(aBorrar)
       setAviso(`«${aBorrar.titulo}» borrado.`)
       setABorrar(null)
@@ -474,6 +493,9 @@ function Biblioteca({ uid }: { uid: string }) {
   const audioMenu = menu?.audio
   const audioEnviando = audios?.find((a) => a.id === enviandoId) ?? null
   const enviosABorrar = aBorrar ? (enviadoA.get(aBorrar.id) ?? 0) : 0
+  const programasABorrar = aBorrar
+    ? programas.filter((p) => p.pasos.includes(aBorrar.id))
+    : []
 
   return (
     <Box component="section" aria-labelledby="mis-audios-titulo">
@@ -562,6 +584,14 @@ function Biblioteca({ uid }: { uid: string }) {
           {aBorrar?.enAudios && (
             <Alert severity="warning" sx={{ mt: 2 }}>
               También está en Audios; se quitará de allí y de tus listas.
+            </Alert>
+          )}
+          {programasABorrar.length > 0 && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              {programasABorrar.length === 1
+                ? `Está en el programa «${programasABorrar[0].titulo}»; se quitará de él.`
+                : `Está en ${programasABorrar.length} programas; se quitará de ellos.`}{' '}
+              Quien lo tenga conserva lo que ya completó.
             </Alert>
           )}
         </DialogContent>

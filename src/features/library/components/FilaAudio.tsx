@@ -19,7 +19,14 @@ type FilaAudioProps = {
   detalle?: string
   // Menú propio en lugar del de siempre (Añadir a la lista / Favorito /
   // Eliminar), para audios que no son del usuario (p. ej. de su profesional).
+  // Vacío: sin menú (ni los tres puntos).
   opciones?: OpcionFila[]
+  // Lo que va en la miniatura en lugar del icono de música (p. ej. el número
+  // de un paso, ✓ o un candado), una clase más para la fila y si se puede
+  // tocar (un paso cerrado no se reproduce).
+  miniatura?: ReactNode
+  claseExtra?: string
+  deshabilitada?: boolean
 }
 
 export type OpcionFila = {
@@ -40,6 +47,9 @@ function FilaAudio({
   onToggleFavorite,
   detalle,
   opciones,
+  miniatura,
+  claseExtra,
+  deshabilitada = false,
 }: FilaAudioProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -75,10 +85,12 @@ function FilaAudio({
   }
 
   return (
-    <div className={`library-audio-row library-audio-row--fila${isPlaying ? ' is-playing' : ''}`}>
-      <button type="button" className="library-audio-row__main" onClick={onPlay}>
+    // is-menu-abierto: en el móvil, la fila con el menú abierto va por encima
+    // de las de abajo (si no, la siguiente tapa el menú y se queda el toque).
+    <div className={`library-audio-row library-audio-row--fila${isPlaying ? ' is-playing' : ''}${isMenuOpen ? ' is-menu-abierto' : ''}${claseExtra ? ` ${claseExtra}` : ''}`}>
+      <button type="button" className="library-audio-row__main" onClick={onPlay} disabled={deshabilitada}>
         <div className="library-audio-row__thumb" aria-hidden="true">
-          <LibraryIcon name="music" />
+          {miniatura ?? <LibraryIcon name="music" />}
         </div>
         <div className="library-audio-row__info">
           <h4>{name}</h4>
@@ -97,7 +109,7 @@ function FilaAudio({
 
         {isDeleting ? (
           <span className="library-audio-row__deleting">Eliminando...</span>
-        ) : (
+        ) : opciones && opciones.length === 0 ? null : (
           <div className="library-audio-row__options-wrapper" ref={menuRef}>
             <button
               type="button"

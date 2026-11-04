@@ -2,17 +2,17 @@ import { useEffect, useState } from 'react'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
-import Paper from '@mui/material/Paper'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 import Typography from '@mui/material/Typography'
-import EventRepeatOutlined from '@mui/icons-material/EventRepeatOutlined'
 import { useAuth } from '../../auth/context/AuthContext'
 import { escucharMisAudiosGenerales } from '../../audiosProfesional/audioProfesionalService'
 import type { AudioProfesional } from '../../audiosProfesional/modelo'
 import { escucharMisListas } from '../../listasProfesional/listaProfesionalService'
 import type { ListaProfesional } from '../../listasProfesional/modelo'
-import { animacionEntrada, animacionPestana } from '../theme/movimiento'
+import { animacionPestana } from '../theme/movimiento'
+import PaginaPrograma from '../programas/PaginaPrograma'
+import ProgramasDelProfesional from '../programas/ProgramasDelProfesional'
 import EditorLista from './EditorLista'
 import ListasDelProfesional from './ListasDelProfesional'
 
@@ -27,7 +27,8 @@ export type DatosListas = {
 /**
  * Página «Listas y programas» del panel (/profesional/listas):
  * - /profesional/listas: pestaña «Listas» (tarjetas, buscador, filtro).
- * - /profesional/listas/programas: pestaña «Programas» (próximamente).
+ * - /profesional/listas/programas: pestaña «Programas».
+ * - /profesional/listas/programas/:programaId: la página de un programa.
  * - /profesional/listas/nueva[?plantilla=id] y /profesional/listas/:listaId:
  *   el editor de una lista.
  */
@@ -69,6 +70,10 @@ function ListasPage() {
       <Route
         path="programas"
         element={<Cabecera pestana="programas" datos={datos} />}
+      />
+      <Route
+        path="programas/:programaId"
+        element={<PaginaPrograma uid={uid} />}
       />
       <Route path="nueva" element={<EditorLista datos={datos} />} />
       <Route path=":listaId" element={<EditorLista datos={datos} />} />
@@ -136,52 +141,10 @@ function Cabecera({
         {pestana === 'listas' ? (
           <ListasDelProfesional datos={datos} />
         ) : (
-          <Programas />
+          <ProgramasDelProfesional uid={datos.uid} />
         )}
       </Box>
     </Box>
-  )
-}
-
-/**
- * Pestaña «Programas»: visible, sin funcionalidad todavía. El modelo ya
- * contempla `tipo: 'programa'` (listasProfesional/modelo.ts).
- */
-function Programas() {
-  return (
-    <Paper
-      variant="outlined"
-      sx={[
-        { px: 3, py: 7, textAlign: 'center' },
-        animacionEntrada({ retardo: 60 }),
-      ]}
-    >
-      <Box
-        sx={{
-          width: 56,
-          height: 56,
-          mx: 'auto',
-          mb: 2,
-          borderRadius: '50%',
-          display: 'grid',
-          placeItems: 'center',
-          bgcolor: 'primary.light',
-          color: 'primary.main',
-        }}
-      >
-        <EventRepeatOutlined />
-      </Box>
-      <Typography variant="h6" component="p" sx={{ fontWeight: 400 }}>
-        Próximamente
-      </Typography>
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ mt: 1, maxWidth: 440, mx: 'auto' }}
-      >
-        Aquí podrás crear programas paso a paso.
-      </Typography>
-    </Paper>
   )
 }
 

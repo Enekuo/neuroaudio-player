@@ -12,8 +12,13 @@ function HeroSection() {
         </div>
         <ul className="na-nav__links">
           <li>Cómo funciona</li>
-          <li>Profesionales</li>
+          <li>
+            <a href="#para-profesionales">Profesionales</a>
+          </li>
           <li>Precios</li>
+          <li>
+            <Link to="/contacto">Contacto</Link>
+          </li>
         </ul>
         <div className="na-nav__actions">
           <Link to="/login" className="na-login">
@@ -27,13 +32,14 @@ function HeroSection() {
 
       <div className="na-hero__content">
         <h1 className="na-hero__title">
-          Tus audios de bienestar,
+          Plataforma de audios de bienestar
           <br />
-          <em>por fin en un solo lugar.</em>
+          <em>para tus clientes.</em>
         </h1>
         <p className="na-hero__lead">
-          Guarda y organiza tus propios audios, o recibe los que tu profesional prepara para ti.
-          Meditación, hipnosis, reprogramación... todo tuyo, sin anuncios.
+          Eleva la experiencia de tus clientes. Reciben sus audios en un espacio propio, cómodo y
+          cuidado, adaptado a la meditación, la hipnosis, la reprogramación y más. Un espacio que
+          hace que tu servicio se sienta aún mejor.
         </p>
         <div className="na-hero__ctas">
           <Link to="/login" className="na-cta-primary">

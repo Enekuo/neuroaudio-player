@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePlayer } from '../context/PlayerContext'
+import AvisoPasoCompletado from './AvisoPasoCompletado'
 import BarraComprimida from './BarraComprimida'
 import PantallaCompletaReproductor from './PantallaCompletaReproductor'
 
@@ -69,17 +70,26 @@ function Reproductor() {
 
   if (showFullScreen) {
     return (
-      <PantallaCompletaReproductor
-        isClosing={isClosing}
-        onCloseAnimationEnd={() => {
-          setShowFullScreen(false)
-          setIsClosing(false)
-        }}
-      />
+      <>
+        <PantallaCompletaReproductor
+          isClosing={isClosing}
+          onCloseAnimationEnd={() => {
+            setShowFullScreen(false)
+            setIsClosing(false)
+          }}
+        />
+        {/* Pasos de programas: «Audio completado» y completar al terminar. */}
+        <AvisoPasoCompletado arriba />
+      </>
     )
   }
 
-  return <BarraComprimida onDismiss={handleDismiss} />
+  return (
+    <>
+      <BarraComprimida onDismiss={handleDismiss} />
+      <AvisoPasoCompletado />
+    </>
+  )
 }
 
 export default Reproductor

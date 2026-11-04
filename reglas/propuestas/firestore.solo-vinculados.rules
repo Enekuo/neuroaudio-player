@@ -1,0 +1,544 @@
+rules_version = '2';
+
+// MODO «SOLO VINCULADOS» (el de lanzamiento). El perfil de un profesional
+// solo lo ven él mismo y sus oyentes con vínculo activo. Va a la vez que
+// MOSTRAR_TODOS_LOS_PROFESIONALES = false en
+// src/features/perfilProfesional/modoProfesionales.ts. La otra versión
+// (PRUEBA TEMPORAL) está en reglas/ (ver reglas/LEEME.md).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /audios/{audioId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+    }
+
+    match /listas/{listaId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+    }
+
+    match /audioSchedules/{scheduleId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+    }
+
+    // ---------- Perfil del profesional y vínculos con sus oyentes ----------
+    // Los límites coinciden con src/features/perfilProfesional/modelo.ts.
+
+    // ¿El usuario con sesión es un oyente con vínculo activo con este profesional?
+    function esOyenteVinculado(profesionalUid) {
+      let ruta = /databases/$(database)/documents/vinculos/$(profesionalUid + '_' + request.auth.uid);
+      return request.auth != null
+        && exists(ruta)
+        && get(ruta).data.oyenteUid == request.auth.uid
+        && get(ruta).data.estado == 'activo';
+    }
+
+    function enlaceValido(enlaces, red) {
+      return !(red in enlaces)
+        || (enlaces[red] is string && enlaces[red].size() <= 300 && enlaces[red].matches('https://.+'));
+    }
+
+    function perfilValido() {
+      let d = request.resource.data;
+      let campos = ['nombre', 'frase', 'dedicacion', 'enlaces', 'bienvenida', 'respuesta',
+                    'fotos', 'fotoPrincipalId', 'secciones', 'actualizadoEn'];
+      return d.keys().hasAll(campos) && d.keys().hasOnly(campos)
+        && d.nombre is string && d.nombre.size() <= 80
+        && d.frase is string && d.frase.size() <= 160
+        && d.dedicacion is string && d.dedicacion.size() <= 4000
+        && d.bienvenida is string && d.bienvenida.size() <= 4000
+        && d.enlaces is map
+        && d.enlaces.keys().hasOnly(['web', 'instagram', 'youtube', 'tiktok'])
+        && enlaceValido(d.enlaces, 'web') && enlaceValido(d.enlaces, 'instagram')
+        && enlaceValido(d.enlaces, 'youtube') && enlaceValido(d.enlaces, 'tiktok')
+        && (d.respuesta == null || d.respuesta in ['mismo-dia', '1-2-dias', '3-5-dias'])
+        && d.fotos is list && d.fotos.size() <= 9
+        && (d.fotoPrincipalId == null || d.fotoPrincipalId is string)
+        && d.secciones is list && d.secciones.size() <= 30
+        && d.actualizadoEn == request.time;
+    }
+
+    // Solo lo lee el propio profesional o un oyente vinculado; solo lo escribe
+    // el propio profesional (el id del documento es su uid).
+    match /perfilesProfesionales/{profesionalUid} {
+      allow read: if request.auth != null
+        && (request.auth.uid == profesionalUid || esOyenteVinculado(profesionalUid));
+      allow create, update: if request.auth != null
+        && request.auth.uid == profesionalUid
+        && perfilValido();
+      allow delete: if request.auth != null && request.auth.uid == profesionalUid;
+    }
+
+    // ---------- Límites de subidas por minuto ----------
+    // Cada archivo nuevo (foto del perfil o audio del profesional) se
+    // «reserva» antes de subirlo, y storage.rules solo admite el archivo
+    // reservado. Así no se puede subir sin pasar por este contador.
+    // Fotos: 10 por minuto (SUBIDAS_POR_MINUTO en fotoService.ts).
+    // Audios: 10 por minuto (SUBIDAS_AUDIO_POR_MINUTO en audiosProfesional/modelo.ts).
+    function camposLimite() {
+      let campos = ['ventanaInicio', 'cuenta', 'reservada', 'reservadaEn'];
+      return request.resource.data.keys().hasAll(campos)
+        && request.resource.data.keys().hasOnly(campos)
+        && request.resource.data.reservada is string
+        && request.resource.data.reservada.size() > 0
+        && request.resource.data.reservada.size() <= 64
+        && request.resource.data.reservadaEn == request.time;
+    }
+
+    function ventanaNueva() {
+      return request.resource.data.ventanaInicio == request.time
+        && request.resource.data.cuenta == 1;
+    }
+
+    function actualizacionDeLimiteValida(maximo) {
+      return camposLimite()
+        && request.resource.data.reservada != resource.data.reservada
+        && (
+          // Dentro del mismo minuto: suma una, sin pasar del máximo.
+          (request.time < resource.data.ventanaInicio + duration.value(60, 's')
+            && request.resource.data.ventanaInicio == resource.data.ventanaInicio
+            && request.resource.data.cuenta == resource.data.cuenta + 1
+            && request.resource.data.cuenta <= maximo)
+          // Pasado el minuto: empieza una ventana nueva.
+          || (request.time >= resource.data.ventanaInicio + duration.value(60, 's')
+            && ventanaNueva())
+        );
+    }
+
+    match /limitesSubida/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && camposLimite() && ventanaNueva();
+      allow update: if request.auth != null && request.auth.uid == uid
+        && actualizacionDeLimiteValida(10);
+      allow delete: if false;
+    }
+
+    match /limitesSubidaAudio/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && camposLimite() && ventanaNueva();
+      allow update: if request.auth != null && request.auth.uid == uid
+        && actualizacionDeLimiteValida(10);
+      allow delete: if false;
+    }
+
+    // ---------- Audios del profesional ----------
+    // audiosProfesional/{audioId}. Los límites coinciden con
+    // src/features/audiosProfesional/modelo.ts.
+    // - general: lo ve su dueño y, si está publicado, cualquier oyente con
+    //   vínculo activo con ese profesional.
+    // - personal (aún no se crean desde la app): lo ve su dueño y, si está
+    //   publicado, solo su destinatario con vínculo activo.
+    // Portada que elige el profesional (opcional: los audios anteriores no la
+    // tienen y cuentan como 'defecto'). Con 'propia', el id de su imagen.
+    function portadaAudioValida(d) {
+      return (!('portada' in d) || d.portada in ['defecto', 'profesional', 'propia'])
+        && (!('portadaImagen' in d) || d.portadaImagen == null
+            || (d.portadaImagen is string && d.portadaImagen.size() > 0 && d.portadaImagen.size() <= 64))
+        && (!('portada' in d) || d.portada != 'propia'
+            || ('portadaImagen' in d && d.portadaImagen is string));
+    }
+
+    // Etiquetas por tema (solo en «Mis audios», opcionales): como mucho 5,
+    // de 1 a 30 caracteres (LIMITES_BIBLIOTECA en audiosProfesional/modelo.ts).
+    function etiquetaValida(l, i) {
+      return l.size() <= i
+        || (l[i] is string && l[i].size() > 0 && l[i].size() <= 30);
+    }
+
+    function etiquetasAudioValidas(d) {
+      return !('etiquetas' in d)
+        || (d.etiquetas is list && d.etiquetas.size() <= 5
+          && etiquetaValida(d.etiquetas, 0) && etiquetaValida(d.etiquetas, 1)
+          && etiquetaValida(d.etiquetas, 2) && etiquetaValida(d.etiquetas, 3)
+          && etiquetaValida(d.etiquetas, 4));
+    }
+
+    // Audio general añadido desde Biblioteca (id {B}__general, con
+    // deMisAudios: B): usa el mismo archivo que el audio B de la Biblioteca de
+    // quien lo crea, sin copiarlo. B tiene que existir, ser suyo y de la
+    // Biblioteca, y pesar lo mismo.
+    function generalDeBibliotecaValido(audioId, d) {
+      let origen = get(/databases/$(database)/documents/audiosProfesional/$(d.deMisAudios)).data;
+      return d.deMisAudios is string
+        && audioId == d.deMisAudios + '__general'
+        && d.archivo == 'bibliotecaPro/' + request.auth.uid + '/' + d.deMisAudios + '/archivo'
+        && origen.profesionalUid == request.auth.uid
+        && origen.tipo == 'biblioteca'
+        && d.tamanoBytes == origen.tamanoBytes;
+    }
+
+    function audioProValido(audioId) {
+      let d = request.resource.data;
+      let campos = ['profesionalUid', 'titulo', 'descripcion', 'estado', 'tipo',
+                    'destinatarioUid', 'archivo', 'duracionSegundos', 'tamanoBytes',
+                    'contieneSalud', 'orden', 'creadoEn', 'actualizadoEn'];
+      return d.keys().hasAll(campos)
+        && d.keys().hasOnly(campos.concat(['portada', 'portadaImagen', 'etiquetas',
+                                           'deMisAudios', 'enAudios',
+                                           'publicoEnAudios', 'enProgramaPublico']))
+        && portadaAudioValida(d)
+        && etiquetasAudioValidas(d)
+        && d.profesionalUid == request.auth.uid
+        && d.titulo is string && d.titulo.size() > 0 && d.titulo.size() <= 120
+        && d.descripcion is string && d.descripcion.size() <= 2000
+        && d.estado in ['borrador', 'publicado']
+        && ((d.tipo == 'general' && d.destinatarioUid == null)
+            || (d.tipo == 'personal' && d.destinatarioUid is string && d.destinatarioUid.size() > 0)
+            || (d.tipo == 'biblioteca' && d.destinatarioUid == null))
+        // Los de «Mis audios» guardan su archivo en su propia carpeta; un
+        // general añadido desde ellos usa el archivo de su audio de origen.
+        && ((d.tipo == 'biblioteca' && !('deMisAudios' in d)
+              && d.archivo == 'bibliotecaPro/' + request.auth.uid + '/' + audioId + '/archivo')
+            || (d.tipo == 'general' && 'deMisAudios' in d
+              && generalDeBibliotecaValido(audioId, d))
+            || (d.tipo != 'biblioteca' && !('deMisAudios' in d)
+              && d.archivo == 'audiosPro/' + request.auth.uid + '/' + audioId + '/archivo'))
+        // Las marcas «En Audios», «publicado en Audios» y «en un programa
+        // para todos», solo en los de «Mis audios».
+        && (!('enAudios' in d) || (d.tipo == 'biblioteca' && d.enAudios is bool))
+        && (!('publicoEnAudios' in d) || (d.tipo == 'biblioteca' && d.publicoEnAudios is bool))
+        && (!('enProgramaPublico' in d) || (d.tipo == 'biblioteca' && d.enProgramaPublico is bool))
+        && d.duracionSegundos is number && d.duracionSegundos >= 0
+        && d.tamanoBytes is int && d.tamanoBytes > 0 && d.tamanoBytes <= 104857600
+        && d.contieneSalud is bool
+        && d.orden is number
+        && d.actualizadoEn == request.time;
+    }
+
+    function puedeEscucharAudioPro(audio) {
+      return audio.estado == 'publicado'
+        && esOyenteVinculado(audio.profesionalUid)
+        && (audio.tipo == 'general'
+            || (audio.tipo == 'personal' && audio.destinatarioUid == request.auth.uid));
+    }
+
+    // «Mis audios»: un audio de la biblioteca lo ve solo quien lo ha recibido
+    // (un envío a su nombre) y mantiene el vínculo activo.
+    function tieneEnvioAudio(audioId, audio) {
+      return audio.tipo == 'biblioteca'
+        && exists(/databases/$(database)/documents/enviosAudio/$(audioId + '__' + request.auth.uid))
+        && esOyenteVinculado(audio.profesionalUid);
+    }
+
+    // Programas: un audio de la biblioteca lo lee también quien tiene vínculo
+    // activo y, o bien está en un programa para todos publicado, o bien está
+    // en la lista de su vínculo (audiosBiblioteca: sus programas privados y
+    // sus envíos). No basta con que esté publicado en Audios: ese lo leen
+    // como audio general (su {id}__general), sin ver sus etiquetas.
+    function programaDaAccesoAudio(audioId, audio) {
+      let vinculo = get(/databases/$(database)/documents/vinculos/$(audio.profesionalUid + '_' + request.auth.uid)).data;
+      return audio.tipo == 'biblioteca'
+        && vinculo.oyenteUid == request.auth.uid
+        && vinculo.estado == 'activo'
+        && (audio.get('enProgramaPublico', false) == true
+            || audioId in vinculo.get('audiosBiblioteca', []));
+    }
+
+    match /audiosProfesional/{audioId} {
+      allow read: if request.auth != null
+        && (resource.data.profesionalUid == request.auth.uid
+            || puedeEscucharAudioPro(resource.data)
+            || tieneEnvioAudio(audioId, resource.data)
+            || programaDaAccesoAudio(audioId, resource.data));
+      allow create: if request.auth != null
+        && audioProValido(audioId)
+        && request.resource.data.creadoEn == request.time
+        // Un audio personal solo para alguien con vínculo activo con quien lo crea.
+        && (request.resource.data.tipo != 'personal'
+            || (exists(/databases/$(database)/documents/vinculos/$(request.auth.uid + '_' + request.resource.data.destinatarioUid))
+                && get(/databases/$(database)/documents/vinculos/$(request.auth.uid + '_' + request.resource.data.destinatarioUid)).data.estado == 'activo'));
+      allow update: if request.auth != null
+        && resource.data.profesionalUid == request.auth.uid
+        && audioProValido(audioId)
+        // Lo que no se puede cambiar después de crearlo.
+        && request.resource.data.creadoEn == resource.data.creadoEn
+        && request.resource.data.tipo == resource.data.tipo
+        && request.resource.data.destinatarioUid == resource.data.destinatarioUid
+        && request.resource.data.archivo == resource.data.archivo
+        && request.resource.data.tamanoBytes == resource.data.tamanoBytes
+        && request.resource.data.get('deMisAudios', null) == resource.data.get('deMisAudios', null);
+      allow delete: if request.auth != null
+        && resource.data.profesionalUid == request.auth.uid;
+    }
+
+    // ---------- Listas del profesional ----------
+    // listasProfesional/{listaId}. Los límites coinciden con
+    // src/features/listasProfesional/modelo.ts. Igual en los dos modos
+    // («todos» y «solo vinculados»): como los audios, solo las ve quien
+    // tiene vínculo activo.
+    // - De plantilla: id {uid}__plantilla__{plantillaId}, una por plantilla
+    //   y profesional; sin nombre ni imagen propios (son los de la plantilla).
+    // - Propia: id {uid}__propia__{1..30}, así que como mucho 30; con nombre.
+    // Un documento ya creado no se puede pisar: «creadoEn» no puede cambiar.
+    // tipo: por ahora solo 'lista' (los programas llegarán con sus campos).
+    function plantillaListaValida(plantillaId) {
+      return plantillaId in ['meditacion', 'hipnosis', 'reprogramacion', 'ansiedad',
+                             'subliminales', 'mantras', 'dormir', 'motivacion'];
+    }
+
+    function listaProValida(listaId) {
+      let d = request.resource.data;
+      let campos = ['profesionalUid', 'tipo', 'titulo', 'descripcion', 'estado',
+                    'plantillaId', 'imagen', 'audios', 'creadoEn', 'actualizadoEn'];
+      return d.keys().hasAll(campos) && d.keys().hasOnly(campos)
+        && d.profesionalUid == request.auth.uid
+        && d.tipo == 'lista'
+        && d.titulo is string && d.titulo.size() <= 80
+        && d.descripcion is string && d.descripcion.size() <= 2000
+        && d.estado in ['borrador', 'publicado']
+        && d.audios is list && d.audios.size() <= 100
+        && d.actualizadoEn == request.time
+        && (
+          (d.plantillaId is string
+            && plantillaListaValida(d.plantillaId)
+            && listaId == request.auth.uid + '__plantilla__' + d.plantillaId
+            && d.titulo == ''
+            && d.imagen == null)
+          || (d.plantillaId == null
+            && listaId.matches(request.auth.uid + '__propia__([1-9]|[12][0-9]|30)')
+            && d.titulo.size() > 0
+            && (d.imagen == null
+                || (d.imagen is string && d.imagen.size() > 0 && d.imagen.size() <= 64)))
+        );
+    }
+
+    match /listasProfesional/{listaId} {
+      // Si aún no existe, su dueño puede comprobarlo (el id empieza por su uid).
+      allow read: if request.auth != null
+        && ((resource == null && listaId.matches(request.auth.uid + '__.+'))
+          || (resource != null
+            && (resource.data.profesionalUid == request.auth.uid
+              || (resource.data.estado == 'publicado'
+                && esOyenteVinculado(resource.data.profesionalUid)))));
+      allow create: if request.auth != null
+        && listaProValida(listaId)
+        && request.resource.data.creadoEn == request.time;
+      allow update: if request.auth != null
+        && resource.data.profesionalUid == request.auth.uid
+        && listaProValida(listaId)
+        && request.resource.data.creadoEn == resource.data.creadoEn
+        && request.resource.data.tipo == resource.data.tipo
+        && request.resource.data.plantillaId == resource.data.plantillaId;
+      allow delete: if request.auth != null
+        && resource.data.profesionalUid == request.auth.uid;
+    }
+
+    // ---------- Programas del profesional ----------
+    // programasProfesional/{programaId}: una lista ordenada de audios de su
+    // Biblioteca para seguir paso a paso. Los límites coinciden con
+    // src/features/programasProfesional/modelo.ts. Igual en los dos modos.
+    // - para 'todos': lo ve, publicado, cualquier oyente con vínculo activo.
+    // - para 'personas': solo quien tiene su acceso (accesosPrograma) y
+    //   vínculo activo.
+    // publicadoEn: la primera vez que se publica (el día 1 de un programa
+    // para todos); después ya no cambia. Los programas por profesional (30)
+    // los cuenta la app, como los audios de la Biblioteca.
+    function programaValido() {
+      let d = request.resource.data;
+      let campos = ['profesionalUid', 'titulo', 'descripcion', 'estado', 'apertura',
+                    'ritmo', 'ritmoDias', 'para', 'pasos', 'publicadoEn',
+                    'creadoEn', 'actualizadoEn'];
+      return d.keys().hasAll(campos) && d.keys().hasOnly(campos)
+        && d.profesionalUid == request.auth.uid
+        && d.titulo is string && d.titulo.size() > 0 && d.titulo.size() <= 80
+        && d.descripcion is string && d.descripcion.size() <= 2000
+        && d.estado in ['borrador', 'publicado']
+        && d.apertura in ['libre', 'orden', 'calendario']
+        && ((d.ritmo in ['diario', 'semanal', 'mensual'] && d.ritmoDias == null)
+            || (d.ritmo == 'dias' && d.ritmoDias is int
+                && d.ritmoDias >= 1 && d.ritmoDias <= 365))
+        && d.para in ['todos', 'personas']
+        // Pasos: ids de audios, sin repetir, como mucho 50; publicado, con alguno.
+        && d.pasos is list && d.pasos.size() <= 50
+        && d.pasos.toSet().size() == d.pasos.size()
+        && (d.estado == 'borrador' || d.pasos.size() > 0)
+        && d.actualizadoEn == request.time;
+    }
+
+    match /programasProfesional/{programaId} {
+      allow read: if request.auth != null
+        && (resource.data.profesionalUid == request.auth.uid
+            || (resource.data.estado == 'publicado'
+                && esOyenteVinculado(resource.data.profesionalUid)
+                && (resource.data.para == 'todos'
+                    || exists(/databases/$(database)/documents/accesosPrograma/$(programaId + '__' + request.auth.uid)))));
+      allow create: if request.auth != null
+        && programaValido()
+        && request.resource.data.creadoEn == request.time
+        && ((request.resource.data.estado == 'borrador' && request.resource.data.publicadoEn == null)
+            || (request.resource.data.estado == 'publicado' && request.resource.data.publicadoEn == request.time));
+      allow update: if request.auth != null
+        && resource.data.profesionalUid == request.auth.uid
+        && programaValido()
+        && request.resource.data.creadoEn == resource.data.creadoEn
+        && request.resource.data.para == resource.data.para
+        // publicadoEn: se pone al publicarlo la primera vez y ya no cambia.
+        && ((request.resource.data.publicadoEn == resource.data.publicadoEn
+              && (request.resource.data.estado == 'borrador' || resource.data.publicadoEn != null))
+            || (resource.data.publicadoEn == null
+              && request.resource.data.estado == 'publicado'
+              && request.resource.data.publicadoEn == request.time));
+      allow delete: if request.auth != null
+        && resource.data.profesionalUid == request.auth.uid;
+    }
+
+    // accesosPrograma/{programaId}__{oyenteUid}: una persona que tiene un
+    // programa privado. Su fecha (creadoEn) es su día 1. Lo crea solo el
+    // profesional, en su propio programa para personas y para alguien con
+    // vínculo activo; lo leen él y esa persona; quitarlo es borrarlo. Las
+    // personas por programa (100) las cuenta la app.
+    match /accesosPrograma/{accesoId} {
+      allow read: if request.auth != null
+        && (request.auth.uid == resource.data.profesionalUid
+            || request.auth.uid == resource.data.oyenteUid);
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(['profesionalUid', 'programaId', 'oyenteUid', 'creadoEn'])
+        && request.resource.data.keys().hasOnly(['profesionalUid', 'programaId', 'oyenteUid', 'creadoEn'])
+        && request.resource.data.profesionalUid == request.auth.uid
+        && request.resource.data.programaId is string
+        && request.resource.data.oyenteUid is string
+        && request.resource.data.oyenteUid != request.auth.uid
+        && accesoId == request.resource.data.programaId + '__' + request.resource.data.oyenteUid
+        && request.resource.data.creadoEn == request.time
+        && get(/databases/$(database)/documents/programasProfesional/$(request.resource.data.programaId)).data.profesionalUid == request.auth.uid
+        && get(/databases/$(database)/documents/programasProfesional/$(request.resource.data.programaId)).data.para == 'personas'
+        && get(/databases/$(database)/documents/vinculos/$(request.auth.uid + '_' + request.resource.data.oyenteUid)).data.estado == 'activo';
+      allow update: if false;
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.profesionalUid;
+    }
+
+    // progresoPrograma/{programaId}__{oyenteUid}: los pasos que ha completado
+    // un oyente (ids de audio, sin repetir). Es un dato suyo: solo él lo lee
+    // y lo escribe; su profesional no. (La lectura mira el id, que acaba en
+    // su uid, para que pueda consultarlo aunque aún no exista.)
+    match /progresoPrograma/{progresoId} {
+      allow read, delete: if request.auth != null
+        && progresoId.matches('.+__' + request.auth.uid);
+      allow create, update: if request.auth != null
+        && request.resource.data.keys().hasAll(['oyenteUid', 'programaId', 'profesionalUid', 'completados', 'actualizadoEn'])
+        && request.resource.data.keys().hasOnly(['oyenteUid', 'programaId', 'profesionalUid', 'completados', 'actualizadoEn'])
+        && request.resource.data.oyenteUid == request.auth.uid
+        && request.resource.data.programaId is string
+        && request.resource.data.profesionalUid is string
+        && progresoId == request.resource.data.programaId + '__' + request.auth.uid
+        && request.resource.data.completados is list
+        && request.resource.data.completados.size() <= 50
+        && request.resource.data.completados.toSet().size() == request.resource.data.completados.size()
+        && request.resource.data.actualizadoEn == request.time
+        && (resource == null || resource.data.oyenteUid == request.auth.uid);
+    }
+
+    // ---------- «Mis audios»: envíos ----------
+    // enviosAudio/{audioId}__{oyenteUid}: un audio de la biblioteca enviado a
+    // una persona. Igual en los dos modos. Lo crea solo el profesional, con
+    // su propio audio de la biblioteca y para alguien con vínculo activo con
+    // él; lo leen él y esa persona; retirarlo es borrarlo (solo él). El id
+    // impide enviar dos veces lo mismo a la misma persona (no se puede pisar).
+    match /enviosAudio/{envioId} {
+      allow read: if request.auth != null
+        && (request.auth.uid == resource.data.profesionalUid
+            || request.auth.uid == resource.data.oyenteUid);
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(['profesionalUid', 'audioId', 'oyenteUid', 'creadoEn'])
+        && request.resource.data.keys().hasOnly(['profesionalUid', 'audioId', 'oyenteUid', 'creadoEn'])
+        && request.resource.data.profesionalUid == request.auth.uid
+        && request.resource.data.audioId is string
+        && request.resource.data.oyenteUid is string
+        && request.resource.data.oyenteUid != request.auth.uid
+        && envioId == request.resource.data.audioId + '__' + request.resource.data.oyenteUid
+        && request.resource.data.creadoEn == request.time
+        && get(/databases/$(database)/documents/audiosProfesional/$(request.resource.data.audioId)).data.profesionalUid == request.auth.uid
+        && get(/databases/$(database)/documents/audiosProfesional/$(request.resource.data.audioId)).data.tipo == 'biblioteca'
+        && get(/databases/$(database)/documents/vinculos/$(request.auth.uid + '_' + request.resource.data.oyenteUid)).data.estado == 'activo';
+      allow update: if false;
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.profesionalUid;
+    }
+
+    // vinculos/{profesionalUid}_{oyenteUid}. Cada parte lee los suyos. Por
+    // ahora se crean a mano en la consola (las invitaciones llegarán
+    // después); desde la app el profesional solo puede pausar o reanudar.
+    match /vinculos/{vinculoId} {
+      allow read: if request.auth != null
+        && (request.auth.uid == resource.data.profesionalUid
+            || request.auth.uid == resource.data.oyenteUid);
+      // Solo su profesional, y una de estas dos cosas:
+      // - Pausar o reanudar (página «Oyentes»): solo el estado (entre activo
+      //   y pausado; otros estados futuros, como una baja del oyente, no se
+      //   pueden revertir) y la hora del cambio.
+      // - audiosBiblioteca: los audios de su Biblioteca que esta persona
+      //   puede oír (sus envíos y sus programas privados). storage.rules lo
+      //   mira aquí para no pasar de dos documentos por descarga. Como mucho
+      //   200, los que caben en la Biblioteca.
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.profesionalUid
+        && ((request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['estado', 'estadoCambiadoEn'])
+             && resource.data.estado in ['activo', 'pausado']
+             && request.resource.data.estado in ['activo', 'pausado']
+             && request.resource.data.estado != resource.data.estado
+             && request.resource.data.estadoCambiadoEn == request.time)
+          || (request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['audiosBiblioteca'])
+              && request.resource.data.audiosBiblioteca is list
+              && request.resource.data.audiosBiblioteca.size() <= 200));
+      allow create, delete: if false;
+    }
+
+    // Nota privada del profesional sobre un oyente (página «Oyentes»). Fuera
+    // del vínculo (que lee también el oyente) y del perfil: solo la lee y la
+    // escribe el profesional del primer tramo de la ruta, y solo sobre alguien
+    // con quien tiene vínculo (activo o en pausa).
+    match /notasPrivadas/{profesionalUid}/oyentes/{oyenteUid} {
+      allow read, delete: if request.auth != null
+        && request.auth.uid == profesionalUid;
+      allow create, update: if request.auth != null
+        && request.auth.uid == profesionalUid
+        && request.resource.data.keys().hasAll(['texto', 'actualizadoEn'])
+        && request.resource.data.keys().hasOnly(['texto', 'actualizadoEn'])
+        && request.resource.data.texto is string
+        && request.resource.data.texto.size() <= 2000
+        && request.resource.data.actualizadoEn == request.time
+        && exists(/databases/$(database)/documents/vinculos/$(profesionalUid + '_' + oyenteUid));
+    }
+
+    // ---------- Formulario de contacto (/contacto) ----------
+    // Cualquier visitante, también sin sesión, puede CREAR un mensaje, solo
+    // con estos campos, tipos y longitudes (los mismos que
+    // src/features/contacto/validacion.ts), aceptoPrivacidad == true y la
+    // hora del servidor. Nadie los lee, cambia ni borra desde la app: se
+    // leen en la consola de Firebase.
+    match /mensajesContacto/{mensajeId} {
+      allow create: if request.resource.data.keys().hasAll(
+            ['nombre', 'correo', 'queEres', 'motivo', 'mensaje', 'aceptoPrivacidad', 'creadoEn'])
+        && request.resource.data.keys().hasOnly(
+            ['nombre', 'correo', 'queEres', 'motivo', 'mensaje', 'aceptoPrivacidad', 'creadoEn'])
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.trim().size() >= 1
+        && request.resource.data.nombre.size() <= 100
+        && request.resource.data.correo is string
+        && request.resource.data.correo.size() <= 200
+        && request.resource.data.correo.matches('^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$')
+        && (request.resource.data.queEres == null
+            || request.resource.data.queEres in ['profesional', 'oyente'])
+        && (request.resource.data.motivo == null
+            || request.resource.data.motivo in ['duda', 'cuenta', 'ser-profesional', 'otro'])
+        && request.resource.data.mensaje is string
+        && request.resource.data.mensaje.trim().size() >= 10
+        && request.resource.data.mensaje.size() <= 2000
+        && request.resource.data.aceptoPrivacidad == true
+        && request.resource.data.creadoEn == request.time;
+      allow read, update, delete: if false;
+    }
+  }
+}

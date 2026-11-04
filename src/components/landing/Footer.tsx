@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
+import { textoIdentificacionEmpresa } from '../../config/empresa'
+import { rutaLegal } from '../../features/legal/documentos'
 import { useReveal } from './useReveal'
 
 function Footer() {
   const cta = useReveal<HTMLAnchorElement>()
+  const identificacion = textoIdentificacionEmpresa()
 
   return (
     <footer className="na-footer">
@@ -22,11 +25,18 @@ function Footer() {
           <div className="na-footer__col">
             <h4>Soporte</h4>
             <a href="#">Ayuda</a>
-            <a href="#">Contáctanos</a>
-            <a href="#">Normas de la comunidad</a>
+            <Link to="/contacto">Contáctanos</Link>
+            <Link to={rutaLegal('normas')}>Normas de la comunidad</Link>
             <a href="#">Preguntas frecuentes</a>
-            <a href="#">Términos del servicio</a>
-            <a href="#">Política de privacidad</a>
+          </div>
+          <div className="na-footer__col">
+            <h4>Legal</h4>
+            <Link to={rutaLegal('aviso-legal')}>Aviso legal</Link>
+            <Link to={rutaLegal('privacidad')}>Política de privacidad</Link>
+            <Link to={rutaLegal('cookies')}>Política de cookies</Link>
+            <Link to={rutaLegal('terminos')}>Términos del servicio</Link>
+            {/* Aún no hay banner de cookies: lleva a su política. */}
+            <Link to={rutaLegal('cookies')}>Configurar cookies</Link>
           </div>
         </div>
 
@@ -60,7 +70,11 @@ function Footer() {
       </div>
 
       <div className="na-footer__bottom">
-        <span>© 2026 NeuroAudio</span>
+        <span>
+          © 2026 NeuroAudio
+          {/* Razón social y NIF: se rellenan en src/config/empresa.ts. */}
+          {identificacion && ` · ${identificacion}`}
+        </span>
         <a href="#" className="na-footer__lang">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <circle cx="12" cy="12" r="9" />

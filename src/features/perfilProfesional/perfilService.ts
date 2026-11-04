@@ -261,6 +261,28 @@ export function escucharVinculoActivo(
 }
 
 /**
+ * Cuándo empezó el vínculo de este oyente con un profesional (el día 1 de
+ * los programas para todos que ya estaban publicados). null si no hay
+ * vínculo, no se puede leer o no tiene fecha.
+ */
+export function escucharInicioVinculo(
+  profesionalUid: string,
+  oyenteUid: string,
+  onInicio: (inicio: Date | null) => void,
+) {
+  return onSnapshot(
+    doc(db, 'vinculos', idVinculo(profesionalUid, oyenteUid)),
+    (snap) => {
+      const creadoEn = snap.data()?.creadoEn
+      onInicio(
+        typeof creadoEn?.toDate === 'function' ? creadoEn.toDate() : null,
+      )
+    },
+    () => onInicio(null),
+  )
+}
+
+/**
  * Los oyentes del profesional con sesión: sus vínculos (activos y en pausa),
  * en vivo, con nombre, correo y fechas si los tienen; hasta MAX_OYENTES, del
  * más reciente al más antiguo (se ordenan aquí: sin índice nuevo). En «Para

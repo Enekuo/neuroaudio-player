@@ -49,13 +49,18 @@ function FilasAudioProfesional({
             isDeleting={false}
             isPlaying={currentTrack?.id === audio.id && isPlaying}
             onPlay={() => void reproducir(audio)}
-            opciones={[
-              {
-                etiqueta: 'Ver descripción',
-                icono: <IconoInfo />,
-                onClick: () => setDescripcion(audio),
-              },
-            ]}
+            // Sin descripción, sin «Ver descripción» (ni menú).
+            opciones={
+              audio.descripcion.trim()
+                ? [
+                    {
+                      etiqueta: 'Ver descripción',
+                      icono: <IconoInfo />,
+                      onClick: () => setDescripcion(audio),
+                    },
+                  ]
+                : []
+            }
           />
         ))}
       </div>

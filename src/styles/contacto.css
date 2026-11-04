@@ -1,0 +1,531 @@
+/* ============================================================
+   Contacto (/contacto): fondo, menú, pie, fuentes y azules de la landing;
+   el formulario en una tarjeta clara con los colores del panel
+   profesional. Todo bajo .na-contacto (solo existe en esta página).
+   ============================================================ */
+.na-contacto {
+  --na-bg: #070a13;
+  --na-accent: #3461ff;
+  --na-ink: #f5f6fa;
+  --na-muted: #9aa3b8;
+  --na-muted-2: #6c7590;
+  --na-line: #1c2438;
+  /* Tarjeta (panel profesional) */
+  --c-fondo: #ffffff;
+  --c-campo: #f1f3f4;
+  --c-texto: #202124;
+  --c-gris: #5f6368;
+  --c-linea: #dadce0;
+  --c-error: #d93025;
+  --c-ok: #137333;
+  min-height: 100dvh;
+  background:
+    radial-gradient(
+      ellipse 60% 50% at 75% 45%,
+      rgba(52, 97, 255, 0.12),
+      rgba(52, 97, 255, 0) 70%
+    ),
+    var(--na-bg);
+  color: var(--na-ink);
+}
+
+.na-contacto .na-nav {
+  border-bottom: 1px solid var(--na-line);
+}
+
+.na-contacto__contenido {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: clamp(48px, 7vw, 96px) clamp(20px, 4vw, 48px)
+    clamp(64px, 9vw, 120px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(40px, 6vw, 88px);
+  align-items: start;
+}
+
+/* ----- Texto de la izquierda ----- */
+.na-contacto__intro {
+  padding-top: clamp(0px, 2.5vw, 32px);
+}
+
+.landing-root.landing-root .na-contacto__eyebrow {
+  margin: 0 0 16px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #5b8cff;
+}
+
+.landing-root.landing-root .na-contacto__titulo {
+  margin: 0 0 22px;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(38px, 5vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--na-ink);
+}
+
+.landing-root.landing-root .na-contacto__lead {
+  margin: 0 0 34px;
+  max-width: 30em;
+  font-size: clamp(17px, 1.6vw, 20px);
+  line-height: 1.6;
+  color: var(--na-muted);
+}
+
+.na-contacto__correo {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 17px;
+  color: var(--na-ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.na-contacto__correo:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.na-contacto__correo-icono {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(52, 97, 255, 0.2);
+  color: #5b8cff;
+}
+
+.na-contacto__correo-icono svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ----- Tarjeta del formulario ----- */
+.na-contacto__tarjeta {
+  background: var(--c-fondo);
+  color: var(--c-texto);
+  border-radius: 28px;
+  padding: clamp(24px, 3vw, 40px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+.na-contacto__tarjeta form {
+  display: grid;
+  gap: 18px;
+}
+
+.na-contacto__fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.na-contacto__campo {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.landing-root.landing-root .na-contacto__campo label {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-texto);
+}
+
+.na-contacto__campo label span,
+.na-contacto__casilla label > span {
+  color: var(--c-error);
+}
+
+/* Prioridad normal: los estados de abajo (hover, foco, error, lista vacía) la sobrescriben. */
+.na-contacto__campo input,
+.na-contacto__campo select,
+.na-contacto__campo textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background-color: var(--c-campo);
+  color: var(--c-texto);
+  font-size: 16px;
+  line-height: 1.4;
+  padding: 13px 16px;
+  outline: none;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.na-contacto__campo textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.na-contacto__campo input::placeholder,
+.na-contacto__campo textarea::placeholder {
+  color: #80868b;
+}
+
+.na-contacto__campo select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 44px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%235f6368' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+}
+
+.na-contacto__campo select.is-vacio {
+  color: #80868b;
+}
+
+.na-contacto__campo select option {
+  color: var(--c-texto);
+}
+
+.na-contacto__campo input:hover,
+.na-contacto__campo select:hover,
+.na-contacto__campo textarea:hover {
+  background-color: #e8eaed;
+}
+
+.na-contacto__campo input:focus-visible,
+.na-contacto__campo select:focus-visible,
+.na-contacto__campo textarea:focus-visible {
+  border-color: var(--na-accent);
+  background-color: #ffffff;
+  /* Anillo de foco visible también cuando el campo tiene error. */
+  box-shadow: 0 0 0 3px rgba(52, 97, 255, 0.25);
+}
+
+.na-contacto__campo [aria-invalid='true'] {
+  border-color: var(--c-error);
+}
+
+.landing-root.landing-root .na-contacto__error {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--c-error);
+}
+
+.na-contacto__bajo-mensaje {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.landing-root.landing-root .na-contacto__contador {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--c-gris);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Campo trampa: fuera de la vista (no display:none, para que lo rellenen los robots). */
+.na-contacto__trampa {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.na-contacto__casilla {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.na-contacto__casilla input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  accent-color: var(--na-accent);
+  cursor: pointer;
+}
+
+.na-contacto__casilla input[aria-invalid='true'] {
+  outline: 2px solid var(--c-error);
+  outline-offset: 2px;
+}
+
+.landing-root.landing-root .na-contacto__casilla label {
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--c-gris);
+  cursor: pointer;
+}
+
+.na-contacto__tarjeta a {
+  color: #1a5bff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.na-contacto__tarjeta a:focus-visible,
+.na-contacto__casilla input:focus-visible {
+  outline: 2px solid var(--na-accent);
+  outline-offset: 2px;
+}
+
+.na-contacto__acciones {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.landing-root.landing-root .na-contacto__enviar {
+  min-width: 200px;
+  border: none;
+  border-radius: 999px;
+  background: var(--na-accent);
+  color: #05070d;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 15px 34px;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease,
+    opacity 180ms ease;
+}
+
+.na-contacto__enviar:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 10px 26px rgba(52, 97, 255, 0.35);
+}
+
+.na-contacto__enviar:focus-visible {
+  outline: 3px solid rgba(52, 97, 255, 0.45);
+  outline-offset: 3px;
+}
+
+.na-contacto__enviar:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.na-contacto__aviso:empty {
+  display: none;
+}
+
+.landing-root.landing-root .na-contacto__ok,
+.landing-root.landing-root .na-contacto__fallo {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.na-contacto__ok {
+  background: #e6f4ea;
+  color: var(--c-ok);
+}
+
+.na-contacto__fallo {
+  background: #fce8e6;
+  color: #a50e0e;
+}
+
+.landing-root.landing-root .na-contacto__rgpd {
+  margin: 24px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--c-linea);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--c-gris);
+}
+
+.na-contacto__rgpd strong {
+  font-weight: 600;
+  color: #3c4043;
+}
+
+.na-contacto__rgpd a {
+  color: inherit;
+}
+
+/* Móvil y tableta: una sola columna, texto arriba y formulario debajo. */
+@media (max-width: 900px) {
+  .na-contacto__contenido {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .na-contacto__intro {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .na-contacto__fila {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .na-contacto__tarjeta {
+    border-radius: 22px;
+  }
+
+  .na-contacto__enviar {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-contacto__enviar,
+  .na-contacto__campo input,
+  .na-contacto__campo select,
+  .na-contacto__campo textarea {
+    transition: none;
+  }
+
+  .na-contacto__enviar:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ============================================================
+   Abrir y cerrar la página de contacto.
+   - Entrada: el texto entra en cascada como el de la portada (na-fade-up,
+     700 ms, los tiempos de la landing) y la tarjeta del formulario sube
+     desde el fondo enfocándose (desenfoque → nítida), con la curva de la
+     app (--ease-out-strong).
+   - Salida (al ir a otra página de la web): todo se retira más rápido de lo
+     que entró (~220 ms, como las salidas de ventanas y hojas de la app); la
+     tarjeta baja un poco y se desenfoca. La página espera a que termine
+     (duración en --na-contacto-salida, la pone ContactoPage).
+   ============================================================ */
+@keyframes na-contacto-tarjeta-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.98);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes na-contacto-retirar {
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+    filter: blur(4px);
+  }
+}
+
+@keyframes na-contacto-fundir {
+  to {
+    opacity: 0;
+  }
+}
+
+.na-contacto__intro > * {
+  animation: na-fade-up 700ms var(--ease-out-strong) both;
+}
+
+.na-contacto__intro > :nth-child(1) { animation-delay: 60ms; }
+.na-contacto__intro > :nth-child(2) { animation-delay: 120ms; }
+.na-contacto__intro > :nth-child(3) { animation-delay: 180ms; }
+.na-contacto__intro > :nth-child(4) { animation-delay: 240ms; }
+
+.na-contacto__tarjeta {
+  transform-origin: 50% 0;
+  animation: na-contacto-tarjeta-in 700ms var(--ease-out-strong) 140ms both;
+}
+
+/* Dentro de la caja, su contenido entra en cascada cuando la caja ya casi ha
+   llegado: nombre y correo, las dos listas, el mensaje, la casilla, «Enviar»
+   y el aviso de datos. Misma animación y ritmo que las partes de la ventana
+   de descripción del reproductor (np-desc-parte-in, 300 ms). Se cuenta por
+   tipo (div:nth-of-type) para que los avisos de error que aparecen después
+   no muevan el orden. */
+.na-contacto__tarjeta form > div:not(.na-contacto__trampa):not(.na-contacto__aviso),
+.na-contacto__rgpd {
+  /* Sin «animation» abreviada: así no pisa los retrasos de cada fila. */
+  animation-name: np-desc-parte-in;
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease-out-strong);
+  animation-fill-mode: both;
+}
+
+.na-contacto__tarjeta form > div:nth-of-type(1) { animation-delay: 300ms; }
+.na-contacto__tarjeta form > div:nth-of-type(2) { animation-delay: 345ms; }
+.na-contacto__tarjeta form > div:nth-of-type(3) { animation-delay: 390ms; }
+.na-contacto__tarjeta form > div:nth-of-type(4) { animation-delay: 435ms; }
+.na-contacto__tarjeta form > div:nth-of-type(6) { animation-delay: 480ms; }
+.na-contacto__tarjeta form > div:nth-of-type(7) { animation-delay: 525ms; }
+.na-contacto__rgpd { animation-delay: 570ms; }
+
+/* Cerrando: sin clics a medias mientras se va. */
+.na-contacto.is-saliendo {
+  pointer-events: none;
+}
+
+.na-contacto.is-saliendo .na-contacto__intro > *,
+.na-contacto.is-saliendo .na-contacto__tarjeta {
+  animation: na-contacto-retirar var(--na-contacto-salida, 220ms)
+    var(--ease-out-strong) both;
+}
+
+/* Menú y pie: solo se funden (se ven si el enlace se pulsó desde abajo). */
+.na-contacto.is-saliendo > .na-nav,
+.na-contacto.is-saliendo > .na-footer {
+  animation: na-contacto-fundir var(--na-contacto-salida, 220ms) ease both;
+}
+
+/* En móvil la tarjeta llega desde menos distancia: el recorrido se nota más
+   en una pantalla pequeña. */
+@media (max-width: 560px) {
+  @keyframes na-contacto-tarjeta-in {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.985);
+      filter: blur(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: blur(0);
+    }
+  }
+}
+
+/* Reducir movimiento: sin desplazamientos, escalas ni desenfoques; solo
+   fundidos cortos al abrir y al cerrar (el cierre sigue terminando antes de
+   cambiar de página: 140 ms). */
+@media (prefers-reduced-motion: reduce) {
+  .na-contacto__intro > *,
+  .na-contacto__tarjeta {
+    animation: overlay-in 160ms ease both;
+  }
+
+  /* La caja aparece entera, sin cascada dentro. */
+  .na-contacto__tarjeta form > div:not(.na-contacto__trampa):not(.na-contacto__aviso),
+  .na-contacto__rgpd {
+    animation: none;
+  }
+
+  .na-contacto.is-saliendo .na-contacto__intro > *,
+  .na-contacto.is-saliendo .na-contacto__tarjeta,
+  .na-contacto.is-saliendo > .na-nav,
+  .na-contacto.is-saliendo > .na-footer {
+    animation: na-contacto-fundir var(--na-contacto-salida, 140ms) ease both;
+  }
+}

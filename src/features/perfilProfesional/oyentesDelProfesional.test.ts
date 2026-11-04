@@ -27,6 +27,7 @@ describe('oyenteDesdeVinculo', () => {
       email: 'ana@gmail.com',
       creadoEn: new Date(2026, 0, 2),
       estadoCambiadoEn: new Date(2026, 9, 1),
+      audiosBiblioteca: [],
     })
   })
 
@@ -45,6 +46,7 @@ describe('oyenteDesdeVinculo', () => {
       email: '',
       creadoEn: null,
       estadoCambiadoEn: null,
+      audiosBiblioteca: [],
     })
   })
 
@@ -72,6 +74,7 @@ describe('ordenarOyentes', () => {
     email: '',
     creadoEn,
     estadoCambiadoEn: null,
+    audiosBiblioteca: [],
   })
 
   it('del más reciente al más antiguo; sin fecha, al final y por nombre', () => {

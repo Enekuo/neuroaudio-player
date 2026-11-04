@@ -41,10 +41,12 @@ import {
 } from '../../audiosProfesional/audioProfesionalService'
 import {
   LIMITES_BIBLIOTECA,
+  audioEnlazado,
   carpetaDePortada,
   type AudioProfesional,
 } from '../../audiosProfesional/modelo'
 import PortadaAudio from '../../audiosProfesional/PortadaAudio'
+import { useMantenerAccesos } from '../../programasProfesional/useMantenerAccesos'
 import { escucharPerfil } from '../../perfilProfesional/perfilService'
 import { formatTime } from '../../library/utils/formatTime'
 import { animacionEntrada } from '../theme/movimiento'
@@ -70,6 +72,9 @@ type Edicion = { audio?: AudioProfesional } | null
  * subir, editar, publicar o despublicar, borrar y reordenar.
  */
 function AudiosGenerales({ uid }: { uid: string }) {
+  // Quién puede oír cada audio de Biblioteca: se mantiene al día (y se
+  // repara lo anterior) mientras esta página está abierta.
+  useMantenerAccesos(uid)
   const [audios, setAudios] = useState<AudioProfesional[] | null>(null)
   const [errorCarga, setErrorCarga] = useState(false)
   const [fotoPrincipalId, setFotoPrincipalId] = useState<string | null>(null)
@@ -231,7 +236,7 @@ function AudiosGenerales({ uid }: { uid: string }) {
   const cambiarEstado = async (audio: AudioProfesional) => {
     const estado = audio.estado === 'publicado' ? 'borrador' : 'publicado'
     try {
-      await actualizarAudio(audio.id, { estado })
+      await actualizarAudio(audio.id, { estado }, audioEnlazado(audio))
       setAviso(
         estado === 'publicado'
           ? `«${audio.titulo}» publicado. Ya lo ven tus oyentes con acceso.`

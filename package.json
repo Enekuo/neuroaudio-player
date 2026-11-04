@@ -10,11 +10,15 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run src",
+    "legales:comprobar": "vitest run tests/legales",
     "test:reglas": "npx -y firebase-tools@latest emulators:exec --config firebase.test.json --only firestore,storage --project demo-neuroaudio \"vitest run tests/reglas --no-file-parallelism\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@fontsource/poppins": "^5.3.0",
     "@fontsource/roboto": "^5.3.0",
     "@mui/icons-material": "^9.4.0",
     "@mui/material": "^9.4.0",

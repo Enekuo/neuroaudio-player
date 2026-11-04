@@ -1,4 +1,5 @@
 import {
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
@@ -37,6 +38,7 @@ import {
   type TipoPortadaAudio,
 } from './modelo'
 import type { Encuadre } from '../perfilProfesional/fotos/encuadre'
+import { idVinculo } from '../perfilProfesional/modelo'
 import {
   adquirirImagenPrivada,
   borrarImagenPrivada,
@@ -93,6 +95,8 @@ function audioDesdeDocumento(id: string, d: DocumentData): AudioProfesional {
       : [],
     deMisAudios: typeof d.deMisAudios === 'string' ? d.deMisAudios : null,
     enAudios: d.enAudios === true,
+    publicoEnAudios: d.publicoEnAudios === true,
+    enProgramaPublico: d.enProgramaPublico === true,
     creadoEn: fecha(d.creadoEn),
     actualizadoEn: fecha(d.actualizadoEn),
   }
@@ -449,7 +453,18 @@ export async function actualizarAudio(
       CAMPOS_COMPARTIDOS.includes(campo),
     ),
   )
-  if (!enlazado || Object.keys(compartidos).length === 0) {
+  // Publicar o despublicar en Audios uno de Biblioteca: su original lleva la
+  // marca que mira Storage (publicoEnAudios).
+  const esSuGeneral =
+    enlazado !== null && idGeneralDeBiblioteca(enlazado) === audioId
+  const marca =
+    esSuGeneral && cambios.estado !== undefined
+      ? { publicoEnAudios: cambios.estado === 'publicado' }
+      : {}
+  if (
+    !enlazado ||
+    (Object.keys(compartidos).length === 0 && !('publicoEnAudios' in marca))
+  ) {
     await updateDoc(doc(db, COLECCION, audioId), datos)
     return
   }
@@ -457,6 +472,7 @@ export async function actualizarAudio(
   lote.update(doc(db, COLECCION, audioId), datos)
   lote.update(doc(db, COLECCION, enlazado), {
     ...compartidos,
+    ...marca,
     actualizadoEn: serverTimestamp(),
   })
   await lote.commit()
@@ -495,6 +511,7 @@ export async function anadirDesdeBiblioteca(
     })
     lote.update(doc(db, COLECCION, b.id), {
       enAudios: true,
+      publicoEnAudios: true,
       actualizadoEn: serverTimestamp(),
     })
   })
@@ -536,6 +553,7 @@ export async function borrarAudio(audio: AudioProfesional) {
     lote.delete(doc(db, COLECCION, audio.id))
     lote.update(doc(db, COLECCION, audio.deMisAudios), {
       enAudios: false,
+      publicoEnAudios: false,
       actualizadoEn: serverTimestamp(),
     })
     await lote.commit()
@@ -666,6 +684,28 @@ export function escucharEnviosParaMi(
 }
 
 /**
+ * Un envío y, en la misma escritura, el audio en la lista de su vínculo
+ * (audiosBiblioteca), que es lo que mira Storage para dejarle oírlo.
+ */
+function escribirEnvio(
+  profesionalUid: string,
+  audioId: string,
+  oyenteUid: string,
+) {
+  const lote = writeBatch(db)
+  lote.set(doc(db, ENVIOS, idEnvio(audioId, oyenteUid)), {
+    profesionalUid,
+    audioId,
+    oyenteUid,
+    creadoEn: serverTimestamp(),
+  })
+  lote.update(doc(db, 'vinculos', idVinculo(profesionalUid, oyenteUid)), {
+    audiosBiblioteca: arrayUnion(audioId),
+  })
+  return lote.commit()
+}
+
+/**
  * Envía un audio de la biblioteca a varias personas (con vínculo activo:
  * lo exigen las reglas). Un envío por escritura, para que uno que falle no
  * tumbe a los demás. Devuelve a quién no se pudo enviar.
@@ -676,12 +716,7 @@ export async function enviarAudio(
 ) {
   const resultados = await Promise.allSettled(
     oyenteUids.map((oyenteUid) =>
-      setDoc(doc(db, ENVIOS, idEnvio(audio.id, oyenteUid)), {
-        profesionalUid: audio.profesionalUid,
-        audioId: audio.id,
-        oyenteUid,
-        creadoEn: serverTimestamp(),
-      }),
+      escribirEnvio(audio.profesionalUid, audio.id, oyenteUid),
     ),
   )
   return oyenteUids.filter((_, i) => resultados[i].status === 'rejected')
@@ -699,18 +734,17 @@ export async function enviarAudiosA(
 ) {
   const resultados = await Promise.allSettled(
     audioIds.map((audioId) =>
-      setDoc(doc(db, ENVIOS, idEnvio(audioId, oyenteUid)), {
-        profesionalUid,
-        audioId,
-        oyenteUid,
-        creadoEn: serverTimestamp(),
-      }),
+      escribirEnvio(profesionalUid, audioId, oyenteUid),
     ),
   )
   return audioIds.filter((_, i) => resultados[i].status === 'rejected')
 }
 
-/** Retira un audio a una persona: deja de verlo al momento. */
+/**
+ * Retira un audio a una persona: deja de verlo al momento. De la lista de
+ * su vínculo se quita al recalcular los accesos (useMantenerAccesos, en las
+ * páginas donde se retira), por si lo sigue teniendo por un programa.
+ */
 export async function retirarEnvio(audioId: string, oyenteUid: string) {
   await deleteDoc(doc(db, ENVIOS, idEnvio(audioId, oyenteUid)))
 }

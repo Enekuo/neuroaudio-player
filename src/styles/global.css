@@ -11637,6 +11637,13 @@ input[type='submit']:active,
     isolation: isolate;
   }
 
+  /* Cada fila es su propia capa (por el brillo de abajo): la que tiene el
+     menú abierto sube por encima de las siguientes, que si no lo taparían
+     y se quedarían con el toque. */
+  .library-audio-row--fila.is-menu-abierto {
+    z-index: 30;
+  }
+
   .library-audio-row--fila::before {
     content: '';
     position: absolute;
@@ -13224,4 +13231,472 @@ input[type='submit']:active,
   line-height: 1.55;
   white-space: pre-line;
   overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   Programas del profesional (app del oyente): la fila de un programa en su
+   página, los pasos (número, ✓ en verde al completarlo, «Te toca» en azul y
+   candado en los cerrados), la barra de progreso y el aviso «Audio
+   completado» sobre el reproductor.
+   ============================================================ */
+.fila-programa .library-audio-row__main {
+  color: inherit;
+  text-decoration: none;
+}
+
+.fila-programa .library-audio-row__thumb {
+  color: var(--brand-500);
+}
+
+.fila-programa .library-audio-row__thumb svg {
+  width: 22px;
+  height: 22px;
+}
+
+.fila-programa__ir {
+  color: var(--text-muted);
+}
+
+.fila-programa__ir svg {
+  width: 20px;
+  height: 20px;
+}
+
+.programa-portada {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, #2680eb 0%, #0b1a33 100%);
+  color: #ffffff;
+}
+
+.programa-portada svg {
+  width: 42%;
+  height: 42%;
+}
+
+.programa-progreso {
+  max-width: 320px;
+  height: 6px;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.programa-progreso span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--brand-600), var(--brand-500));
+  transition: width 400ms var(--ease-out-strong);
+}
+
+.programa-apertura {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.fila-paso .library-audio-row__thumb span {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.fila-paso .library-audio-row__thumb svg {
+  width: 20px;
+  height: 20px;
+}
+
+.fila-paso--abierto .library-audio-row__thumb {
+  color: var(--text-secondary);
+}
+
+.fila-paso--siguiente .library-audio-row__thumb {
+  background: rgba(38, 128, 235, 0.16);
+  box-shadow: inset 0 0 0 1.5px rgba(59, 158, 255, 0.6);
+  color: var(--brand-500);
+}
+
+.fila-paso--siguiente .library-audio-row__info p {
+  color: var(--brand-500);
+}
+
+.fila-paso--completado .library-audio-row__thumb {
+  background: rgba(34, 197, 94, 0.14);
+  color: #22c55e;
+}
+
+.fila-paso--completado .library-audio-row__info p {
+  color: #22c55e;
+}
+
+/* Cerrado: no se toca, pero se lee bien por qué. */
+.fila-paso--cerrado .library-audio-row__main:disabled {
+  color: inherit;
+  opacity: 1;
+  cursor: default;
+}
+
+.fila-paso--cerrado .library-audio-row__thumb {
+  background: #141517;
+  color: var(--text-muted);
+}
+
+.fila-paso--cerrado .library-audio-row__info h4 {
+  color: var(--text-secondary);
+}
+
+.fila-paso--cerrado .library-audio-row__info p {
+  color: var(--text-secondary);
+}
+
+/* «Audio completado · Marcar» y «Paso completado»: el aviso del reproductor,
+   encima de la barra pequeña (y de la pantalla completa). */
+.paso-toast {
+  bottom: calc(var(--bottomnav-h) + var(--miniplayer-h) + 20px);
+  z-index: 80;
+}
+
+.paso-toast__hecho {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(34, 197, 94, 0.16);
+  color: #22c55e;
+}
+
+.paso-toast__hecho svg {
+  width: 15px;
+  height: 15px;
+}
+
+@media (min-width: 981px) {
+  .paso-toast {
+    bottom: calc(var(--miniplayer-h) + 40px);
+  }
+}
+
+/* Con el reproductor a pantalla completa: arriba, bajo su cabecera. */
+.paso-toast--arriba {
+  top: calc(env(safe-area-inset-top) + 72px);
+  bottom: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .programa-progreso span {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Landing: «Para profesionales» (bajo la franja de confianza). Mismos
+   colores oscuros que el resto de la landing, el texto a la izquierda y una
+   ilustración del panel (HTML/CSS) a la derecha; en móvil, debajo.
+   Mismas fuentes, botón y márgenes que el resto de la landing.
+   ============================================================ */
+.na-pro {
+  --na-accent: #3461ff;
+  --na-ink: #f5f6fa;
+  --na-muted: #9aa3b8;
+  --na-muted-2: #6c7590;
+  --na-line: #1c2438;
+  --na-card: #0c1018;
+  --na-outline: #2a3350;
+  background: #070a13;
+  padding: 96px clamp(20px, 4vw, 48px);
+  font-family: 'Manrope', system-ui, sans-serif;
+  color: var(--na-ink);
+  scroll-margin-top: 16px;
+}
+
+.na-pro__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 72px);
+}
+
+.na-pro__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--na-muted);
+}
+
+.na-pro__eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--na-accent);
+}
+
+.na-pro__titulo {
+  margin: 0 0 18px;
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(34px, 4.6vw, 52px);
+  line-height: 1.1;
+  color: var(--na-ink);
+  text-wrap: balance;
+}
+
+.na-pro__titulo em {
+  font-style: italic;
+  color: var(--na-accent);
+}
+
+.na-pro__lead {
+  margin: 0 0 30px;
+  max-width: 48ch;
+  font-size: 16.5px;
+  line-height: 1.65;
+  color: var(--na-muted);
+}
+
+.na-pro__puntos {
+  list-style: none;
+  margin: 0 0 34px;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.na-pro__puntos li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.na-pro__puntos strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--na-ink);
+}
+
+.na-pro__punto-texto {
+  display: block;
+  margin-top: 2px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--na-muted);
+}
+
+.na-pro__icono {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(52, 97, 255, 0.14);
+  color: #5b8cff;
+}
+
+.na-pro__icono svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Ilustración del panel */
+.na-pro__ilustracion {
+  margin: 0;
+}
+
+.na-pro__panel {
+  border: 1px solid var(--na-line);
+  border-radius: 18px;
+  background: var(--na-card);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.na-pro__panel-barra {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--na-line);
+}
+
+.na-pro__panel-barra span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--na-outline);
+}
+
+.na-pro__panel-cuerpo {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  background: #070a13;
+}
+
+.na-pro__panel-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 14px;
+  border-right: 1px solid var(--na-line);
+  background: var(--na-card);
+}
+
+.na-pro__panel-lateral span {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--na-line);
+}
+
+.na-pro__panel-lateral span.is-activo {
+  height: 22px;
+  background: rgba(52, 97, 255, 0.22);
+}
+
+.na-pro__panel-tarjeta {
+  margin: 18px;
+  padding: 18px;
+  border: 1px solid var(--na-line);
+  border-radius: 12px;
+  background: var(--na-card);
+}
+
+.na-pro__panel-titulo {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--na-ink);
+}
+
+.na-pro__panel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.na-pro__chip {
+  padding: 3px 10px;
+  border: 1px solid var(--na-outline);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--na-muted);
+  white-space: nowrap;
+}
+
+.na-pro__chip--verde {
+  border-color: transparent;
+  background: rgba(52, 97, 255, 0.16);
+  color: #5b8cff;
+}
+
+.na-pro__panel-pasos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.na-pro__panel-pasos li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--na-line);
+  border-radius: 10px;
+}
+
+.na-pro__panel-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--na-line);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--na-muted);
+}
+
+.na-pro__panel-audio {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--na-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.na-pro__panel-flechas {
+  display: flex;
+  gap: 4px;
+  color: var(--na-muted-2);
+}
+
+.na-pro__panel-flechas svg {
+  width: 15px;
+  height: 15px;
+}
+
+.na-pro__nota {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--na-muted-2);
+}
+
+/* El enlace «Profesionales» del menú de la landing: como el texto de antes. */
+.na-nav__links a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.na-nav__links a:hover {
+  color: var(--na-ink);
+}
+
+/* Móvil: la ilustración, debajo del texto. */
+@media (max-width: 900px) {
+  .na-pro {
+    padding-top: 72px;
+    padding-bottom: 72px;
+  }
+
+  .na-pro__inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .na-pro__panel-cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .na-pro__panel-lateral {
+    display: none;
+  }
+
+  .na-pro__panel-tarjeta {
+    margin: 12px;
+    padding: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-nav__links a {
+    transition: none;
+  }
 }

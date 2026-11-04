@@ -54,12 +54,13 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
   // Se guarda de qué pista se abrió: al cambiar de audio, se cierra sola.
   const audioProfesional = useAudioDePista(esDeProfesional ? currentTrack?.profesionalUid ?? null : null, esDeProfesional ? currentTrack?.id ?? null : null)
   const [descripcionDe, setDescripcionDe] = useState<string | null>(null)
-  const botonDescripcion = esDeProfesional ? (
+  // Solo si tiene descripción (mientras carga, tampoco).
+  const conDescripcion = Boolean(audioProfesional?.descripcion.trim())
+  const botonDescripcion = esDeProfesional && conDescripcion ? (
     <button
       type="button"
       className="now-playing__icon-button now-playing__info-button"
       onClick={() => setDescripcionDe(currentTrack?.id ?? null)}
-      disabled={!audioProfesional}
       aria-label="Ver descripción"
       title="Ver descripción"
     >
@@ -187,8 +188,11 @@ function PantallaCompletaReproductor({ isClosing, onCloseAnimationEnd }: Pantall
 
           {isMobileLayout && esDeProfesional ? (
             // Audio de un profesional: el menú no tiene opciones que ofrecer;
-            // en su lugar, su descripción.
-            botonDescripcion
+            // en su lugar, su descripción. Sin ella, un hueco del mismo
+            // tamaño (la cabecera no cambia).
+            botonDescripcion ?? (
+              <span className="now-playing__icon-button" aria-hidden="true" style={{ visibility: 'hidden' }} />
+            )
           ) : isMobileLayout ? (
             // En móvil la cabecera solo lleva la flecha y el menú de tres
             // puntos; tema, repetición, volumen y favorito bajan a

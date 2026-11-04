@@ -15,7 +15,12 @@ export function useReproducirAudioProfesional() {
   const { playTrack } = usePlayer()
 
   return useCallback(
-    async (audio: AudioProfesional, profesionalUid: string) => {
+    async (
+      audio: AudioProfesional,
+      profesionalUid: string,
+      /** Si suena como paso de un programa (para completarlo al terminar). */
+      programa?: { id: string; profesionalUid: string },
+    ) => {
       try {
         const url = await urlAudio(audio.archivo)
         const pista: AudioTrack = {
@@ -25,6 +30,7 @@ export function useReproducirAudioProfesional() {
           duration: audio.duracionSegundos,
           origen: 'profesional',
           profesionalUid,
+          ...(programa ? { programa } : {}),
         }
         playTrack(pista, [pista])
         return true
