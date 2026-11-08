@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import '../../styles/landing-cliente.css'
 import { useReveal } from './useReveal'
 
@@ -37,9 +37,38 @@ function ClienteAppSection() {
   const movil = useReveal<HTMLDivElement>()
   const texto = useReveal<HTMLDivElement>(120)
   const [sinImagen, setSinImagen] = useState(false)
+  const seccion = useRef<HTMLElement>(null)
+
+  // Es la única sección oscura de la landing (clara): mientras ocupa al menos
+  // media pantalla, la barra de desplazamiento vuelve a ser la oscura.
+  useEffect(() => {
+    const nodo = seccion.current
+    if (!nodo || typeof IntersectionObserver === 'undefined') return
+    const raiz = document.documentElement
+    const observador = new IntersectionObserver(
+      ([entrada]) => {
+        // Fuera de la pantalla, las animaciones del móvil se pausan.
+        nodo.toggleAttribute('data-fuera', !entrada.isIntersecting)
+        raiz.classList.toggle(
+          'na-zona-oscura',
+          entrada.intersectionRect.height >= window.innerHeight / 2,
+        )
+      },
+      { threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] },
+    )
+    observador.observe(nodo)
+    return () => {
+      observador.disconnect()
+      raiz.classList.remove('na-zona-oscura')
+    }
+  }, [])
 
   return (
-    <section className="na-cliente" aria-labelledby="na-cliente-titulo">
+    <section
+      ref={seccion}
+      className="na-cliente"
+      aria-labelledby="na-cliente-titulo"
+    >
       <div className="na-cliente__inner">
         <div
           ref={movil.ref}
@@ -49,9 +78,18 @@ function ClienteAppSection() {
           <span className="na-cliente__brillo" aria-hidden="true" />
           {/* Marco del móvil en HTML/CSS; la captura va dentro de la pantalla. */}
           <div className="na-cliente__telefono">
-            <span className="na-cliente__boton na-cliente__boton--vol1" aria-hidden="true" />
-            <span className="na-cliente__boton na-cliente__boton--vol2" aria-hidden="true" />
-            <span className="na-cliente__boton na-cliente__boton--encendido" aria-hidden="true" />
+            <span
+              className="na-cliente__boton na-cliente__boton--vol1"
+              aria-hidden="true"
+            />
+            <span
+              className="na-cliente__boton na-cliente__boton--vol2"
+              aria-hidden="true"
+            />
+            <span
+              className="na-cliente__boton na-cliente__boton--encendido"
+              aria-hidden="true"
+            />
             <div className="na-cliente__pantalla">
               {!sinImagen && (
                 <img
@@ -66,6 +104,7 @@ function ClienteAppSection() {
                 />
               )}
               <span className="na-cliente__isla" aria-hidden="true" />
+              <span className="na-cliente__reflejo" aria-hidden="true" />
             </div>
           </div>
         </div>
@@ -92,6 +131,26 @@ function ClienteAppSection() {
               </li>
             ))}
           </ul>
+          {/* Insignias oficiales de las tiendas, solo visuales (sin enlace)
+              hasta que las apps estén publicadas. */}
+          <div className="na-cliente__tiendas">
+            <img
+              src="/landing/insignias/google-play.png"
+              alt="Google Play"
+              width={161}
+              height={48}
+              loading="lazy"
+              decoding="async"
+            />
+            <img
+              src="/landing/insignias/app-store.svg"
+              alt="App Store"
+              width={144}
+              height={48}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
         </div>
       </div>
     </section>

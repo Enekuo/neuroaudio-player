@@ -1,0 +1,101 @@
+/* ============================================================
+   Landing (/) en versión clara, con la paleta del panel profesional:
+   «Para profesionales», preguntas frecuentes, planes y pie. La portada
+   tiene su versión clara en global.css (.na-hero) y la sección del móvil
+   («Tus audios, directos al móvil de tu cliente») sigue oscura a propósito.
+   Todo bajo .na-landing (solo la tiene la página de la landing): el mismo
+   pie en /legal/* y /contacto sigue oscuro.
+     Fondo #f8f9fa / #ffffff · textos #202124 · secundarios y enlaces
+     #5f6368 · notas #80868b · acento #3461ff (botón: texto #ffffff) ·
+     botón con borde #ffffff + #dadce0 · chips #e8f0fe + #3461ff ·
+     bordes y líneas #dadce0.
+   ============================================================ */
+
+/* ----- Botón azul de «Para profesionales»: texto blanco ----- */
+.na-landing .na-pro .na-cta-primary {
+  color: #ffffff;
+}
+
+/* ----- Preguntas frecuentes ----- */
+.na-landing .na-faq {
+  --na-bg: #ffffff;
+  --na-ink: #202124;
+  --na-muted: #5f6368;
+  --na-muted-2: #5f6368;
+  --na-line: #dadce0;
+  border-top: 1px solid #dadce0;
+}
+
+.na-landing .na-faq__item:hover {
+  background: #f8f9fa;
+}
+
+.na-landing .na-faq__more:hover {
+  color: var(--na-accent);
+}
+
+/* ----- Planes ----- */
+.na-landing .na-pricing {
+  --na-bg: #f8f9fa;
+  --na-ink: #202124;
+  --na-muted: #5f6368;
+  --na-muted-2: #80868b;
+  --na-line: #dadce0;
+  --na-card: #ffffff;
+  --na-outline: #dadce0;
+  border-top: 1px solid #dadce0;
+}
+
+.na-landing .na-pricing__toggle {
+  color: #5f6368;
+}
+
+/* «Ahorra X %»: chip. */
+.na-landing .na-pricing__badge {
+  border-color: transparent;
+  background: #e8f0fe;
+  color: #3461ff;
+}
+
+.na-landing .na-plan__badge,
+.na-landing .na-plan__cta--primary {
+  color: #ffffff;
+}
+
+/* Botones con borde (y el que era blanco sobre oscuro): fondo blanco, borde
+   gris claro y texto oscuro. */
+.na-landing .na-plan__cta--outline,
+.na-landing .na-plan__cta--light {
+  background: #ffffff;
+  border-color: #dadce0;
+  color: #202124;
+}
+
+.na-landing .na-plan__features li {
+  color: #5f6368;
+}
+
+/* Al pasar el ratón: sombra suave de fondo claro (la oscura pesaba mucho). */
+.na-landing .na-plan:hover {
+  box-shadow: 0 16px 40px rgba(32, 33, 36, 0.12);
+}
+
+/* ----- Pie ----- */
+.na-landing .na-footer {
+  --na-bg: #ffffff;
+  --na-ink: #202124;
+  --na-muted: #5f6368;
+  --na-muted-2: #80868b;
+  --na-line: #dadce0;
+  border-top: 1px solid #dadce0;
+}
+
+/* Azul liso: con el degradado, el blanco se leía poco en su lado claro. */
+.na-landing .na-footer__cta {
+  background: #3461ff;
+  color: #ffffff;
+}
+
+.na-landing .na-footer__lang {
+  color: #202124;
+}

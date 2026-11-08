@@ -1,0 +1,258 @@
+/* ============================================================
+   Portada (hero): efectos y animaciones. Solo transform y opacity, con
+   los tiempos que ya usa la landing (entradas 700/900 ms, botones 180 ms)
+   y la curva de la app (--ease-out-strong). Todo bajo .na-hero.
+   - Entrada: el menú baja un poco y aparece; el contenido sube en cascada
+     (los mismos retrasos de siempre) y la imagen llega con algo más de
+     profundidad. Después, la imagen flota muy despacio (se para fuera de
+     la pantalla) y el punto de «Disponible» late tres veces.
+   - Botones: al pasar el ratón suben 2 px y aparece su halo/fondo por
+     opacidad; al pulsar se hunden (scale 0.97). En pantallas táctiles, sin
+     efectos de ratón (que se quedaban «pegados» al tocar).
+   - Reducir animaciones: sin movimiento.
+   ============================================================ */
+
+/* ----- Entrada al cargar ----- */
+@keyframes na-hero-nav-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes na-hero-art-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Flotar: con «translate» (no transform), así se suma a la entrada. */
+@keyframes na-hero-flotar {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -8px;
+  }
+}
+
+@keyframes na-hero-latido {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+.na-hero > .na-nav {
+  animation: na-hero-nav-in 700ms var(--ease-out-strong) both;
+}
+
+/* Misma cascada y retrasos que antes (80–460 ms); solo cambia la curva.
+   (Con .na-hero delante: este archivo puede cargarse antes que global.css.) */
+.na-hero .na-hero__content > * {
+  animation-timing-function: var(--ease-out-strong);
+}
+
+.na-hero .na-hero__art {
+  animation:
+    na-hero-art-in 900ms var(--ease-out-strong) 200ms both,
+    na-hero-flotar 9s ease-in-out 1100ms infinite alternate;
+}
+
+/* Fuera de la pantalla, la imagen deja de flotar. */
+.na-hero[data-fuera] .na-hero__art {
+  animation-play-state: running, paused;
+}
+
+/* El punto de «Disponible en web y móvil» late tres veces y se queda. */
+.na-hero .na-eyebrow__dot {
+  position: relative;
+}
+
+.na-hero .na-eyebrow__dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--na-accent);
+  opacity: 0;
+  pointer-events: none;
+  animation: na-hero-latido 2400ms var(--ease-out-strong) 1200ms 3 both;
+}
+
+/* ----- Botones ----- */
+.na-hero .na-btn-primary,
+.na-hero .na-cta-primary,
+.na-hero .na-cta-secondary {
+  position: relative;
+  isolation: isolate;
+  transition: transform 180ms var(--ease-out-strong);
+}
+
+/* Halo de los botones azules: una sombra fija que aparece por opacidad. */
+.na-hero .na-btn-primary::after,
+.na-hero .na-cta-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: 0 10px 26px rgba(52, 97, 255, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+/* Fondo y borde azul del botón con borde: también por opacidad. */
+.na-hero .na-cta-secondary::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border: 1px solid var(--na-accent);
+  border-radius: inherit;
+  background: #e8f0fe;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.na-hero .na-cta-secondary svg {
+  transition: transform 180ms var(--ease-out-strong);
+}
+
+/* Sustituyen a los efectos de color/brillo de la landing en la portada. */
+.na-hero .na-btn-primary:hover,
+.na-hero .na-cta-primary:hover {
+  filter: none;
+  box-shadow: none;
+}
+
+.na-hero .na-cta-secondary:hover {
+  border-color: #dadce0;
+  background: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .na-hero .na-btn-primary:hover,
+  .na-hero .na-cta-primary:hover,
+  .na-hero .na-cta-secondary:hover {
+    transform: translateY(-2px);
+  }
+
+  .na-hero .na-btn-primary:hover::after,
+  .na-hero .na-cta-primary:hover::after,
+  .na-hero .na-cta-secondary:hover::before {
+    opacity: 1;
+  }
+
+  .na-hero .na-cta-secondary:hover svg {
+    transform: translate(2px, -2px);
+  }
+}
+
+/* Táctil: sin efectos de ratón que se queden pegados tras tocar. */
+@media (hover: none) {
+  .na-hero .na-btn-primary:hover,
+  .na-hero .na-cta-primary:hover,
+  .na-hero .na-cta-secondary:hover {
+    transform: none;
+  }
+}
+
+/* Al pulsar (ratón, dedo o teclado): se hunden un poco. */
+.na-hero .na-btn-primary:active,
+.na-hero .na-cta-primary:active,
+.na-hero .na-cta-secondary:active {
+  transform: scale(0.97);
+  transition-duration: 160ms;
+}
+
+/* Foco con teclado: el mismo halo/fondo que al pasar el ratón. */
+.na-hero .na-btn-primary:focus-visible::after,
+.na-hero .na-cta-primary:focus-visible::after,
+.na-hero .na-cta-secondary:focus-visible::before {
+  opacity: 1;
+}
+
+/* ----- Enlaces del menú: subrayado que crece desde la izquierda ----- */
+.na-hero .na-nav__links a {
+  position: relative;
+}
+
+.na-hero .na-nav__links a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 220ms var(--ease-out-strong);
+}
+
+.na-hero .na-nav__links a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .na-hero .na-nav__links a:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* ----- Barra de desplazamiento ----- */
+/* Su pista es transparente y deja ver el fondo oscuro de la página: sobre la
+   landing clara quedaba una franja azul oscura a la derecha. En la landing
+   (clase que pone HeroSection en <html>) la barra es clara, y también el
+   fondo que asoma al estirar la página arriba o abajo; mientras la sección
+   oscura del móvil ocupa la pantalla («na-zona-oscura»), vuelve la oscura. */
+html.na-portada-clara {
+  background-color: #f8f9fa;
+}
+
+html.na-portada-clara:not(.na-zona-oscura) {
+  scrollbar-color: rgba(32, 33, 36, 0.28) #f8f9fa;
+}
+
+/* ----- Reducir animaciones: sin movimiento ----- */
+@media (prefers-reduced-motion: reduce) {
+  .na-hero > .na-nav,
+  .na-hero .na-hero__art,
+  .na-hero .na-eyebrow__dot::after {
+    animation: none !important;
+  }
+
+  .na-hero .na-btn-primary,
+  .na-hero .na-cta-primary,
+  .na-hero .na-cta-secondary,
+  .na-hero .na-cta-secondary svg,
+  .na-hero .na-nav__links a::after {
+    transition: none;
+  }
+
+  .na-hero .na-btn-primary:hover,
+  .na-hero .na-cta-primary:hover,
+  .na-hero .na-cta-secondary:hover,
+  .na-hero .na-btn-primary:active,
+  .na-hero .na-cta-primary:active,
+  .na-hero .na-cta-secondary:active,
+  .na-hero .na-cta-secondary:hover svg {
+    transform: none;
+  }
+}

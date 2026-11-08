@@ -1,14 +1,38 @@
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import '../../styles/landing-hero.css'
 
 function HeroSection() {
+  const seccion = useRef<HTMLElement>(null)
+
+  // La landing es clara: barra de desplazamiento clara mientras se ve (la
+  // sección oscura del móvil la vuelve oscura con «na-zona-oscura»).
+  useEffect(() => {
+    const raiz = document.documentElement
+    raiz.classList.add('na-portada-clara')
+    return () => raiz.classList.remove('na-portada-clara')
+  }, [])
+
+  // La imagen flota despacio solo mientras la portada está en pantalla.
+  useEffect(() => {
+    const nodo = seccion.current
+    if (!nodo || typeof IntersectionObserver === 'undefined') return
+    const observador = new IntersectionObserver(([entrada]) => {
+      nodo.toggleAttribute('data-fuera', !entrada.isIntersecting)
+    })
+    observador.observe(nodo)
+    return () => observador.disconnect()
+  }, [])
+
   return (
-    <section className="na-hero">
+    <section ref={seccion} className="na-hero">
       <div className="na-hero__glow" aria-hidden="true" />
       <img className="na-hero__art" src="/images/imagen_hero.png" alt="" aria-hidden="true" />
 
       <nav className="na-nav">
         <div className="na-nav__logo">
-          <img src="/images/logo_1.png" alt="NeuroAudio" />
+          {/* Versión del logo para fondo claro (letras oscuras, azul igual). */}
+          <img src="/images/logo_claro.png" alt="NeuroAudio" />
         </div>
         <ul className="na-nav__links">
           <li>Cómo funciona</li>

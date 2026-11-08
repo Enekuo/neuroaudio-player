@@ -12,17 +12,33 @@
   position: relative;
   overflow: hidden;
   background: var(--na-bg);
-  padding: clamp(72px, 9vw, 120px) clamp(20px, 4vw, 48px);
+  padding: clamp(44px, 5.8vw, 76px) clamp(20px, 4vw, 48px);
   color: var(--na-ink);
 }
 
+/* Forma: una tarjeta con esquinas muy redondeadas y margen alrededor, sobre
+   el fondo claro de la landing (no una franja de lado a lado). */
+.na-landing {
+  background: #f8f9fa;
+}
+
+.na-cliente {
+  width: calc(100% - 2 * clamp(20px, 7vw, 120px));
+  max-width: 1200px;
+  margin: clamp(8px, 1.5vw, 20px) auto;
+  border-radius: clamp(24px, 3.6vw, 52px);
+  isolation: isolate;
+}
+
 .na-cliente__inner {
-  max-width: 1180px;
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   align-items: center;
-  gap: clamp(40px, 6vw, 96px);
+  gap: clamp(32px, 4.8vw, 72px);
 }
 
 /* ----- Móvil ----- */
@@ -50,7 +66,7 @@
 
 /* Marco del móvil (HTML/CSS, sin imágenes). Todo se escala con --ancho. */
 .na-cliente__telefono {
-  --ancho: clamp(230px, 24vw, 320px);
+  --ancho: clamp(196px, 19.5vw, 260px);
   --bisel: calc(var(--ancho) * 0.034);
   --radio: calc(var(--ancho) * 0.165);
   position: relative;
@@ -131,7 +147,7 @@
   margin: 0 0 22px;
   font-family: 'Poppins', system-ui, sans-serif;
   font-weight: 600;
-  font-size: clamp(32px, 4.3vw, 60px);
+  font-size: clamp(28px, 3.5vw, 48px);
   line-height: 1.1;
   letter-spacing: -0.02em;
   color: var(--na-ink);
@@ -141,7 +157,7 @@
 .landing-root.landing-root .na-cliente__lead {
   margin: 0 0 34px;
   max-width: 34em;
-  font-size: clamp(17px, 1.6vw, 22px);
+  font-size: clamp(15.5px, 1.3vw, 18px);
   line-height: 1.6;
   color: var(--na-muted);
 }
@@ -161,7 +177,7 @@
 }
 
 .landing-root.landing-root .na-cliente__lineas li {
-  font-size: clamp(16px, 1.45vw, 20px);
+  font-size: clamp(14.5px, 1.2vw, 16.5px);
   line-height: 1.5;
   color: var(--na-ink);
 }
@@ -183,15 +199,33 @@
   height: 62%;
 }
 
-/* Escritorio: mismo aire visible arriba y abajo. «Para profesionales» sigue
-   con el mismo fondo y sin línea, así que su margen superior (96 px) ya
-   cuenta como espacio bajo el móvil: aquí abajo se deja lo que falta. */
+/* Escritorio: mismo aire arriba y abajo. La sección es oscura entre dos
+   claras (portada y «Para profesionales»), así que sus bordes se ven y el
+   espacio se mide hasta ellos: el mismo arriba y abajo. */
 @media (min-width: 901px) {
   .na-cliente {
-    --aire: clamp(96px, 11.5vw, 168px);
-    padding-top: var(--aire);
-    padding-bottom: max(24px, calc(var(--aire) - 96px));
+    padding-top: clamp(56px, 6.2vw, 88px);
+    padding-bottom: clamp(56px, 6.2vw, 88px);
   }
+}
+
+/* Insignias oficiales de App Store y Google Play (solo visuales). Misma
+   altura las dos; el espacio entre ellas respeta el margen mínimo que piden
+   Apple y Google. Sin efectos: no son botones. */
+.na-cliente__tiendas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* Alineadas a la derecha de la columna de texto: Google Play y App Store. */
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: clamp(28px, 3vw, 40px);
+}
+
+.na-cliente__tiendas img {
+  display: block;
+  height: clamp(34px, 2.8vw, 40px);
+  width: auto;
 }
 
 /* Móvil y tableta: el texto arriba, el móvil debajo. */
@@ -202,5 +236,147 @@
 
   .na-cliente__texto {
     order: -1;
+  }
+
+  /* Hueco para que, al flotar (sube 26 px), no roce las insignias. */
+  .na-cliente__movil {
+    margin-top: 20px;
+  }
+}
+
+/* ============================================================
+   Efecto del móvil (sección del oyente): más visual.
+   - Entrada: sube desde abajo inclinado en 3D y girado, y se endereza
+     (1200 ms, empezando a los 400 ms, con --ease-out-strong).
+   - Después flota con un balanceo marcado, el halo azul de detrás «respira» y
+     un reflejo de luz cruza la pantalla cada pocos segundos.
+   Solo transform y opacity (y sus propiedades sueltas translate, rotate y
+   scale, para no pisarse). Fuera de pantalla se pausa; con «Reducir
+   animaciones», todo quieto.
+   ============================================================ */
+@keyframes na-cliente-movil-in {
+  from {
+    opacity: 0;
+    transform: translateY(90px) rotateX(28deg) rotateZ(-7deg) scale(0.86);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes na-cliente-flotar {
+  from {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  /* Más marcado: sube 26 px y se balancea 3°. */
+  to {
+    translate: 0 -26px;
+    rotate: -3deg;
+  }
+}
+
+@keyframes na-cliente-respirar {
+  from {
+    opacity: 0.65;
+    scale: 0.9;
+  }
+  to {
+    opacity: 1;
+    scale: 1.1;
+  }
+}
+
+/* El reflejo cruza en el primer 30 % del ciclo y descansa el resto. */
+@keyframes na-cliente-reflejo {
+  0% {
+    transform: translateX(-130%) skewX(-12deg);
+  }
+  30%,
+  100% {
+    transform: translateX(130%) skewX(-12deg);
+  }
+}
+
+.na-cliente__movil {
+  perspective: 1200px;
+}
+
+/* Antes de entrar en pantalla, oculto (lo muestra la entrada). */
+.na-cliente__telefono {
+  opacity: 0;
+  transform-origin: 50% 80%;
+}
+
+.na-cliente__movil.is-visible .na-cliente__telefono {
+  animation:
+    na-cliente-movil-in 1200ms var(--ease-out-strong) 400ms both,
+    na-cliente-flotar 6s ease-in-out 1600ms infinite alternate;
+}
+
+.na-cliente__brillo {
+  animation: na-cliente-respirar 4s ease-in-out infinite alternate;
+}
+
+.na-cliente__reflejo {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  transform: translateX(-130%) skewX(-12deg);
+}
+
+.na-cliente__movil.is-visible .na-cliente__reflejo {
+  animation: na-cliente-reflejo 5200ms var(--ease-out-strong) 2000ms infinite;
+}
+
+/* Fuera de la pantalla: todo en pausa. */
+.na-cliente[data-fuera] .na-cliente__telefono,
+.na-cliente[data-fuera] .na-cliente__brillo,
+.na-cliente[data-fuera] .na-cliente__reflejo {
+  animation-play-state: paused;
+}
+
+/* En móvil, la entrada recorre menos (la pantalla es pequeña). */
+@media (max-width: 560px) {
+  @keyframes na-cliente-movil-in {
+    from {
+      opacity: 0;
+      transform: translateY(60px) rotateX(24deg) rotateZ(-5deg) scale(0.9);
+    }
+    60% {
+      opacity: 1;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .na-cliente__telefono,
+  .na-cliente__movil.is-visible .na-cliente__telefono {
+    opacity: 1;
+    animation: none;
+  }
+
+  .na-cliente__brillo,
+  .na-cliente__movil.is-visible .na-cliente__reflejo {
+    animation: none;
+  }
+
+  .na-cliente__reflejo {
+    display: none;
   }
 }

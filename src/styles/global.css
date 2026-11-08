@@ -6330,26 +6330,42 @@ input[type='submit']:active,
 }
 
 /* ===== Hero nuevo (na-*) ===== */
+/* Portada en versión clara (paleta del panel profesional). La imagen de
+   fondo (/images/fondo_hero.png) ya no se usa aquí, pero se conserva. */
 .na-hero {
-  --na-bg: #070a13;
+  --na-bg: #f8f9fa;
   --na-accent: #3461ff;
-  --na-ink: #f5f6fa;
-  --na-muted: #9aa3b8;
-  --na-muted-2: #6c7590;
-  --na-line: #232b48;
-  --na-btn-outline: #2a3350;
+  --na-ink: #202124;
+  --na-muted: #5f6368;
+  --na-muted-2: #80868b;
+  --na-line: #dadce0;
+  --na-btn-outline: #dadce0;
   position: relative;
   width: 100%;
-  background: var(--na-bg) url('/images/fondo_hero.png') center / cover no-repeat;
+  background: var(--na-bg);
   overflow: hidden;
   font-family: 'Manrope', system-ui, sans-serif;
 }
 
+/* Fondo liso: sin el resplandor azul de la versión oscura. */
 .na-hero__glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(1100px 700px at 78% 38%, rgba(58, 92, 209, 0.2) 0%, rgba(7, 10, 19, 0) 62%);
+  background: none;
   pointer-events: none;
+}
+
+/* Botones de la portada sobre fondo claro (solo aquí: los mismos botones de
+   otras secciones y páginas no cambian). */
+.na-hero .na-btn-primary,
+.na-hero .na-cta-primary {
+  color: #ffffff;
+}
+
+.na-hero .na-cta-secondary {
+  background: #ffffff;
+  border-color: #dadce0;
+  color: #202124;
 }
 
 .na-hero__art {
@@ -6553,9 +6569,11 @@ input[type='submit']:active,
 }
 
 /* ===== Efectos landing nueva (na-*): entrada al hacer scroll + hovers ===== */
+/* Al desplazarse: sobre todo un fundido, con un recorrido corto (8 px). Con
+   24 px, varias secciones subiendo a la vez durante el scroll mareaban. */
 .na-reveal {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(8px);
   transition: opacity 700ms ease, transform 700ms ease;
   transition-delay: var(--reveal-delay, 0ms);
 }
@@ -13392,20 +13410,20 @@ input[type='submit']:active,
 }
 
 /* ============================================================
-   Landing: «Para profesionales» (bajo la franja de confianza). Mismos
-   colores oscuros que el resto de la landing, el texto a la izquierda y una
+   Landing: «Para profesionales» (bajo la franja de confianza). Fondo
+   claro, con la paleta del panel profesional, el texto a la izquierda y una
    ilustración del panel (HTML/CSS) a la derecha; en móvil, debajo.
    Mismas fuentes, botón y márgenes que el resto de la landing.
    ============================================================ */
 .na-pro {
   --na-accent: #3461ff;
-  --na-ink: #f5f6fa;
-  --na-muted: #9aa3b8;
-  --na-muted-2: #6c7590;
-  --na-line: #1c2438;
-  --na-card: #0c1018;
-  --na-outline: #2a3350;
-  background: #070a13;
+  --na-ink: #202124;
+  --na-muted: #5f6368;
+  --na-muted-2: #80868b;
+  --na-line: #dadce0;
+  --na-card: #ffffff;
+  --na-outline: #dadce0;
+  background: #f8f9fa;
   padding: 96px clamp(20px, 4vw, 48px);
   font-family: 'Manrope', system-ui, sans-serif;
   color: var(--na-ink);
@@ -13499,8 +13517,8 @@ input[type='submit']:active,
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: rgba(52, 97, 255, 0.14);
-  color: #5b8cff;
+  background: #e8f0fe;
+  color: #3461ff;
 }
 
 .na-pro__icono svg {
@@ -13517,7 +13535,7 @@ input[type='submit']:active,
   border: 1px solid var(--na-line);
   border-radius: 18px;
   background: var(--na-card);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 24px 60px rgba(32, 33, 36, 0.12);
   overflow: hidden;
 }
 
@@ -13538,7 +13556,7 @@ input[type='submit']:active,
 .na-pro__panel-cuerpo {
   display: grid;
   grid-template-columns: 110px minmax(0, 1fr);
-  background: #070a13;
+  background: #f8f9fa;
 }
 
 .na-pro__panel-lateral {
@@ -13553,12 +13571,12 @@ input[type='submit']:active,
 .na-pro__panel-lateral span {
   height: 10px;
   border-radius: 999px;
-  background: var(--na-line);
+  background: #e8eaed;
 }
 
 .na-pro__panel-lateral span.is-activo {
   height: 22px;
-  background: rgba(52, 97, 255, 0.22);
+  background: #e8f0fe;
 }
 
 .na-pro__panel-tarjeta {
@@ -13595,8 +13613,8 @@ input[type='submit']:active,
 
 .na-pro__chip--verde {
   border-color: transparent;
-  background: rgba(52, 97, 255, 0.16);
-  color: #5b8cff;
+  background: #e8f0fe;
+  color: #3461ff;
 }
 
 .na-pro__panel-pasos {
@@ -13623,7 +13641,7 @@ input[type='submit']:active,
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  background: var(--na-line);
+  background: #f1f3f4;
   font-size: 12px;
   font-weight: 700;
   color: var(--na-muted);

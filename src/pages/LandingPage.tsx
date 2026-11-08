@@ -6,8 +6,8 @@ import '@fontsource/dm-sans/500.css'
 import '@fontsource/dm-sans/600.css'
 import '@fontsource/dm-sans/700.css'
 import '../styles/landing.css'
+import '../styles/landing-claro.css'
 import HeroSection from '../components/landing/HeroSection'
-import ProfessionalsSection from '../components/landing/ProfessionalsSection'
 import ClienteAppSection from '../components/landing/ClienteAppSection'
 import ParaProfesionalesSection from '../components/landing/ParaProfesionalesSection'
 import Faq from '../components/landing/Faq'
@@ -16,9 +16,8 @@ import Footer from '../components/landing/Footer'
 
 function LandingPage() {
   return (
-    <div className="landing-root">
+    <div className="landing-root na-landing">
       <HeroSection />
-      <ProfessionalsSection />
       <ClienteAppSection />
       <ParaProfesionalesSection />
       <Faq />
