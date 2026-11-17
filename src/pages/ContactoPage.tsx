@@ -122,8 +122,11 @@ function ContactoPage() {
     window.scrollTo(0, 0)
     const anterior = document.title
     document.title = 'Contacto · NeuroAudio'
+    // Página clara: barra de desplazamiento y fondo de la ventana claros.
+    document.documentElement.classList.add('na-contacto-clara')
     return () => {
       document.title = anterior
+      document.documentElement.classList.remove('na-contacto-clara')
     }
   }, [])
 
@@ -198,7 +201,7 @@ function ContactoPage() {
       }
       onClickCapture={alPulsarEnlace}
     >
-      <NavSimple />
+      <NavSimple claro />
 
       <main className="na-contacto__contenido">
         <div className="na-contacto__intro">

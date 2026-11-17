@@ -1,0 +1,36 @@
+/* ============================================================
+   Pie: bloque de marca a la izquierda (logotipo «N» + NeuroAudio, correo
+   de contacto y redes).
+   Usa los colores del pie (--na-ink, --na-muted), así que vale tanto en el
+   pie claro de la landing y contacto como en el oscuro de las legales.
+   ============================================================ */
+.na-footer__marca {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 300px;
+}
+
+.na-footer__logo {
+  display: inline-flex;
+  align-items: center;
+  --logo-n: 40px;
+  --logo-texto: 28px;
+  color: var(--na-ink);
+  text-decoration: none;
+}
+
+.landing-root.landing-root .na-footer__contacto {
+  margin-top: 22px;
+  font-size: 15px;
+  color: var(--na-muted);
+  text-decoration: none;
+}
+
+.na-footer__contacto:hover {
+  color: var(--na-ink);
+}
+
+.na-footer__marca .na-footer__social {
+  margin: 22px 0 0;
+}

@@ -541,5 +541,54 @@ service cloud.firestore {
         && request.resource.data.creadoEn == request.time;
       allow read, update, delete: if false;
     }
+
+    // ---------- Soporte del panel profesional (mensajesSoporte) ----------
+    // Un usuario con sesión puede CREAR un mensaje (un problema o un
+    // comentario), solo con estos campos, tipos, longitudes y valores (los
+    // mismos que src/features/profesional/soporte/modelo.ts), con SU uid,
+    // SU correo verificado de la cuenta, estado 'nuevo' y la hora del
+    // servidor. Nadie los lee, cambia ni borra desde la app.
+    match /mensajesSoporte/{mensajeId} {
+      function paginaSoporteValida(pagina) {
+        return pagina in ['dashboard', 'perfil', 'oyentes', 'mis-audios', 'audios', 'listas', 'mensajes', 'estadisticas', 'ajustes', 'otra'];
+      }
+      function contextoSoporteValido(c) {
+        return c is map
+          && c.keys().hasAll(['ruta', 'navegador', 'modo'])
+          && c.keys().hasOnly(['ruta', 'navegador', 'modo'])
+          && c.ruta is string
+          && c.ruta.size() <= 200
+          && c.ruta.matches('^/profesional(/.*)?$')
+          && c.navegador is string
+          && c.navegador.size() <= 200
+          && c.modo in ['claro', 'oscuro'];
+      }
+      function mensajeSoporteValido(d) {
+        return d.keys().hasAll(
+              ['uid', 'nombre', 'correo', 'tipo', 'subtipo', 'pagina', 'texto', 'creadoEn', 'estado', 'contexto'])
+          && d.keys().hasOnly(
+              ['uid', 'nombre', 'correo', 'tipo', 'subtipo', 'pagina', 'texto', 'creadoEn', 'estado', 'contexto'])
+          && d.uid == request.auth.uid
+          && request.auth.token.email is string
+          && request.auth.token.email_verified == true
+          && d.correo == request.auth.token.email
+          && d.nombre is string
+          && d.nombre.size() <= 100
+          && d.tipo in ['problema', 'comentario']
+          && (d.tipo == 'problema'
+              ? d.subtipo == null
+              : d.subtipo in ['sugerencia', 'me_gusta', 'no_me_gusta'])
+          && paginaSoporteValida(d.pagina)
+          && d.texto is string
+          && d.texto.trim().size() >= 10
+          && d.texto.size() <= 2000
+          && d.creadoEn == request.time
+          && d.estado == 'nuevo'
+          && contextoSoporteValido(d.contexto);
+      }
+      allow create: if request.auth != null
+        && mensajeSoporteValido(request.resource.data);
+      allow read, update, delete: if false;
+    }
   }
 }

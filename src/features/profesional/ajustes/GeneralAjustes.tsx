@@ -16,6 +16,11 @@ import {
   getStoredReducedMotion,
 } from '../../settings/utils/reducedMotion'
 import { animacionFundido } from '../theme/movimiento'
+import { useModoColor, type PreferenciaModo } from '../theme/modoColor'
+import {
+  continuarActivado,
+  guardarContinuarActivado,
+} from '../../player/continuar/posiciones'
 import { Apartado, CabeceraAjustes, Fila } from './comunes'
 
 /**
@@ -23,7 +28,8 @@ import { Apartado, CabeceraAjustes, Fila } from './comunes'
  * está por llegar), con la misma lógica: el nombre preferido se guarda en
  * users/{uid} (el mismo dato que usa la app para saludar) y «Reducir
  * animaciones» en este dispositivo (vale para la app y el panel). Única
- * diferencia: «Apariencia» dice la verdad del panel, que es claro.
+ * diferencia: «Apariencia» es la del panel (claro, oscuro o la del sistema),
+ * la misma que cambia el botón de la luna de la barra de utilidades.
  */
 function GeneralAjustes() {
   const { user } = useAuth()
@@ -37,6 +43,14 @@ function GeneralAjustes() {
   const [reducirAnimaciones, setReducirAnimaciones] = useState(() =>
     getStoredReducedMotion(),
   )
+  const { modo, preferencia, cambiarPreferencia } = useModoColor()
+  // «Continuar donde lo dejaste»: en este dispositivo, como «Reducir
+  // animaciones» (vale para la app y el panel). Desactivado por defecto.
+  const [continuar, setContinuar] = useState(() => continuarActivado())
+  const ayudaApariencia =
+    preferencia === 'sistema'
+      ? `Sigue el modo de tu dispositivo: ahora, ${modo === 'dark' ? 'oscuro' : 'claro'}.`
+      : 'También puedes cambiarlo con el botón de la luna, a la derecha.'
 
   useEffect(() => {
     if (!nombreTocado && profile?.displayNamePref !== undefined) {
@@ -165,20 +179,30 @@ function GeneralAjustes() {
       </Apartado>
 
       <Apartado id="ajustes-general-preferencias" titulo="Preferencias">
-        <Fila etiqueta="Apariencia" ayuda="El panel usa el modo claro.">
+        <Fila etiqueta="Apariencia" ayuda={ayudaApariencia}>
           <ToggleButtonGroup
             exclusive
             size="small"
-            value="claro"
+            value={preferencia}
+            onChange={(_, valor: PreferenciaModo | null) =>
+              // Pulsar la opción ya elegida no la deja sin ninguna.
+              valor && cambiarPreferencia(valor)
+            }
             aria-label="Apariencia"
+            sx={{
+              // La elegida, con el resaltado del elemento activo del menú.
+              '& .MuiToggleButton-root': { color: 'text.secondary', px: 1.5 },
+              '& .MuiToggleButton-root.Mui-selected, & .MuiToggleButton-root.Mui-selected:hover':
+                {
+                  bgcolor: 'primary.light',
+                  color: 'primary.dark',
+                  fontWeight: 500,
+                },
+            }}
           >
-            <ToggleButton value="sistema" disabled>
-              Sistema
-            </ToggleButton>
-            <ToggleButton value="claro">Claro</ToggleButton>
-            <ToggleButton value="oscuro" disabled>
-              Oscuro
-            </ToggleButton>
+            <ToggleButton value="sistema">Sistema</ToggleButton>
+            <ToggleButton value="light">Claro</ToggleButton>
+            <ToggleButton value="dark">Oscuro</ToggleButton>
           </ToggleButtonGroup>
         </Fila>
         <Fila
@@ -212,33 +236,17 @@ function GeneralAjustes() {
         </Fila>
       </Apartado>
 
-      <Apartado
-        id="ajustes-general-reproduccion"
-        titulo="Reproducción"
-        proximamente
-      >
-        <Fila
-          etiqueta="Velocidad por defecto"
-          ayuda="Elige la velocidad con la que empiezan tus audios."
-        >
-          <TextField
-            select
-            size="small"
-            defaultValue="normal"
-            disabled
-            sx={{ minWidth: 140 }}
-            slotProps={{ htmlInput: { 'aria-label': 'Velocidad por defecto' } }}
-          >
-            <MenuItem value="normal">Normal</MenuItem>
-          </TextField>
-        </Fila>
+      <Apartado id="ajustes-general-reproduccion" titulo="Reproducción">
         <Fila
           etiqueta="Continuar donde lo dejaste"
-          ayuda="Retoma automáticamente tus audios desde el último punto."
+          ayuda="Al volver a un audio que dejaste a medias, te preguntamos si quieres continuar o empezar de nuevo."
         >
           <Switch
-            checked={false}
-            disabled
+            checked={continuar}
+            onChange={(e) => {
+              setContinuar(e.target.checked)
+              guardarContinuarActivado(e.target.checked)
+            }}
             slotProps={{
               input: { 'aria-label': 'Continuar donde lo dejaste' },
             }}

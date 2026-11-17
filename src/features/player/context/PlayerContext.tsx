@@ -15,6 +15,13 @@ import { registrarReproduccion } from '../../library/services/audioService'
 import { avisarFinDePista } from '../utils/finDePista'
 import { useDataUrl, useProfesionalDePista } from '../../perfilProfesional/useProfesionalDePista'
 import { usePortadaDePista } from '../../audiosProfesional/usePortadaDePista'
+import DialogoContinuar from '../components/DialogoContinuar'
+import {
+  continuarActivado,
+  guardarPosicion,
+  leerPosiciones,
+  posicionParaPreguntar,
+} from '../continuar/posiciones'
 
 export type AudioTrack = {
   id: string
@@ -130,6 +137,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // entonces no se reproduce sola ni cuenta como reproducción nueva, y se
   // coloca en el segundo donde estaba.
   const restoreRef = useRef<{ trackId: string; time: number } | null>(null)
+  // «Continuar donde lo dejaste»: segundo en el que debe empezar la próxima
+  // pista que se cargue (solo tras elegir «Continuar desde…» en la pregunta).
+  const comienzoRef = useRef<{ trackId: string; time: number } | null>(null)
+  // La pregunta «¿Continuar donde lo dejaste?», con lo necesario para abrir
+  // el audio cuando se elija (o null si no hay pregunta abierta).
+  const [pregunta, setPregunta] = useState<{
+    track: AudioTrack
+    queue?: AudioTrack[]
+    options?: { autoAdvance?: boolean }
+    segundo: number
+  } | null>(null)
   // Volumen "general" del usuario (el que usa en los audios SIN programación
   // guardada). Al pasar de un audio programado a otro que no lo está, se
   // vuelve a este volumen en vez de arrastrar el del programa anterior.
@@ -582,6 +600,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     const restore = restoreRef.current?.trackId === currentTrack.id ? restoreRef.current : null
     restoreRef.current = null
+    // «Continuar desde…»: el segundo donde se dejó (0 en cualquier otro caso).
+    const comienzo = comienzoRef.current?.trackId === currentTrack.id ? comienzoRef.current.time : 0
+    comienzoRef.current = null
     // Pulsada a mano: queda en pausa y el primer play aplica su retardo.
     pendingStartRef.current = !autoStart && !restore
     if (!autoStart) {
@@ -672,16 +693,38 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      // Pulsada a mano: se queda en pausa, lista para darle a play.
-      if (!autoStart) {
+      const arrancar = () => {
+        // Pulsada a mano: se queda en pausa, lista para darle a play.
+        if (!autoStart) {
+          return
+        }
+
+        if (schedule?.startDelayEnabled && schedule.startDelaySeconds > 0) {
+          startDelayCountdown(schedule.startDelaySeconds)
+        } else {
+          playRobust()
+        }
+      }
+
+      // «Continuar desde…»: primero se coloca en su segundo y luego arranca.
+      if (comienzo > 0) {
+        const colocar = () => {
+          if (loadedTrackIdRef.current !== trackId) {
+            return
+          }
+          audioElNow.currentTime = comienzo
+          setCurrentTime(comienzo)
+          arrancar()
+        }
+        if (audioElNow.readyState >= 1) {
+          colocar()
+        } else {
+          audioElNow.addEventListener('loadedmetadata', colocar, { once: true })
+        }
         return
       }
 
-      if (schedule?.startDelayEnabled && schedule.startDelaySeconds > 0) {
-        startDelayCountdown(schedule.startDelaySeconds)
-      } else {
-        playRobust()
-      }
+      arrancar()
     }
 
     loadScheduleAndPlay()
@@ -737,8 +780,33 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     navigator.mediaSession.playbackState = delayCountdown !== null ? 'paused' : isPlaying ? 'playing' : 'paused'
   }, [isPlaying, delayCountdown])
 
-  const playTrack = useCallback(
-    (track: AudioTrack, newQueue?: AudioTrack[], options?: { autoAdvance?: boolean }) => {
+  // «Continuar donde lo dejaste»: guarda en el dispositivo por dónde va el
+  // audio cargado. Solo con el ajuste activado y con sesión; si no, nada.
+  const pistaConPosicionRef = useRef<string | null>(null)
+  useEffect(() => {
+    pistaConPosicionRef.current = currentTrack?.id ?? null
+  }, [currentTrack?.id])
+  const guardarPosicionActual = useCallback(
+    (terminado = false) => {
+      const audioEl = audioRef.current
+      const trackId = pistaConPosicionRef.current
+      if (!uid || !audioEl || !trackId || !audioEl.getAttribute('src') || !continuarActivado()) {
+        return
+      }
+      const total = audioEl.duration
+      // Terminado: se guarda como «al final», que lo borra.
+      guardarPosicion(uid, trackId, terminado ? total : audioEl.currentTime, total)
+    },
+    [uid],
+  )
+
+  const iniciarPista = useCallback(
+    (
+      track: AudioTrack,
+      newQueue: AudioTrack[] | undefined,
+      options: { autoAdvance?: boolean } | undefined,
+      arrancarYa: boolean,
+    ) => {
       const list = newQueue ?? queueRef.current
       const index = list.findIndex((item) => item.id === track.id)
 
@@ -753,7 +821,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       // Pulsado a mano: parado hasta darle a play, salvo que el usuario haya
       // activado «Reproducir al abrir un audio». Si el navegador no deja que
       // suene solo, se queda parado con el play visible, como sin la opción.
-      autoStartNextRef.current = reproducirAlAbrirRef.current
+      // Tras elegir en «¿Continuar donde lo dejaste?», suena ya.
+      autoStartNextRef.current = arrancarYa || reproducirAlAbrirRef.current
 
       // Cualquier cuenta atrás pendiente de una pista anterior deja de tener
       // sentido: la nueva pista decide desde cero si le toca esperar o no
@@ -765,6 +834,88 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     },
     [cancelStartDelay],
   )
+
+  const playTrack = useCallback(
+    (track: AudioTrack, newQueue?: AudioTrack[], options?: { autoAdvance?: boolean }) => {
+      // El audio que se deja: se anota por dónde iba.
+      guardarPosicionActual()
+
+      // Con «Continuar donde lo dejaste» activado, un audio a medias pregunta
+      // antes de sonar (salvo que sea el que ya está cargado). Sin el ajuste,
+      // ni se lee nada: todo sigue como siempre.
+      if (uid && continuarActivado() && track.id !== loadedTrackIdRef.current) {
+        const segundo = posicionParaPreguntar(leerPosiciones(uid), track.id, Date.now())
+        if (segundo !== null) {
+          setPregunta({ track, queue: newQueue, options, segundo })
+          return
+        }
+      }
+
+      iniciarPista(track, newQueue, options, false)
+    },
+    [uid, guardarPosicionActual, iniciarPista],
+  )
+
+  const responderPregunta = useCallback(
+    (respuesta: 'continuar' | 'empezar' | 'cerrar') => {
+      const actual = pregunta
+      setPregunta(null)
+      if (!actual || respuesta === 'cerrar') {
+        // Cerrada sin elegir: no suena nada.
+        return
+      }
+      if (respuesta === 'continuar') {
+        comienzoRef.current = { trackId: actual.track.id, time: actual.segundo }
+      }
+      iniciarPista(actual.track, actual.queue, actual.options, true)
+    },
+    [pregunta, iniciarPista],
+  )
+
+  // Momentos en que se anota la posición (solo con el ajuste activado; la
+  // función no hace nada si no): al pausar, al terminar, al salir del
+  // reproductor, al pasar la pestaña a segundo plano y cada 10 s mientras suena.
+  useEffect(() => {
+    const audioEl = audioRef.current
+    if (!audioEl) {
+      return
+    }
+    const alPausar = () => guardarPosicionActual()
+    const alTerminar = () => guardarPosicionActual(true)
+    const alOcultar = () => {
+      if (document.visibilityState === 'hidden') {
+        guardarPosicionActual()
+      }
+    }
+    const alSalirDeLaPagina = () => guardarPosicionActual()
+    audioEl.addEventListener('pause', alPausar)
+    audioEl.addEventListener('ended', alTerminar)
+    document.addEventListener('visibilitychange', alOcultar)
+    window.addEventListener('pagehide', alSalirDeLaPagina)
+    return () => {
+      audioEl.removeEventListener('pause', alPausar)
+      audioEl.removeEventListener('ended', alTerminar)
+      document.removeEventListener('visibilitychange', alOcultar)
+      window.removeEventListener('pagehide', alSalirDeLaPagina)
+    }
+  }, [guardarPosicionActual])
+
+  useEffect(() => {
+    if (!isPlaying) {
+      return
+    }
+    const intervalo = window.setInterval(() => guardarPosicionActual(), 10_000)
+    return () => window.clearInterval(intervalo)
+  }, [isPlaying, guardarPosicionActual])
+
+  // Al salir del reproductor a pantalla completa (o cerrarlo).
+  const estabaExpandidoRef = useRef(false)
+  useEffect(() => {
+    if (estabaExpandidoRef.current && !isExpanded) {
+      guardarPosicionActual()
+    }
+    estabaExpandidoRef.current = isExpanded
+  }, [isExpanded, guardarPosicionActual])
 
   const togglePlay = useCallback(() => {
     const audioEl = audioRef.current
@@ -1185,6 +1336,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     <PlayerContext.Provider value={value}>
       {children}
       <audio ref={audioRef} preload="metadata" />
+      {pregunta && (
+        <DialogoContinuar
+          titulo={pregunta.track.name}
+          segundo={pregunta.segundo}
+          onContinuar={() => responderPregunta('continuar')}
+          onEmpezar={() => responderPregunta('empezar')}
+          onCerrar={() => responderPregunta('cerrar')}
+        />
+      )}
     </PlayerContext.Provider>
   )
 }

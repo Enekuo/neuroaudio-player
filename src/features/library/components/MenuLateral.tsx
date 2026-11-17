@@ -12,6 +12,8 @@ import { useUserListas } from '../hooks/useUserListas'
 import ModalCrearLista from './ModalCrearLista'
 import ModalSubirAudio from './ModalSubirAudio'
 import TemplateIcon from './TemplateIcon'
+import EnlacePanelProfesional from '../../cambioDePanel/EnlacePanelProfesional'
+import { useEsProfesional } from '../../cambioDePanel/useEsProfesional'
 
 const navigationItems = [
   {
@@ -62,6 +64,8 @@ const navigationItems = [
 
 function MenuLateral() {
   const { user } = useAuth()
+  // «Panel del profesional», abajo del todo: solo para profesionales.
+  const esProfesional = useEsProfesional()
   const { profile } = useUserProfile()
   const { listas } = useUserListas()
   const displayName = profile?.displayNamePref?.trim() || user?.displayName || user?.email || 'Mi cuenta'
@@ -213,6 +217,7 @@ function MenuLateral() {
               </div>
             ) : null}
           </div>
+          <EnlacePanelProfesional esProfesional={esProfesional} variante="lateral" />
         </div>
       </aside>
 

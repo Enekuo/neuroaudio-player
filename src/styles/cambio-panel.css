@@ -1,0 +1,124 @@
+/* «Panel del profesional» en la app del oyente (EnlacePanelProfesional.tsx).
+   Mismo lenguaje que la barra lateral y la cabecera de Inicio: fila con
+   borde suave como la de la cuenta, e icono gris como la lupa. */
+
+/* ---------- Barra lateral (ordenador) ---------- */
+.cambio-panel-lateral {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 100ms ease-out,
+    opacity 100ms ease-out;
+}
+
+.cambio-panel-lateral:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.cambio-panel-lateral:active {
+  opacity: 0.55;
+  transform: scale(0.97);
+}
+
+.cambio-panel-lateral:focus-visible {
+  outline: 2px solid #6aaeff;
+  outline-offset: 2px;
+}
+
+.cambio-panel-lateral__icono {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Tooltip «Ir al panel del profesional»: encima, al pasar el ratón o con
+   el foco de teclado. */
+.cambio-panel-lateral__ayuda {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translate(-50%, 4px);
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  background: #3a3b40;
+  color: #f0f1f3;
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.cambio-panel-lateral:focus-visible .cambio-panel-lateral__ayuda {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cambio-panel-lateral:hover .cambio-panel-lateral__ayuda {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 400ms;
+  }
+}
+
+/* ---------- Cabecera de Inicio (móvil) ---------- */
+.cambio-panel-movil {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition:
+    color 140ms ease,
+    transform 100ms ease-out,
+    opacity 100ms ease-out;
+}
+
+.cambio-panel-movil svg {
+  width: 24px;
+  height: 24px;
+}
+
+.cambio-panel-movil:active {
+  opacity: 0.55;
+  transform: scale(0.94);
+}
+
+.cambio-panel-movil:focus-visible {
+  outline: 2px solid #6aaeff;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* En ordenador, como la corona y la cuenta de esa fila, no se ve: está en
+   la barra lateral. */
+@media (min-width: 641px) and (hover: hover) and (pointer: fine) {
+  .cambio-panel-movil {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cambio-panel-lateral,
+  .cambio-panel-lateral__ayuda,
+  .cambio-panel-movil {
+    transition: none;
+  }
+}

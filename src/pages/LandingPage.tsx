@@ -12,6 +12,7 @@ import ClienteAppSection from '../components/landing/ClienteAppSection'
 import ParaProfesionalesSection from '../components/landing/ParaProfesionalesSection'
 import Faq from '../components/landing/Faq'
 import Pricing from '../components/landing/Pricing'
+import CtaFinalSection from '../components/landing/CtaFinalSection'
 import Footer from '../components/landing/Footer'
 
 function LandingPage() {
@@ -22,7 +23,8 @@ function LandingPage() {
       <ParaProfesionalesSection />
       <Faq />
       <Pricing />
-      <Footer />
+      <CtaFinalSection />
+      <Footer conBoton={false} />
     </div>
   )
 }

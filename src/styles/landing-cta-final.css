@@ -1,0 +1,344 @@
+/* ============================================================
+   Landing: llamada final antes del pie («Mejora la experiencia de tus
+   clientes con NeuroAudio.»). Todos los colores y medidas, en las
+   variables de .na-cta-final, para cambiarlos en un solo sitio.
+   ============================================================ */
+.na-cta-final {
+  /* Colores (paleta: solo azul, blanco y naranja) */
+  --cta-fondo-pagina: #f8f9fa; /* también el hueco curvo de arriba */
+  --cta-fondo-bloque: #fff6f0;
+  --cta-titulo: #1f2230;
+  --cta-texto: #3c4043;
+  /* Medido sobre la referencia («Solicitar una demo»): degradado lineal que
+     se queda en índigo a la izquierda y se aclara hacia la derecha. */
+  --cta-boton-degradado: linear-gradient(90deg, #2f32f4 12%, #3146f7 30%, #3865fa 50%, #4083fd 70%, #438ffe 88%);
+  /* Manchas: 1 azul (arriba izq.), 2 azul (abajo izq.), 3 naranja (arriba
+     der.), 4 naranja (abajo der.) y el brillo blanco central. */
+  --cta-m1: rgba(52, 97, 255, 0.95);
+  --cta-m1-medio: rgba(52, 97, 255, 0.55);
+  --cta-m1-fin: rgba(52, 97, 255, 0);
+  --cta-m2: rgba(52, 97, 255, 0.6);
+  --cta-m2-fin: rgba(52, 97, 255, 0);
+  --cta-m3: rgba(255, 130, 70, 0.95);
+  --cta-m3-medio: rgba(255, 150, 100, 0.55);
+  --cta-m3-fin: rgba(255, 150, 100, 0);
+  --cta-m4: rgba(255, 140, 80, 0.65);
+  --cta-m4-fin: rgba(255, 140, 80, 0);
+  --cta-brillo: rgba(255, 255, 255, 0.95);
+  --cta-brillo-fin: rgba(255, 255, 255, 0);
+  /* Medidas */
+  --cta-margen-lado: clamp(16px, 2.78vw, 40px);
+  --cta-radio: 44px;
+  --cta-alto: 480px;
+  --cta-escala: 1; /* tamaño de las manchas */
+  --cta-curva-top: -70px;
+  --cta-curva-alto: 130px;
+  /* ~80 px desde la sección anterior y ~60 px hasta el pie. */
+  padding: clamp(48px, 5.6vw, 80px) var(--cta-margen-lado)
+    clamp(40px, 4.2vw, 60px);
+  background: var(--cta-fondo-pagina);
+}
+
+.na-cta-final__bloque {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  min-height: var(--cta-alto);
+  /* Contenido centrado y ~30 px más abajo (deja sitio a la curva). */
+  padding: 60px 24px 0;
+  border-radius: var(--cta-radio);
+  background: var(--cta-fondo-bloque);
+  text-align: center;
+}
+
+/* Borde superior curvado hacia dentro: una elipse del color de la página
+   que «muerde» el bloque por arriba (≈7 px en las esquinas, ≈60 px en el
+   centro). Por encima del fondo y las manchas, por debajo del texto. */
+.na-cta-final__bloque::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: -12%;
+  right: -12%;
+  top: var(--cta-curva-top);
+  height: var(--cta-curva-alto);
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  background: var(--cta-fondo-pagina);
+  pointer-events: none;
+}
+
+/* ----- Manchas (estáticas, sin blur) ----- */
+.na-cta-final__manchas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.na-cta-final__manchas i {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.na-cta-final__manchas i:nth-child(1) {
+  width: calc(760px * var(--cta-escala));
+  height: calc(760px * var(--cta-escala));
+  left: calc(-260px * var(--cta-escala));
+  top: calc(-20px * var(--cta-escala));
+  background: radial-gradient(closest-side, var(--cta-m1), var(--cta-m1-medio) 45%, var(--cta-m1-fin));
+}
+
+.na-cta-final__manchas i:nth-child(2) {
+  width: calc(560px * var(--cta-escala));
+  height: calc(560px * var(--cta-escala));
+  left: calc(120px * var(--cta-escala));
+  bottom: calc(-330px * var(--cta-escala));
+  background: radial-gradient(closest-side, var(--cta-m2), var(--cta-m2-fin));
+}
+
+.na-cta-final__manchas i:nth-child(3) {
+  width: calc(760px * var(--cta-escala));
+  height: calc(760px * var(--cta-escala));
+  right: calc(-260px * var(--cta-escala));
+  top: calc(10px * var(--cta-escala));
+  background: radial-gradient(closest-side, var(--cta-m3), var(--cta-m3-medio) 45%, var(--cta-m3-fin));
+}
+
+.na-cta-final__manchas i:nth-child(4) {
+  width: calc(560px * var(--cta-escala));
+  height: calc(560px * var(--cta-escala));
+  right: calc(140px * var(--cta-escala));
+  bottom: calc(-330px * var(--cta-escala));
+  background: radial-gradient(closest-side, var(--cta-m4), var(--cta-m4-fin));
+}
+
+/* Brillo blanco central (a 1360 px de ancho queda en left 270 px, como se
+   pidió; centrado para que siga detrás del texto en otros anchos). */
+.na-cta-final__manchas i:nth-child(5) {
+  width: calc(900px * var(--cta-escala));
+  height: calc(420px * var(--cta-escala));
+  left: calc(50% - 410px * var(--cta-escala));
+  top: calc(40px * var(--cta-escala));
+  background: radial-gradient(closest-side, var(--cta-brillo), var(--cta-brillo-fin));
+}
+
+/* ----- Texto y botón ----- */
+.na-cta-final__contenido {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.landing-root.landing-root .na-cta-final__titulo {
+  margin: 0;
+  max-width: 760px;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 48px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--cta-titulo);
+  text-wrap: balance;
+}
+
+.landing-root.landing-root .na-cta-final__sub {
+  margin: 20px 0 34px;
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--cta-texto);
+}
+
+/* Botón: el mismo del pie («.na-footer__cta»); aquí sin el margen inferior
+   que lo separaba de las columnas y con el degradado azul de la referencia
+   (de #3035F4 a #448CFE). Más prioridad que el azul liso de la landing. */
+.landing-root.na-landing .na-cta-final .na-footer__cta {
+  margin-bottom: 0;
+  background: var(--cta-boton-degradado);
+  /* Tamaño de la referencia: texto de 17 px y unos 55 px de alto. */
+  padding: 17px 32px;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+/* ----- 768–1100 px ----- */
+@media (max-width: 1099px) {
+  .landing-root.landing-root .na-cta-final__titulo {
+    font-size: 40px;
+  }
+}
+
+/* ----- Menos de 768 px ----- */
+@media (max-width: 767px) {
+  .na-cta-final {
+    --cta-margen-lado: 16px;
+    --cta-radio: 28px;
+    --cta-escala: 0.55;
+    --cta-curva-top: -40px;
+    --cta-curva-alto: 80px;
+  }
+
+  .na-cta-final__bloque {
+    min-height: 0;
+    padding: 64px 24px;
+  }
+
+  /* El brillo blanco cubre todo el texto (con las manchas al 55 %, el azul
+     llegaba detrás del subtítulo y bajaba su contraste). */
+  .na-cta-final__manchas i:nth-child(5) {
+    width: 150%;
+    height: 78%;
+    left: -25%;
+    top: 12%;
+  }
+
+  .landing-root.landing-root .na-cta-final__titulo {
+    font-size: 30px;
+  }
+
+  .landing-root.landing-root .na-cta-final__sub {
+    font-size: 18px;
+  }
+
+  .na-cta-final__contenido {
+    width: 100%;
+  }
+}
+
+
+/* ============================================================
+   Efecto de la llamada final: entrada con impacto, fondo vivo y botón
+   que llama la atención. Solo transform/opacity (y el brillo del botón).
+   Pausado fuera de pantalla o con la pestaña oculta; quieto con
+   «Reducir animaciones».
+   ============================================================ */
+
+/* 1. Entrada: el bloque sube 40 px desde un 94 % de tamaño y se enfoca
+   (900 ms, curva de la app, desde los 300 ms); después, el titular, el
+   subtítulo y el botón en cascada (750, 950 y 1150 ms). */
+.na-cta-final__bloque.na-reveal {
+  transform: translateY(40px) scale(0.94);
+  filter: blur(8px);
+  transition:
+    opacity 900ms var(--ease-out-strong),
+    transform 900ms var(--ease-out-strong),
+    filter 900ms var(--ease-out-strong);
+  /* Empieza un poco después de aparecer en pantalla. */
+  transition-delay: 300ms;
+}
+
+.na-cta-final__bloque.na-reveal.is-visible {
+  transform: none;
+  filter: none;
+}
+
+.na-cta-final__bloque.na-reveal .na-cta-final__contenido > * {
+  opacity: 0;
+}
+
+.na-cta-final__bloque.na-reveal.is-visible .na-cta-final__contenido > * {
+  animation: na-fade-up 700ms var(--ease-out-strong) both;
+}
+
+.na-cta-final__bloque.is-visible .na-cta-final__contenido > :nth-child(1) { animation-delay: 750ms; }
+.na-cta-final__bloque.is-visible .na-cta-final__contenido > :nth-child(2) { animation-delay: 950ms; }
+.na-cta-final__bloque.is-visible .na-cta-final__contenido > :nth-child(3) { animation-delay: 1150ms; }
+
+/* 2. Fondo vivo: cada mancha se desplaza y crece despacio, cada una por su
+   lado (no cruzan al centro; el brillo blanco no se mueve). */
+@keyframes cta-m1 {
+  to { translate: 70px 40px; scale: 1.15; }
+}
+@keyframes cta-m2 {
+  to { translate: 60px -50px; scale: 1.2; }
+}
+@keyframes cta-m3 {
+  to { translate: -70px 50px; scale: 1.15; }
+}
+@keyframes cta-m4 {
+  to { translate: -60px -40px; scale: 1.2; }
+}
+
+.na-cta-final__manchas i:nth-child(1) { animation: cta-m1 9s ease-in-out infinite alternate; }
+.na-cta-final__manchas i:nth-child(2) { animation: cta-m2 11s ease-in-out infinite alternate; }
+.na-cta-final__manchas i:nth-child(3) { animation: cta-m3 10s ease-in-out infinite alternate; }
+.na-cta-final__manchas i:nth-child(4) { animation: cta-m4 12s ease-in-out infinite alternate; }
+
+/* 3. Botón: una onda azul que se expande y un reflejo de luz que lo cruza. */
+.na-cta-final .na-footer__cta {
+  position: relative;
+  isolation: isolate;
+}
+
+.na-cta-final .na-footer__cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: #3461ff;
+  opacity: 0;
+  pointer-events: none;
+  animation: cta-onda 2400ms var(--ease-out-strong) 2200ms infinite;
+}
+
+@keyframes cta-onda {
+  0% { opacity: 0.45; transform: scale(1); }
+  70%, 100% { opacity: 0; transform: scale(1.35, 1.7); }
+}
+
+.na-cta-final .na-footer__cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 65%
+  );
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  pointer-events: none;
+  animation: cta-reflejo 3600ms var(--ease-out-strong) 2600ms infinite;
+}
+
+/* El reflejo cruza en el primer tercio del ciclo y descansa el resto. */
+@keyframes cta-reflejo {
+  0% { background-position: 120% 0; }
+  35%, 100% { background-position: -20% 0; }
+}
+
+/* Pausado fuera de pantalla o con la pestaña oculta. */
+.na-cta-final[data-fuera] .na-cta-final__manchas i,
+.na-cta-final[data-oculta] .na-cta-final__manchas i,
+.na-cta-final[data-fuera] .na-footer__cta::before,
+.na-cta-final[data-oculta] .na-footer__cta::before,
+.na-cta-final[data-fuera] .na-footer__cta::after,
+.na-cta-final[data-oculta] .na-footer__cta::after {
+  animation-play-state: paused;
+}
+
+/* Reducir animaciones: todo quieto y visible. */
+@media (prefers-reduced-motion: reduce) {
+  .na-cta-final__bloque.na-reveal {
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+
+  .na-cta-final__bloque.na-reveal .na-cta-final__contenido > * {
+    opacity: 1;
+    animation: none !important;
+  }
+
+  .na-cta-final__manchas i:nth-child(n),
+  .na-cta-final .na-footer__cta::before,
+  .na-cta-final .na-footer__cta::after {
+    animation: none;
+  }
+}

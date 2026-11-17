@@ -1,19 +1,64 @@
 import { Link } from 'react-router-dom'
 import { textoIdentificacionEmpresa } from '../../config/empresa'
 import { rutaLegal } from '../../features/legal/documentos'
+import '../../styles/footer-marca.css'
+import LogoNeuroAudio from './LogoNeuroAudio'
 import { useReveal } from './useReveal'
 
-function Footer() {
+/**
+ * Pie de la landing y de sus páginas. `conBoton={false}` quita «Únete a
+ * NeuroAudio gratis» (en la landing va en la llamada final, encima).
+ */
+function Footer({ conBoton = true }: { conBoton?: boolean }) {
   const cta = useReveal<HTMLAnchorElement>()
   const identificacion = textoIdentificacionEmpresa()
 
   return (
     <footer className="na-footer">
-      <Link ref={cta.ref} to="/login" className={`na-footer__cta ${cta.className}`} style={cta.style}>
-        Únete a NeuroAudio gratis
-      </Link>
+      {conBoton && (
+        <Link ref={cta.ref} to="/login" className={`na-footer__cta ${cta.className}`} style={cta.style}>
+          Únete a NeuroAudio gratis
+        </Link>
+      )}
 
       <div className="na-footer__main">
+        {/* Marca: logotipo, contacto y redes. */}
+        <div className="na-footer__marca">
+          <Link to="/" className="na-footer__logo" aria-label="NeuroAudio, inicio">
+            <LogoNeuroAudio />
+          </Link>
+          <a className="na-footer__contacto" href="mailto:olondoweb@gmail.com">
+            olondoweb@gmail.com
+          </a>
+          <div className="na-footer__social">
+            <a href="#" aria-label="X">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M4 4l16 16M20 4L4 20" />
+              </svg>
+            </a>
+            <a href="#" aria-label="Instagram">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.5" cy="6.5" r="1" />
+              </svg>
+            </a>
+            <a href="#" aria-label="YouTube">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M23 7l-7 5 7 5V7z" />
+                <rect x="1" y="5" width="15" height="14" rx="2" />
+              </svg>
+            </a>
+            <a href="#" aria-label="TikTok">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M9 18V5l12-2v13" />
+                <circle cx="6" cy="18" r="3" />
+                <circle cx="18" cy="16" r="3" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
         <div className="na-footer__cols">
           <div className="na-footer__col">
             <h4>Marca</h4>
@@ -40,33 +85,6 @@ function Footer() {
           </div>
         </div>
 
-        <div className="na-footer__social">
-          <a href="#" aria-label="X">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M4 4l16 16M20 4L4 20" />
-            </svg>
-          </a>
-          <a href="#" aria-label="Instagram">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <rect x="3" y="3" width="18" height="18" rx="5" />
-              <circle cx="12" cy="12" r="4" />
-              <circle cx="17.5" cy="6.5" r="1" />
-            </svg>
-          </a>
-          <a href="#" aria-label="YouTube">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M23 7l-7 5 7 5V7z" />
-              <rect x="1" y="5" width="15" height="14" rx="2" />
-            </svg>
-          </a>
-          <a href="#" aria-label="TikTok">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M9 18V5l12-2v13" />
-              <circle cx="6" cy="18" r="3" />
-              <circle cx="18" cy="16" r="3" />
-            </svg>
-          </a>
-        </div>
       </div>
 
       <div className="na-footer__bottom">

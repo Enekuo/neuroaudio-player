@@ -16,10 +16,14 @@ import Typography from '@mui/material/Typography'
 import type { SxProps, Theme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import MenuIcon from '@mui/icons-material/Menu'
-import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
 import { useAuth } from '../../auth/context/AuthContext'
+import { useNombreProfesional } from '../dashboard/useNombreProfesional'
+import LogoNeuroAudio from '../../../components/landing/LogoNeuroAudio'
 import { DASHBOARD_PROFESIONAL, SECCIONES_PROFESIONAL } from '../data/secciones'
 import { animacionEntrada, animacionFundido } from '../theme/movimiento'
+import BarraUtilidades from './BarraUtilidades'
+import EnlacePanelOyente from './EnlacePanelOyente'
+import { ANCHO_BARRA_UTILIDADES } from './utilidades'
 
 const DRAWER_WIDTH = 256
 
@@ -39,7 +43,7 @@ const navItemSx: SxProps<Theme> = {
   pl: 2,
   pr: 1.5,
   borderRadius: 999,
-  color: '#3c4043',
+  color: 'pro.navTexto',
   transition: transicionColor,
   '& .MuiListItemIcon-root': {
     minWidth: 36,
@@ -62,28 +66,63 @@ const navItemSx: SxProps<Theme> = {
   // Va después del activo para que el hover con ratón (más específico en
   // .active:hover) gane sobre él.
   '@media (hover: hover) and (pointer: fine)': {
-    '&:hover': { bgcolor: 'rgba(60, 64, 67, 0.08)' },
-    '&.active:hover': { bgcolor: '#d2e3fc' },
+    '&:hover': { bgcolor: 'pro.hover' },
+    '&.active:hover': { bgcolor: 'pro.activoHover' },
   },
 }
 
-/** Nombre del producto al estilo "Google Analytics": marca + producto en gris. */
+/** Logotipo de NeuroAudio (el de la web), arriba del menú; lleva al Dashboard. */
 function Marca() {
   return (
-    <Typography
-      component="span"
+    <Box
+      component={Link}
+      to="/profesional"
+      aria-label="NeuroAudio, Dashboard del panel profesional"
       sx={{
-        fontSize: 20,
-        lineHeight: 1,
-        whiteSpace: 'nowrap',
-        color: 'text.secondary',
+        display: 'inline-flex',
+        color: 'text.primary',
+        textDecoration: 'none',
+        '--logo-n': '28px',
+        '--logo-texto': '20px',
       }}
     >
-      <Box component="span" sx={{ color: 'text.primary', fontWeight: 500 }}>
-        NeuroAudio
-      </Box>{' '}
-      Profesional
-    </Typography>
+      <LogoNeuroAudio />
+    </Box>
+  )
+}
+
+/**
+ * «Panel profesional», arriba del contenido (fuera del menú): una marca azul
+ * pequeña y el nombre, con la letra del panel.
+ */
+function TituloPanel() {
+  return (
+    <Box
+      component="p"
+      sx={{
+        m: 0,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 1.25,
+        fontSize: 15,
+        fontWeight: 500,
+        letterSpacing: '0.01em',
+        color: 'text.primary',
+      }}
+    >
+      <Box
+        component="span"
+        aria-hidden="true"
+        sx={{
+          width: 8,
+          height: 8,
+          borderRadius: '50%',
+          bgcolor: 'primary.main',
+          boxShadow: (t) => `0 0 0 4px ${t.palette.primary.main}1f`,
+        }}
+      />
+      Panel profesional
+    </Box>
   )
 }
 
@@ -132,36 +171,37 @@ function Navegacion({ onNavigate }: NavegacionProps) {
       <Divider />
 
       <List sx={{ py: 1.5 }}>
-        <ListItemButton component={Link} to="/app" sx={navItemSx}>
-          <ListItemIcon>
-            <ArrowBackOutlined />
-          </ListItemIcon>
-          <ListItemText primary="Volver a la app" />
-        </ListItemButton>
+        <EnlacePanelOyente sx={navItemSx} />
       </List>
     </Box>
   )
 }
 
-/** Avatar de la cuenta con sesión (foto de Google o inicial). */
+/**
+ * Avatar de la cuenta con sesión (foto de Google o inicial). La inicial y
+ * el nombre salen del mismo sitio que el saludo del Dashboard
+ * (useNombreProfesional), para que no se contradigan.
+ */
 function AvatarCuenta() {
   const { user } = useAuth()
+  const { nombre } = useNombreProfesional()
   if (!user) return null
+  const visible = nombre ?? user.displayName ?? user.email ?? ''
 
   return (
-    <Tooltip title={user.displayName ?? user.email ?? ''}>
+    <Tooltip title={visible}>
       <Avatar
         src={user.photoURL ?? undefined}
-        alt={user.displayName ?? ''}
+        alt={visible}
         slotProps={{ img: { referrerPolicy: 'no-referrer' } }}
         sx={{
-          width: 32,
-          height: 32,
+          width: 34,
+          height: 34,
           fontSize: 15,
           bgcolor: 'primary.main',
         }}
       >
-        {(user.displayName ?? user.email ?? '?').charAt(0).toUpperCase()}
+        {(visible || '?').charAt(0).toUpperCase()}
       </Avatar>
     </Tooltip>
   )
@@ -171,15 +211,19 @@ function AvatarCuenta() {
  * Armazón del dashboard de profesional, estilo consola de Firebase en claro.
  * - Escritorio (md+): sin barra superior a todo el ancho. La cabecera
  *   ("NeuroAudio Profesional" + su línea) vive solo encima del menú lateral
- *   fijo, y el avatar de la cuenta flota arriba a la derecha del contenido.
+ *   fijo. A la derecha, una columna de utilidades (avatar, Ayuda, Soporte,
+ *   modo oscuro) estilo consola de Firebase.
  * - Móvil: AppBar con botón de menú que abre el mismo menú como drawer
- *   temporal (8 destinos no caben en una navegación inferior de Material).
+ *   temporal (8 destinos no caben en una navegación inferior de Material);
+ *   las utilidades van en fila a la derecha de la AppBar.
  * Menú: Dashboard arriba, una línea divisoria y las 7 secciones.
- * La salida a la app de usuario (/app) está al pie del menú.
+ * La salida a la app del oyente («Panel del oyente», /app) está al pie del menú.
  * (Sin control de acceso todavía: cualquier usuario con sesión puede entrar.)
  */
 function ProfesionalLayout() {
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
+  // Hueco fuera de la AppBar donde se pinta el panel de Ayuda/Soporte en móvil.
+  const [huecoPanel, setHuecoPanel] = useState<HTMLDivElement | null>(null)
   const { pathname } = useLocation()
   // Ajustes y «Listas y programas» cambian de pestaña cambiando de
   // dirección: la página (título y pestañas) se queda y solo entra su
@@ -197,12 +241,21 @@ function ProfesionalLayout() {
   const cerrarMenuMovil = () => setMenuMovilAbierto(false)
   // Con movimiento reducido, el drawer móvil aparece sin deslizarse.
   const reducirMovimiento = useMediaQuery('(prefers-reduced-motion: reduce)')
+  // Utilidades: columna a la derecha en md+; por debajo, fila en la AppBar.
+  const esEscritorio = useMediaQuery((t: Theme) => t.breakpoints.up('md'), {
+    noSsr: true,
+  })
 
   return (
     <Box
       sx={{
         display: 'flex',
         minHeight: '100dvh',
+        // Escritorio: la página no se desplaza; lo hace el contenido (main),
+        // así su barra de desplazamiento queda dentro, junto a la barra de
+        // utilidades, y no pegada al borde de la ventana.
+        height: { md: '100dvh' },
+        overflow: { md: 'hidden' },
         bgcolor: 'background.default',
         color: 'text.primary',
       }}
@@ -237,7 +290,13 @@ function ProfesionalLayout() {
           </Typography>
 
           <Box sx={{ flexGrow: 1 }} />
-          <AvatarCuenta />
+          {!esEscritorio && (
+            <BarraUtilidades
+              vertical={false}
+              avatar={<AvatarCuenta />}
+              contenedorPanel={huecoPanel}
+            />
+          )}
         </Toolbar>
       </AppBar>
 
@@ -302,21 +361,26 @@ function ProfesionalLayout() {
           minWidth: 0,
           px: { xs: 2, sm: 3, md: 4 },
           pb: { xs: 3, md: 4 },
+          // Sitio para la barra de utilidades fija de la derecha.
+          mr: { md: `${ANCHO_BARRA_UTILIDADES}px` },
+          overflowY: { md: 'auto' },
+          // Hueco de la barra de desplazamiento siempre reservado: al pasar
+          // de una página corta a una larga no se mueve todo de lado.
+          scrollbarGutter: { md: 'stable' },
         }}
       >
         {/* Móvil: hueco bajo la AppBar fija. */}
         <Toolbar sx={{ display: { md: 'none' } }} />
-        {/* Escritorio: el avatar, arriba a la derecha, sin barra alrededor. */}
+        {/* Escritorio: «Panel profesional» arriba a la izquierda, sin barra
+            alrededor (el avatar está en la barra de utilidades). */}
         <Box
           sx={{
             display: { xs: 'none', md: 'flex' },
             alignItems: 'center',
-            justifyContent: 'flex-end',
             minHeight: 64,
-            mr: -2,
           }}
         >
-          <AvatarCuenta />
+          <TituloPanel />
         </Box>
         {/* Transición entre secciones: cada página entra con fade + leve subida.
             La key fuerza a reiniciar la animación en cada cambio de ruta. */}
@@ -330,6 +394,11 @@ function ProfesionalLayout() {
           <Outlet />
         </Box>
       </Box>
+
+      {esEscritorio && (
+        <BarraUtilidades vertical avatar={<AvatarCuenta />} />
+      )}
+      <div ref={setHuecoPanel} />
     </Box>
   )
 }

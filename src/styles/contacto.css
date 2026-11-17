@@ -1,15 +1,15 @@
 /* ============================================================
-   Contacto (/contacto): fondo, menú, pie, fuentes y azules de la landing;
-   el formulario en una tarjeta clara con los colores del panel
-   profesional. Todo bajo .na-contacto (solo existe en esta página).
+   Contacto (/contacto): con la paleta clara de la landing (fondo #f8f9fa,
+   textos #202124 / #5f6368, azul #3461ff); el formulario en una tarjeta
+   blanca con los colores del panel profesional. Todo bajo .na-contacto (solo existe en esta página).
    ============================================================ */
 .na-contacto {
-  --na-bg: #070a13;
+  --na-bg: #f8f9fa;
   --na-accent: #3461ff;
-  --na-ink: #f5f6fa;
-  --na-muted: #9aa3b8;
-  --na-muted-2: #6c7590;
-  --na-line: #1c2438;
+  --na-ink: #202124;
+  --na-muted: #5f6368;
+  --na-muted-2: #80868b;
+  --na-line: #dadce0;
   /* Tarjeta (panel profesional) */
   --c-fondo: #ffffff;
   --c-campo: #f1f3f4;
@@ -22,7 +22,7 @@
   background:
     radial-gradient(
       ellipse 60% 50% at 75% 45%,
-      rgba(52, 97, 255, 0.12),
+      rgba(52, 97, 255, 0.06),
       rgba(52, 97, 255, 0) 70%
     ),
     var(--na-bg);
@@ -55,7 +55,7 @@
   font-weight: 500;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #5b8cff;
+  color: #3461ff;
 }
 
 .landing-root.landing-root .na-contacto__titulo {
@@ -87,7 +87,7 @@
 }
 
 .na-contacto__correo:hover {
-  color: #ffffff;
+  color: var(--na-accent);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
@@ -99,8 +99,8 @@
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: rgba(52, 97, 255, 0.2);
-  color: #5b8cff;
+  background: #e8f0fe;
+  color: #3461ff;
 }
 
 .na-contacto__correo-icono svg {
@@ -112,9 +112,10 @@
 .na-contacto__tarjeta {
   background: var(--c-fondo);
   color: var(--c-texto);
+  border: 1px solid var(--c-linea);
   border-radius: 28px;
   padding: clamp(24px, 3vw, 40px);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 16px 40px rgba(32, 33, 36, 0.08);
 }
 
 .na-contacto__tarjeta form {
@@ -290,7 +291,7 @@
   border: none;
   border-radius: 999px;
   background: var(--na-accent);
-  color: #05070d;
+  color: #ffffff;
   font-size: 16px;
   font-weight: 700;
   padding: 15px 34px;
@@ -358,6 +359,36 @@
 
 .na-contacto__rgpd a {
   color: inherit;
+}
+
+/* Menú y pie en la versión clara (como en la landing). */
+.na-contacto .na-btn-primary {
+  color: #ffffff;
+}
+
+.na-contacto .na-footer {
+  --na-bg: #ffffff;
+  --na-ink: #202124;
+  --na-muted: #5f6368;
+  --na-muted-2: #80868b;
+  --na-line: #dadce0;
+  border-top: 1px solid #dadce0;
+}
+
+.na-contacto .na-footer__cta {
+  background: #3461ff;
+  color: #ffffff;
+}
+
+.na-contacto .na-footer__lang {
+  color: #202124;
+}
+
+/* Barra de desplazamiento y fondo de la ventana claros (clase que pone
+   ContactoPage en <html>). */
+html.na-contacto-clara {
+  background-color: #f8f9fa;
+  scrollbar-color: rgba(32, 33, 36, 0.28) #f8f9fa;
 }
 
 /* Móvil y tableta: una sola columna, texto arriba y formulario debajo. */

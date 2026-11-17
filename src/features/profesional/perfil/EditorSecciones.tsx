@@ -7,6 +7,7 @@ import Paper from '@mui/material/Paper'
 import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
+import { alpha } from '@mui/material/styles'
 import AddRounded from '@mui/icons-material/AddRounded'
 import ArrowDownwardRounded from '@mui/icons-material/ArrowDownwardRounded'
 import ArrowUpwardRounded from '@mui/icons-material/ArrowUpwardRounded'
@@ -80,9 +81,10 @@ function FotoElegible({
           top: 0,
           right: 0,
           p: 0.25,
-          bgcolor: 'rgba(255,255,255,0.85)',
+          // Sobre la foto, con el fondo de las tarjetas (blanco o gris oscuro).
+          bgcolor: (t) => alpha(t.palette.background.paper, 0.85),
           borderRadius: '0 0 0 8px',
-          '&:hover': { bgcolor: 'rgba(255,255,255,0.95)' },
+          '&:hover': { bgcolor: (t) => alpha(t.palette.background.paper, 0.95) },
         }}
       />
     </Box>

@@ -3,12 +3,16 @@ import { Link } from 'react-router-dom'
 /**
  * Menú de las páginas secundarias de la landing (/legal/*, /contacto): el
  * logo vuelve a la portada y, a la derecha, «Iniciar sesión» y «Crear cuenta».
+ * Con `claro`, el logo para fondo claro (letras oscuras).
  */
-function NavSimple() {
+function NavSimple({ claro = false }: { claro?: boolean }) {
   return (
     <nav className="na-nav">
       <Link to="/" className="na-nav__logo" aria-label="NeuroAudio, inicio">
-        <img src="/images/logo_1.png" alt="NeuroAudio" />
+        <img
+          src={claro ? '/images/logo_claro.png' : '/images/logo_1.png'}
+          alt="NeuroAudio"
+        />
       </Link>
       <div className="na-nav__actions">
         <Link to="/login" className="na-login">

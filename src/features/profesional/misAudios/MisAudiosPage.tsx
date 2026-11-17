@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -53,6 +54,10 @@ import {
 import DialogoAudio from '../audios/DialogoAudio'
 import { animacionEntrada } from '../theme/movimiento'
 import DialogoEnvios from './DialogoEnvios'
+import {
+  ABRIR_SUBIDA,
+  type EstadoNavegacion,
+} from '../dashboard/modelo'
 
 type Orden = 'recientes' | 'antiguos' | 'titulo'
 
@@ -178,6 +183,17 @@ function Biblioteca({ uid }: { uid: string }) {
   }, [audios, busqueda, etiqueta, orden])
 
   const lleno = (audios?.length ?? 0) >= LIMITES_BIBLIOTECA.audios
+
+  // «Subir un audio» desde el Dashboard: abre la subida al llegar (cuando ya
+  // se sabe si la biblioteca está llena) y olvida el aviso.
+  const location = useLocation()
+  const navigate = useNavigate()
+  const avisoAbrir = (location.state as EstadoNavegacion)?.abrir
+  useEffect(() => {
+    if (avisoAbrir !== ABRIR_SUBIDA || audios === null) return
+    if (!lleno) setEdicion({})
+    navigate(location.pathname, { replace: true, state: null })
+  }, [avisoAbrir, audios, lleno, navigate, location.pathname])
 
   const confirmarBorrado = async () => {
     if (!aBorrar) return

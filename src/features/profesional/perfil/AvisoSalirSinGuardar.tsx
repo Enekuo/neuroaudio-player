@@ -34,7 +34,7 @@ function esEnlaceInterno(destino: HTMLAnchorElement) {
  * Aviso de «cambios sin guardar». La app usa BrowserRouter (sin useBlocker),
  * así que:
  * - Al cerrar o recargar la pestaña, el navegador pregunta (beforeunload).
- * - Al pulsar cualquier enlace interno (menú, «Volver a la app»…), se para
+ * - Al pulsar cualquier enlace interno (menú, «Panel del oyente»…), se para
  *   el clic y se pregunta con un diálogo antes de navegar.
  * El botón «atrás» del navegador no se puede parar sin cambiar el router.
  */

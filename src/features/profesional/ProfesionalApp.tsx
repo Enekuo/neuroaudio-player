@@ -3,8 +3,6 @@ import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { ThemeProvider } from '@mui/material/styles'
-import GlobalStyles from '@mui/material/GlobalStyles'
 import ScopedCssBaseline from '@mui/material/ScopedCssBaseline'
 import ProfesionalLayout from './layouts/ProfesionalLayout'
 import DashboardProfesionalPage from './pages/DashboardProfesionalPage'
@@ -16,7 +14,7 @@ import MisAudiosPage from './misAudios/MisAudiosPage'
 import OyentesPage from './oyentes/OyentesPage'
 import AjustesPage from './ajustes/AjustesPage'
 import { SECCIONES_PROFESIONAL } from './data/secciones'
-import { profesionalTheme } from './theme/profesionalTheme'
+import ProveedorTemaProfesional from './theme/ProveedorTemaProfesional'
 import { EASE_OUT } from './theme/movimiento'
 
 /**
@@ -24,39 +22,18 @@ import { EASE_OUT } from './theme/movimiento'
  * sitio donde vive Material UI:
  * - App.tsx lo carga bajo demanda (React.lazy), así que MUI y Emotion ni
  *   siquiera se descargan en la parte de usuario.
- * - ThemeProvider aplica el tema solo a este árbol.
+ * - ProveedorTemaProfesional aplica el tema (claro u oscuro) solo a este
+ *   árbol, con el fondo del <body> y las barras de scroll a juego.
  * - ScopedCssBaseline hace el "reset" de Material solo dentro de este árbol
  *   (CssBaseline lo haría en <body> y afectaría a toda la app).
  * - Las reglas globales de global.css que tocan elementos sueltos (button,
  *   :focus-visible) se neutralizan aquí para los componentes de MUI, sin
  *   tocar la hoja de la parte de usuario.
- * - Mientras el panel está montado, GlobalStyles pasa el fondo del <body> y
- *   las barras de scroll a claro (global.css los deja oscuros). Emotion quita
- *   esas reglas al salir del panel, así que la app de usuario no las ve nunca.
  * Auth, Firebase, datos y reproductor siguen siendo los compartidos de main.tsx.
  */
 function ProfesionalApp() {
   return (
-    <ThemeProvider theme={profesionalTheme}>
-      <GlobalStyles
-        styles={(theme) => ({
-          ':root': {
-            colorScheme: 'light',
-            scrollbarColor: 'rgba(0, 0, 0, 0.28) transparent',
-            // Hueco de la barra de desplazamiento siempre reservado: al pasar
-            // de una página corta a una larga (p. ej. Cuenta → General en
-            // Ajustes) no se mueve todo de lado cuando aparece la barra.
-            scrollbarGutter: 'stable',
-          },
-          body: { backgroundColor: theme.palette.background.default },
-          '::-webkit-scrollbar-thumb': {
-            backgroundColor: 'rgba(0, 0, 0, 0.22)',
-          },
-          '::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.36)',
-          },
-        })}
-      />
+    <ProveedorTemaProfesional>
       <ScopedCssBaseline
         sx={{
           // global.css encoge todo <button> al pulsar (scale 0.97); en el panel
@@ -124,7 +101,7 @@ function ProfesionalApp() {
           </Route>
         </Routes>
       </ScopedCssBaseline>
-    </ThemeProvider>
+    </ProveedorTemaProfesional>
   )
 }
 

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link as EnlaceRouter, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link as EnlaceRouter, useLocation, useNavigate } from 'react-router-dom'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -13,6 +13,10 @@ import Typography from '@mui/material/Typography'
 import AddRounded from '@mui/icons-material/AddRounded'
 import EventRepeatOutlined from '@mui/icons-material/EventRepeatOutlined'
 import { LIMITES_PROGRAMA } from '../../programasProfesional/modelo'
+import {
+  ABRIR_NUEVO_PROGRAMA,
+  type EstadoNavegacion,
+} from '../dashboard/modelo'
 import { animacionEntrada } from '../theme/movimiento'
 import ChipPara from './ChipPara'
 import DialogoPrograma from './DialogoPrograma'
@@ -30,6 +34,17 @@ function ProgramasDelProfesional({ uid }: { uid: string }) {
   const navigate = useNavigate()
   const [creando, setCreando] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
+
+  // «Crear un programa» desde el Dashboard: abre la creación al llegar
+  // (cuando ya están los programas, para respetar el límite) y olvida el
+  // aviso.
+  const location = useLocation()
+  const avisoAbrir = (location.state as EstadoNavegacion)?.abrir
+  useEffect(() => {
+    if (avisoAbrir !== ABRIR_NUEVO_PROGRAMA || !programas) return
+    if (programas.length < LIMITES_PROGRAMA.programas) setCreando(true)
+    navigate(location.pathname, { replace: true, state: null })
+  }, [avisoAbrir, programas, navigate, location.pathname])
 
   if (error) {
     return (

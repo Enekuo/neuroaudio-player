@@ -1,0 +1,32 @@
+/* Logotipo de NeuroAudio (LogoNeuroAudio.tsx): «N» + «NeuroAudio».
+   Cada sitio fija el tamaño con --logo-n y --logo-texto en el elemento que
+   lo contiene; si no, 40 px y 28 px. */
+.na-logo {
+  display: inline-flex;
+  /* La «N» se apoya en la misma línea que el texto (su base a la altura de
+     la base de las letras), no centrada con él. */
+  align-items: baseline;
+  /* La «N» cerca de la palabra. */
+  gap: calc(var(--logo-n, 40px) * 0.18);
+}
+
+.na-logo__n {
+  flex-shrink: 0;
+  width: var(--logo-n, 40px);
+  height: var(--logo-n, 40px);
+  /* El dibujo deja 3/40 de margen abajo: se compensa para que la base de la
+     «N» quede justo en la base de las letras. */
+  position: relative;
+  top: calc(var(--logo-n, 40px) * 0.075);
+}
+
+/* Fuera de la landing (panel) y dentro de ella (gana a su «* { DM Sans }»). */
+.na-logo .na-logo__texto,
+.landing-root.landing-root .na-logo__texto {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: var(--logo-texto, 28px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: currentColor;
+}

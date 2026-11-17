@@ -1,0 +1,56 @@
+/* «¿Continuar donde lo dejaste?» (DialogoContinuar.tsx). Usa las clases de
+   las ventanas de la app del oyente (modal-overlay, modal-card,
+   modal-actions); aquí solo lo propio: por encima del reproductor, un icono
+   y, en móvil, los botones uno debajo de otro y a todo el ancho. */
+
+.modal-overlay.continuar-overlay {
+  /* Por encima del reproductor a pantalla completa y del mini-reproductor. */
+  z-index: 140;
+}
+
+.modal-card.continuar-card {
+  /* El ancho de las demás ventanas: los dos botones caben en una fila. */
+  max-width: 440px;
+  text-align: left;
+}
+
+.continuar-card__icono {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #6aaeff;
+  background: rgba(38, 128, 235, 0.16);
+}
+
+.continuar-card__texto {
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.continuar-card__texto strong {
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.continuar-card__acciones {
+  flex-wrap: wrap;
+}
+
+.continuar-card__acciones button:focus-visible {
+  outline: 2px solid #6aaeff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .continuar-card__acciones {
+    flex-direction: column-reverse;
+  }
+
+  .continuar-card__acciones button {
+    width: 100%;
+    padding-block: 0.85rem;
+  }
+}

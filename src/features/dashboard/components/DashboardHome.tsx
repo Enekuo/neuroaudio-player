@@ -14,6 +14,8 @@ import ModalCrearLista from '../../library/components/ModalCrearLista'
 import ModalSubirAudio from '../../library/components/ModalSubirAudio'
 import { usePlayer } from '../../player/context/PlayerContext'
 import FilaTusProfesionales from '../../perfilProfesional/vista/FilaTusProfesionales'
+import EnlacePanelProfesional from '../../cambioDePanel/EnlacePanelProfesional'
+import { useEsProfesional } from '../../cambioDePanel/useEsProfesional'
 
 function AudioStatIcon() {
   return (
@@ -138,6 +140,7 @@ const steps = [
 function DashboardHome() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const esProfesional = useEsProfesional()
   const { profile } = useUserProfile()
   const { listas } = useUserListas()
   const { audios, isLoading: isLoadingAudios } = useUserAudios()
@@ -276,6 +279,8 @@ function DashboardHome() {
               >
                 <CrownIcon />
               </Link>
+              {/* Solo profesionales: al panel profesional, junto a la cuenta. */}
+              <EnlacePanelProfesional esProfesional={esProfesional} variante="movil" />
               <MenuCuentaMovil />
             </div>
           </div>
