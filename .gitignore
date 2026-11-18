@@ -20,3 +20,4 @@ coverage/
 .claude/skills/
 .agents/skills/
 .impeccable/
+firestore-debug.log
