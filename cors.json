@@ -2,7 +2,10 @@
   {
     "origin": [
       "https://neuroaudio-player.vercel.app",
-      "http://localhost:5173"
+      "http://localhost:5173",
+      "http://192.168.1.39:5173",
+      "https://www.getneuroaudio.com",
+      "https://getneuroaudio.com"
     ],
     "method": ["GET"],
     "maxAgeSeconds": 3600

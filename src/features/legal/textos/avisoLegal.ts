@@ -1,5 +1,8 @@
 // Texto de /legal/aviso-legal. Formato en formato.ts (### títulos, - listas,
 // | tablas |, **negrita**). Los huecos [entre corchetes] siguen pendientes.
+// El dominio sale de src/config/web.ts (URL_WEB).
+import { DOMINIO_WEB } from '../../../config/web'
+
 export default `Última actualización: [fecha].
 
 ### Titular del sitio web
@@ -10,7 +13,7 @@ export default `Última actualización: [fecha].
 - Correo de contacto: olondoweb@gmail.com
 - Registro Mercantil (solo si es sociedad): [ ]
 - Nombre comercial: NeuroAudio
-- Sitio web: [dominio]
+- Sitio web: ${DOMINIO_WEB}
 
 ### Objeto
 
