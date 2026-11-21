@@ -1,15 +1,8 @@
-import { GoogleAuthProvider, signInWithPopup, signOut, type User } from 'firebase/auth'
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
-import { auth, db } from '../../../lib/firebase'
+// Entrar con Google: src/features/cuenta/cuentaService.ts (entrarConGoogle).
+// Ya no se crea users/{uid} al entrar: solo al registrarse o al elegir.
+import { signOut } from 'firebase/auth'
+import { auth } from '../../../lib/firebase'
 import { borrarPosicionesDe } from '../../player/continuar/posiciones'
-
-const googleProvider = new GoogleAuthProvider()
-
-export async function signInWithGoogle() {
-  const { user } = await signInWithPopup(auth, googleProvider)
-  await ensureUserProfile(user)
-  return user
-}
 
 export async function signOutUser() {
   // «Continuar donde lo dejaste»: fuera las posiciones de quien sale.
@@ -18,20 +11,4 @@ export async function signOutUser() {
     borrarPosicionesDe(uid)
   }
   await signOut(auth)
-}
-
-async function ensureUserProfile(user: User) {
-  const userRef = doc(db, 'users', user.uid)
-  const snapshot = await getDoc(userRef)
-
-  if (snapshot.exists()) {
-    return
-  }
-
-  await setDoc(userRef, {
-    uid: user.uid,
-    email: user.email,
-    displayName: user.displayName,
-    createdAt: serverTimestamp(),
-  })
 }

@@ -1,7 +1,11 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from './features/auth/components/ProtectedRoute'
-import LoginPage from './features/auth/pages/LoginPage'
+import SoloProfesionales from './features/cuenta/SoloProfesionales'
+import LoginPage from './features/cuenta/pages/LoginPage'
+import RegistroProfesionalPage from './features/cuenta/pages/RegistroProfesionalPage'
+import RegistroOyentePage from './features/cuenta/pages/RegistroOyentePage'
+import EleccionPage from './features/cuenta/pages/EleccionPage'
 import MainLayout from './layouts/MainLayout'
 import LandingPage from './pages/LandingPage'
 import LegalPage from './pages/LegalPage'
@@ -27,6 +31,9 @@ function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/registro/profesional" element={<RegistroProfesionalPage />} />
+      <Route path="/registro/oyente" element={<RegistroOyentePage />} />
+      <Route path="/registro/elegir" element={<EleccionPage />} />
       <Route path="/legal/:documento" element={<LegalPage />} />
       <Route path="/contacto" element={<ContactoPage />} />
       <Route element={<ProtectedRoute />}>
@@ -44,14 +51,16 @@ function App() {
           <Route path="/app/profesional/:uid/programa/:programaId" element={<ProgramaOyentePage />} />
         </Route>
 
-        {/* Dashboard de profesional (esqueleto; sin control de acceso aún).
-            Sus rutas internas viven en ProfesionalApp. */}
+        {/* Panel de profesional: solo cuentas con tipoCuenta 'profesional'
+            (un oyente va a /app). Sus rutas internas viven en ProfesionalApp. */}
         <Route
           path="/profesional/*"
           element={
-            <Suspense fallback={<div style={{ minHeight: '100dvh', background: '#f8f9fa' }} />}>
-              <ProfesionalApp />
-            </Suspense>
+            <SoloProfesionales>
+              <Suspense fallback={<div style={{ minHeight: '100dvh', background: '#f8f9fa' }} />}>
+                <ProfesionalApp />
+              </Suspense>
+            </SoloProfesionales>
           }
         />
       </Route>

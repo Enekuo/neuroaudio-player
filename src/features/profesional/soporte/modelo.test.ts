@@ -106,7 +106,7 @@ describe('soporte: el mensaje que se guarda', () => {
 describe('soporte: opciones', () => {
   it('«¿En qué página ocurre?»: las del menú más «Otra o no lo sé»', () => {
     const claves = [...PAGINAS_AYUDA.map((p) => p.clave), PAGINA_OTRA]
-    // Las mismas que admiten las reglas propuestas.
+    // Las mismas que admiten las reglas.
     expect(claves).toEqual([
       'dashboard',
       'perfil',
@@ -129,12 +129,12 @@ describe('soporte: opciones', () => {
     ])
   })
 
-  it('las reglas propuestas admiten exactamente esas páginas y tipos', () => {
+  it('las reglas admiten exactamente esas páginas y tipos', () => {
     for (const modo of ['todos', 'solo-vinculados']) {
       const reglas = readFileSync(
         fileURLToPath(
           new URL(
-            `../../../../reglas/propuestas/firestore.${modo}.rules`,
+            `../../../../reglas/firestore.${modo}.rules`,
             import.meta.url,
           ),
         ),

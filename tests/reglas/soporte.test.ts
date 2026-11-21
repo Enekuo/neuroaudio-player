@@ -1,7 +1,5 @@
-// Tests de las reglas PROPUESTAS del panel de Soporte (mensajesSoporte).
-// Mientras sean una propuesta, se pasan siempre contra reglas/propuestas (en
-// los dos modos), sin tocar las reglas en uso. Al adoptarlas, cambiar
-// MODOS_PROPUESTA por MODOS (./modos).
+// Tests de las reglas del panel de Soporte (mensajesSoporte), en los dos
+// modos (ver ./modos).
 // Necesitan los emuladores (y Java):
 //   npm run test:reglas
 import { readFileSync } from 'node:fs'
@@ -24,14 +22,8 @@ import {
   updateDoc,
 } from 'firebase/firestore'
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
+import { MODOS } from './modos'
 
-const MODOS_PROPUESTA = [
-  { nombre: 'todos', firestore: 'reglas/propuestas/firestore.todos.rules' },
-  {
-    nombre: 'solo vinculados',
-    firestore: 'reglas/propuestas/firestore.solo-vinculados.rules',
-  },
-] as const
 
 let env: RulesTestEnvironment
 
@@ -70,7 +62,7 @@ const sinSesion = () => env.unauthenticatedContext().firestore()
 const crear = (datos: Record<string, unknown>, db = lucia()) =>
   addDoc(collection(db, 'mensajesSoporte'), datos)
 
-describe.each(MODOS_PROPUESTA)('propuesta, modo «$nombre»', (modo) => {
+describe.each(MODOS)('modo «$nombre»', (modo) => {
   beforeAll(async () => {
     env = await initializeTestEnvironment({
       projectId: 'demo-neuroaudio',

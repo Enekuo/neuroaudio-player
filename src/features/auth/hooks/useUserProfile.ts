@@ -2,12 +2,17 @@ import { doc, onSnapshot } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { db } from '../../../lib/firebase'
 import { useAuth } from '../context/AuthContext'
+import { tipoCuentaDe, type TipoCuenta } from '../../cuenta/tipoCuenta'
 
 export type UserProfile = {
   displayNamePref?: string
   avatarGender?: 'male' | 'female'
   /** Ajustes → Reproducción: el audio suena al abrirlo. Apagada si no está. */
   reproducirAlAbrir?: boolean
+  /** Tipo de cuenta (users/{uid}.tipoCuenta); sin el campo, oyente. */
+  tipoCuenta: TipoCuenta
+  /** Si existe users/{uid}: sin él, la persona aún no tiene cuenta. */
+  existe: boolean
 }
 
 export function useUserProfile() {
@@ -30,6 +35,8 @@ export function useUserProfile() {
         displayNamePref: typeof data?.displayNamePref === 'string' ? data.displayNamePref : undefined,
         avatarGender: data?.avatarGender === 'male' || data?.avatarGender === 'female' ? data.avatarGender : undefined,
         reproducirAlAbrir: data?.reproducirAlAbrir === true,
+        tipoCuenta: tipoCuentaDe(data),
+        existe: snapshot.exists(),
       })
       setIsLoading(false)
     })

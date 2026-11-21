@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import '../../styles/landing-hero.css'
 import LogoNeuroAudio from './LogoNeuroAudio'
@@ -38,7 +38,8 @@ function HeroSection() {
   const seccion = useRef<HTMLElement>(null)
   const foto = useReveal<HTMLDivElement>()
   const movil = useReveal<HTMLDivElement>(150)
-  const tarjeta = useReveal<HTMLDivElement>(300)
+  // La tarjeta va sobre la pared naranja: sale cuando ya ha entrado.
+  const tarjeta = useReveal<HTMLDivElement>(650)
   const [sinFoto, setSinFoto] = useState(false)
 
   // La landing es clara: barra de desplazamiento clara mientras se ve (la
@@ -49,7 +50,6 @@ function HeroSection() {
     return () => raiz.classList.remove('na-portada-clara')
   }, [])
 
-  // «Ver cómo funciona»: baja a la sección siguiente de la landing.
   // Fondo «aurora»: se pausa cuando la portada no se ve en pantalla o la
   // pestaña está en segundo plano (atributos que lee landing-hero.css).
   useEffect(() => {
@@ -72,15 +72,6 @@ function HeroSection() {
     }
   }, [])
 
-  const verComoFunciona = (e: MouseEvent<HTMLAnchorElement>) => {
-    const siguiente = seccion.current?.nextElementSibling
-    if (!siguiente) return
-    e.preventDefault()
-    const reducir =
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      document.documentElement.classList.contains('reduce-motion')
-    siguiente.scrollIntoView({ behavior: reducir ? 'auto' : 'smooth' })
-  }
 
   return (
     <section ref={seccion} className="na-hero">
@@ -114,8 +105,8 @@ function HeroSection() {
           <Link to="/login" className="na-login">
             Iniciar sesión
           </Link>
-          <Link to="/login" className="na-btn-primary">
-            Crear cuenta
+          <Link to="/registro/profesional" className="na-btn-primary">
+            Empezar gratis
           </Link>
         </div>
       </nav>
@@ -132,16 +123,12 @@ function HeroSection() {
             propio, cómodo y cuidado, pensado para la meditación y la hipnosis.
           </p>
           <div className="na-hero__ctas">
-            <Link to="/profesional" className="na-cta-primary">
-              Empezar gratis
+            <Link to="/registro/profesional" className="na-cta-primary">
+              Soy profesional
             </Link>
-            <a
-              href="#como-funciona"
-              className="na-cta-secondary"
-              onClick={verComoFunciona}
-            >
-              Ver cómo funciona
-            </a>
+            <Link to="/registro/oyente" className="na-cta-secondary">
+              Soy oyente
+            </Link>
           </div>
           <ul className="na-hero__datos">
             <li>
@@ -156,9 +143,11 @@ function HeroSection() {
         </div>
       </div>
 
-      <div className="na-hero__visual">
+      {/* Se vigila el contenedor (no el marco): así el naranja aparece en
+          cuanto la zona de la derecha está en pantalla, sea cual sea su
+          estado inicial (antes empezaba recortado del todo). */}
+      <div ref={foto.ref} className="na-hero__visual">
         <div
-          ref={foto.ref}
           className={`na-hero__foto na-hero__aparece ${foto.className}`}
           style={foto.style}
         >

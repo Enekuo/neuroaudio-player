@@ -482,13 +482,28 @@ export async function actualizarAudio(
  * Añade a Audios (generales y publicados) audios de Biblioteca sin volver a
  * subirlos: por cada uno, un general {id}__general con el mismo archivo y su
  * título, descripción, imagen y salud (sin etiquetas), al final de la lista
- * desde `ordenDesde`; y la marca «En Audios» en el original. Todo en una
- * sola escritura.
+ * desde `ordenDesde`; y la marca «En Audios» en el original. Cada audio y su
+ * marca van en la misma escritura (en tandas de AUDIOS_POR_TANDA).
  */
 export async function anadirDesdeBiblioteca(
   origenes: AudioProfesional[],
   ordenDesde: number,
 ) {
+  // En tandas: cada audio nuevo hace que las reglas lean su original, más la
+  // cuenta de quien escribe, y una escritura agrupada admite 20 lecturas.
+  // Cada audio va junto a su marca «En Audios», en la misma tanda.
+  for (let desde = 0; desde < origenes.length; desde += AUDIOS_POR_TANDA) {
+    await anadirTanda(
+      origenes.slice(desde, desde + AUDIOS_POR_TANDA),
+      ordenDesde + desde,
+    )
+  }
+}
+
+/** Audios por escritura agrupada cuando las reglas leen un documento por cada uno. */
+export const AUDIOS_POR_TANDA = 10
+
+async function anadirTanda(origenes: AudioProfesional[], ordenDesde: number) {
   const lote = writeBatch(db)
   origenes.forEach((b, i) => {
     lote.set(doc(db, COLECCION, idGeneralDeBiblioteca(b.id)), {
@@ -518,16 +533,22 @@ export async function anadirDesdeBiblioteca(
   await lote.commit()
 }
 
-/** Guarda el nuevo orden (0, 1, 2…) de los audios, en una sola escritura. */
+/**
+ * Guarda el nuevo orden (0, 1, 2…) de los audios. En tandas: en los que
+ * vienen de Biblioteca las reglas leen su original, y una escritura agrupada
+ * admite 20 lecturas.
+ */
 export async function guardarOrden(audioIds: string[]) {
-  const lote = writeBatch(db)
-  audioIds.forEach((id, orden) =>
-    lote.update(doc(db, COLECCION, id), {
-      orden,
-      actualizadoEn: serverTimestamp(),
-    }),
-  )
-  await lote.commit()
+  for (let desde = 0; desde < audioIds.length; desde += AUDIOS_POR_TANDA) {
+    const lote = writeBatch(db)
+    audioIds.slice(desde, desde + AUDIOS_POR_TANDA).forEach((id, i) =>
+      lote.update(doc(db, COLECCION, id), {
+        orden: desde + i,
+        actualizadoEn: serverTimestamp(),
+      }),
+    )
+    await lote.commit()
+  }
 }
 
 /** Borra el archivo de un audio (si ya no existe, no es un error). */

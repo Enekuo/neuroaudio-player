@@ -1,15 +1,25 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useCuenta } from '../../cuenta/useCuenta'
+import { RUTA_ELECCION, RUTA_LOGIN } from '../../cuenta/recorridos'
 
+/**
+ * Rutas con sesión. Sin sesión, a /login; con sesión pero SIN cuenta (no
+ * existe users/{uid}: entró con Google y no eligió), a la pantalla de
+ * elección: el /login ya no crea la cuenta al entrar.
+ */
 function ProtectedRoute() {
-  const { user, loading } = useAuth()
+  const { uid, cuenta, cargando } = useCuenta()
 
-  if (loading) {
+  if (cargando) {
     return <div className="auth-loading">Cargando...</div>
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />
+  if (!uid) {
+    return <Navigate to={RUTA_LOGIN} replace />
+  }
+
+  if (cuenta === null) {
+    return <Navigate to={RUTA_ELECCION} replace />
   }
 
   return <Outlet />

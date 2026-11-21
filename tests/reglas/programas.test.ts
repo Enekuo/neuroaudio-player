@@ -27,7 +27,7 @@ import {
 } from 'firebase/firestore'
 import { getBytes, ref, uploadBytes } from 'firebase/storage'
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
-import { MODOS } from './modos'
+import { MODOS, sembrarCuentasProfesionales } from './modos'
 
 const PRO = 'profesional-a'
 const OTRO_PRO = 'profesional-b'
@@ -116,6 +116,7 @@ describe.each(MODOS)('modo «$nombre»', (modo) => {
 
   beforeEach(async () => {
     await env.clearFirestore()
+    await sembrarCuentasProfesionales(env)
     await env.clearStorage()
     await env.withSecurityRulesDisabled(async (ctx) => {
       const db = ctx.firestore()

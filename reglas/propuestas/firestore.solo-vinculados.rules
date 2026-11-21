@@ -9,8 +9,86 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ---------- Cuenta de cada usuario (users/{userId}) ----------
+    // Solo la lee y escribe su dueño. tipoCuenta: 'oyente' o 'profesional'
+    // (sin el campo, oyente: las cuentas anteriores a este dato). Solo puede
+    // pasar de oyente a profesional, nunca al revés, y nadie cambia el de
+    // otra persona. No se borra desde la app (así no se puede volver a crear
+    // como oyente).
+    // Registro (src/features/cuenta/registro.ts): toda cuenta nueva lleva la
+    // fecha en que aceptó los términos (aceptoTerminosEn, hora del servidor).
+    // Al hacerse profesional (al crearla o al pasar de oyente) lleva además
+    // sus datos (profesional) y el sí/no a los correos con su fecha
+    // (novedades), y la fecha vuelve a ser la de ese momento. Después,
+    // aceptoTerminosEn y profesional no se pueden quitar ni cambiar;
+    // novedades sí (dar o retirar el permiso de correos, cuando quiera),
+    // siempre válido y con la fecha de ese momento.
+    function tipoCuentaDe(datos) {
+      return datos.get('tipoCuenta', 'oyente');
+    }
+
+    function datosProfesionalValidos(p) {
+      return p is map
+        && p.keys().hasAll(['nombre', 'dedicacion', 'dedicacionOtra', 'pais', 'clientes'])
+        && p.keys().hasOnly(['nombre', 'dedicacion', 'dedicacionOtra', 'pais', 'clientes'])
+        && p.nombre is string && p.nombre.size() >= 2 && p.nombre.size() <= 80
+        && p.dedicacion in ['hipnosis', 'meditacion', 'coaching', 'psicologia', 'otro']
+        && (p.dedicacion == 'otro'
+              ? (p.dedicacionOtra is string
+                 && p.dedicacionOtra.size() >= 2 && p.dedicacionOtra.size() <= 60)
+              : p.dedicacionOtra == null)
+        && p.pais is string && p.pais.matches('^[A-Z]{2}$')
+        && (p.clientes == null || p.clientes in ['1-10', '11-50', '51-200', '200+']);
+    }
+
+    function novedadesValidas(n) {
+      return n is map
+        && n.keys().hasAll(['acepta', 'en']) && n.keys().hasOnly(['acepta', 'en'])
+        && n.acepta is bool && n.en == request.time;
+    }
+
+    // Lo que se hace profesional en esta escritura: los tres campos, de ahora.
+    function registroProfesionalValido(d) {
+      return d.get('aceptoTerminosEn', null) == request.time
+        && datosProfesionalValidos(d.get('profesional', null))
+        && novedadesValidas(d.get('novedades', null));
+    }
+
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && tipoCuentaDe(request.resource.data) in ['oyente', 'profesional']
+        && request.resource.data.get('aceptoTerminosEn', null) == request.time
+        && (tipoCuentaDe(request.resource.data) == 'profesional'
+              ? registroProfesionalValido(request.resource.data)
+              : !request.resource.data.keys().hasAny(['profesional', 'novedades']));
+      allow update: if request.auth != null && request.auth.uid == userId
+        && tipoCuentaDe(request.resource.data) in ['oyente', 'profesional']
+        && (
+          // Sigue igual: los términos aceptados y los datos del profesional
+          // no cambian (ni se quitan); el permiso de correos puede cambiar,
+          // con su fecha de ahora.
+          (tipoCuentaDe(request.resource.data) == tipoCuentaDe(resource.data)
+            && !request.resource.data.diff(resource.data).affectedKeys()
+                  .hasAny(['aceptoTerminosEn', 'profesional'])
+            && (!request.resource.data.diff(resource.data).affectedKeys()
+                  .hasAny(['novedades'])
+                || novedadesValidas(request.resource.data.get('novedades', null))))
+          // O pasa de oyente a profesional, con sus datos.
+          || (tipoCuentaDe(resource.data) == 'oyente'
+            && tipoCuentaDe(request.resource.data) == 'profesional'
+            && registroProfesionalValido(request.resource.data))
+        );
+      allow delete: if false;
+    }
+
+    // ¿Tiene cuenta profesional quien escribe? Lo exigen todas las
+    // escrituras de profesional (crear y cambiar; borrar lo suyo, no). Una
+    // lectura de su users/{uid}, que Firestore cuenta una sola vez aunque una
+    // escritura agrupada la pida varias.
+    function esCuentaProfesional() {
+      let cuenta = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(cuenta) && tipoCuentaDe(get(cuenta).data) == 'profesional';
     }
 
     match /audios/{audioId} {
@@ -71,6 +149,7 @@ service cloud.firestore {
       allow read: if request.auth != null
         && (request.auth.uid == profesionalUid || esOyenteVinculado(profesionalUid));
       allow create, update: if request.auth != null
+        && esCuentaProfesional()
         && request.auth.uid == profesionalUid
         && perfilValido();
       allow delete: if request.auth != null && request.auth.uid == profesionalUid;
@@ -114,18 +193,22 @@ service cloud.firestore {
 
     match /limitesSubida/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
-      allow create: if request.auth != null && request.auth.uid == uid
+      allow create: if request.auth != null
+        && esCuentaProfesional() && request.auth.uid == uid
         && camposLimite() && ventanaNueva();
-      allow update: if request.auth != null && request.auth.uid == uid
+      allow update: if request.auth != null
+        && esCuentaProfesional() && request.auth.uid == uid
         && actualizacionDeLimiteValida(10);
       allow delete: if false;
     }
 
     match /limitesSubidaAudio/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
-      allow create: if request.auth != null && request.auth.uid == uid
+      allow create: if request.auth != null
+        && esCuentaProfesional() && request.auth.uid == uid
         && camposLimite() && ventanaNueva();
-      allow update: if request.auth != null && request.auth.uid == uid
+      allow update: if request.auth != null
+        && esCuentaProfesional() && request.auth.uid == uid
         && actualizacionDeLimiteValida(10);
       allow delete: if false;
     }
@@ -250,6 +333,7 @@ service cloud.firestore {
             || tieneEnvioAudio(audioId, resource.data)
             || programaDaAccesoAudio(audioId, resource.data));
       allow create: if request.auth != null
+        && esCuentaProfesional()
         && audioProValido(audioId)
         && request.resource.data.creadoEn == request.time
         // Un audio personal solo para alguien con vínculo activo con quien lo crea.
@@ -257,6 +341,7 @@ service cloud.firestore {
             || (exists(/databases/$(database)/documents/vinculos/$(request.auth.uid + '_' + request.resource.data.destinatarioUid))
                 && get(/databases/$(database)/documents/vinculos/$(request.auth.uid + '_' + request.resource.data.destinatarioUid)).data.estado == 'activo'));
       allow update: if request.auth != null
+        && esCuentaProfesional()
         && resource.data.profesionalUid == request.auth.uid
         && audioProValido(audioId)
         // Lo que no se puede cambiar después de crearlo.
@@ -320,9 +405,11 @@ service cloud.firestore {
               || (resource.data.estado == 'publicado'
                 && esOyenteVinculado(resource.data.profesionalUid)))));
       allow create: if request.auth != null
+        && esCuentaProfesional()
         && listaProValida(listaId)
         && request.resource.data.creadoEn == request.time;
       allow update: if request.auth != null
+        && esCuentaProfesional()
         && resource.data.profesionalUid == request.auth.uid
         && listaProValida(listaId)
         && request.resource.data.creadoEn == resource.data.creadoEn
@@ -372,11 +459,13 @@ service cloud.firestore {
                 && (resource.data.para == 'todos'
                     || exists(/databases/$(database)/documents/accesosPrograma/$(programaId + '__' + request.auth.uid)))));
       allow create: if request.auth != null
+        && esCuentaProfesional()
         && programaValido()
         && request.resource.data.creadoEn == request.time
         && ((request.resource.data.estado == 'borrador' && request.resource.data.publicadoEn == null)
             || (request.resource.data.estado == 'publicado' && request.resource.data.publicadoEn == request.time));
       allow update: if request.auth != null
+        && esCuentaProfesional()
         && resource.data.profesionalUid == request.auth.uid
         && programaValido()
         && request.resource.data.creadoEn == resource.data.creadoEn
@@ -401,6 +490,7 @@ service cloud.firestore {
         && (request.auth.uid == resource.data.profesionalUid
             || request.auth.uid == resource.data.oyenteUid);
       allow create: if request.auth != null
+        && esCuentaProfesional()
         && request.resource.data.keys().hasAll(['profesionalUid', 'programaId', 'oyenteUid', 'creadoEn'])
         && request.resource.data.keys().hasOnly(['profesionalUid', 'programaId', 'oyenteUid', 'creadoEn'])
         && request.resource.data.profesionalUid == request.auth.uid
@@ -449,6 +539,7 @@ service cloud.firestore {
         && (request.auth.uid == resource.data.profesionalUid
             || request.auth.uid == resource.data.oyenteUid);
       allow create: if request.auth != null
+        && esCuentaProfesional()
         && request.resource.data.keys().hasAll(['profesionalUid', 'audioId', 'oyenteUid', 'creadoEn'])
         && request.resource.data.keys().hasOnly(['profesionalUid', 'audioId', 'oyenteUid', 'creadoEn'])
         && request.resource.data.profesionalUid == request.auth.uid
@@ -481,6 +572,7 @@ service cloud.firestore {
       //   mira aquí para no pasar de dos documentos por descarga. Como mucho
       //   200, los que caben en la Biblioteca.
       allow update: if request.auth != null
+        && esCuentaProfesional()
         && request.auth.uid == resource.data.profesionalUid
         && ((request.resource.data.diff(resource.data).affectedKeys()
                .hasOnly(['estado', 'estadoCambiadoEn'])
@@ -503,6 +595,7 @@ service cloud.firestore {
       allow read, delete: if request.auth != null
         && request.auth.uid == profesionalUid;
       allow create, update: if request.auth != null
+        && esCuentaProfesional()
         && request.auth.uid == profesionalUid
         && request.resource.data.keys().hasAll(['texto', 'actualizadoEn'])
         && request.resource.data.keys().hasOnly(['texto', 'actualizadoEn'])

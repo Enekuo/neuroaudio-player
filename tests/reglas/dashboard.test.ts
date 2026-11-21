@@ -21,7 +21,7 @@ import {
 } from 'firebase/firestore'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { consultasDashboard } from '../../src/features/profesional/dashboard/modelo'
-import { MODOS } from './modos'
+import { MODOS, sembrarCuentasProfesionales } from './modos'
 
 const PRO = 'profesional-a'
 const OTRO = 'profesional-b'
@@ -52,6 +52,7 @@ describe.each(MODOS)('modo «$nombre»', (modo) => {
 
   beforeEach(async () => {
     await env.clearFirestore()
+    await sembrarCuentasProfesionales(env)
     await env.withSecurityRulesDisabled(async (ctx) => {
       const db = ctx.firestore()
       const ahora = Timestamp.now()

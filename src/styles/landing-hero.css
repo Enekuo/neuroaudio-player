@@ -77,11 +77,28 @@
   padding: 0;
 }
 
-/* Entrada del texto (restaurada): titular, subtítulo, botones y datos suben
-   en cascada (na-fade-up de global.css, 700 ms, retrasos 80/180/280/380 ms)
-   con la curva de la app. */
+/* Entrada del texto: en espejo con la derecha (el naranja entra desde fuera
+   hacia dentro), titular, subtítulo, botones y datos llegan desde el borde
+   izquierdo hacia dentro, en cascada (mismos retrasos de global.css:
+   80/180/280/380/460 ms) y con la curva de la app. Solo cambia el nombre de
+   la animación: los retrasos de global.css se mantienen.
+   Antes subían desde abajo (na-fade-up): ver
+   .backups/hero-efectos-2026-11-18/. */
 .na-hero .na-hero__content > * {
+  animation-name: na-hero-desde-fuera;
+  animation-duration: 900ms;
   animation-timing-function: var(--ease-out-strong);
+}
+
+@keyframes na-hero-desde-fuera {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Entrada del menú (restaurada): baja 8 px mientras aparece. */
@@ -357,7 +374,8 @@
   overflow: hidden;
   /* Arriba a la izquierda, la curva grande; abajo a la izquierda, ~130 px
      (para que la foto no acabe en esquina recta). */
-  border-radius: clamp(180px, 20.8vw, 300px) 0 0 clamp(80px, 9vw, 130px);
+  --foto-curva: clamp(180px, 20.8vw, 300px) 0 0 clamp(80px, 9vw, 130px);
+  border-radius: var(--foto-curva);
   background: #e6b18d;
 }
 
@@ -369,18 +387,19 @@
   margin-top: -8px;
   object-fit: cover;
   object-position: 88% 50%;
-  /* Restaurados de la imagen anterior de la portada: entrada con algo de
-     profundidad (900 ms, desde un 2 % más grande) y, después, flota 8 px
-     muy despacio (9 s). Se pausa fuera de pantalla o con la pestaña oculta. */
+  /* Entra cuando el naranja ya casi está (350 ms): un poco desde la
+     derecha, con algo de profundidad (desde un 2 % más grande) y, después,
+     flota 8 px muy despacio (9 s). Se pausa fuera de pantalla o con la
+     pestaña oculta. */
   animation:
-    na-hero-foto-in 900ms var(--ease-out-strong) 200ms both,
-    na-hero-flotar 9s ease-in-out 1100ms infinite alternate;
+    na-hero-foto-in 900ms var(--ease-out-strong) 350ms both,
+    na-hero-flotar 9s ease-in-out 1250ms infinite alternate;
 }
 
 @keyframes na-hero-foto-in {
   from {
     opacity: 0;
-    transform: scale(1.02);
+    transform: translateX(12px) scale(1.02);
   }
   to {
     opacity: 1;
@@ -524,8 +543,20 @@
 
 
 /* ----- Entrada al cargar (useReveal) ----- */
-/* Foto: solo fundido. */
+/* Foto: el naranja de la pared aparece con un fundido y se desliza solo
+   16 px desde la derecha (de fuera hacia dentro, como el texto desde la
+   izquierda); la foto llega encima un poco después (na-hero-foto-in).
+   Versiones anteriores (barrido con recorte): .backups/hero-efectos-2026-11-18/. */
 .na-hero__aparece.na-reveal {
+  opacity: 0;
+  transform: translateX(16px);
+  transition:
+    opacity 900ms ease,
+    transform 1000ms var(--ease-out-strong);
+}
+
+.na-hero__aparece.na-reveal.is-visible {
+  opacity: 1;
   transform: none;
 }
 
@@ -609,7 +640,8 @@
 
   .na-hero__foto {
     /* En móvil, las cuatro esquinas redondeadas: el final queda limpio. */
-    border-radius: 32px;
+    --foto-curva: 32px;
+    border-radius: var(--foto-curva);
   }
 
   .na-hero__aviso {
@@ -760,6 +792,13 @@ html.na-portada-clara:not(.na-zona-oscura) {
   .na-hero > .na-nav,
   .na-hero .na-hero__foto img {
     animation: none;
+  }
+
+  /* El naranja, ya en su sitio, sin moverse. */
+  .na-hero .na-hero__aparece.na-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 
   .na-hero .na-btn-primary,

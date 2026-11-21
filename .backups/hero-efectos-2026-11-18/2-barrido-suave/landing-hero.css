@@ -1,0 +1,799 @@
+/* ============================================================
+   Portada (hero). Escritorio: texto a la izquierda (centrado en vertical)
+   y la foto a sangre a la derecha, de arriba (detrás del menú) abajo, con
+   la esquina superior izquierda muy redondeada. Delante, un móvil con una
+   pantalla de ejemplo (HTML/CSS) a caballo entre el fondo y la foto, y una
+   tarjeta del profesional sobre la pared. Menos de 768 px: una columna.
+   Entrada: la foto con fundido; móvil y tarjeta suben 12 px (useReveal).
+   Nada se mueve después. Todo bajo .na-hero.
+   ============================================================ */
+
+.na-hero {
+  /* Separación con la tarjeta oscura de debajo: ~90 px a 1440 px y ~60 px
+     en móvil (los márgenes se solapan: manda el mayor, este). */
+  margin-bottom: clamp(60px, 6.25vw, 90px);
+  --foto-ancho: 48%;
+  --texto-izq: clamp(24px, 6.67vw, 96px);
+  /* Móvil: 220 × 430 a 1440 px y hasta 190 × 370 a 1100 px; en ventanas
+     bajas, más pequeño para que quepa (alto − 230 px). */
+  --movil-w: min(clamp(190px, 15.28vw, 220px), calc((100svh - 230px) / 1.955));
+}
+
+/* Toda la portada cabe en la ventana sin desplazar: ocupa su alto (entre
+   600 y 920 px), el menú arriba y el texto centrado en el espacio que queda. */
+@media (min-width: 768px) {
+  .na-hero {
+    display: flex;
+    flex-direction: column;
+    min-height: clamp(600px, 100svh, 920px);
+  }
+
+  .na-hero > .na-nav {
+    flex-shrink: 0;
+  }
+
+  .na-hero .na-hero__cuerpo {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+/* Sin recortar lo que sobresale: la sombra del móvil se cortaba en línea
+   recta en el borde inferior. La aurora y la foto ya recortan lo suyo.
+   (Con .landing-root delante para ganar a «overflow: hidden» de global.css.) */
+.landing-root .na-hero {
+  overflow: visible;
+}
+
+/* Logotipo de la cabecera: el mismo del pie, algo más pequeño. */
+.na-hero__logo {
+  --logo-n: 34px;
+  --logo-texto: 24px;
+  display: inline-flex;
+  color: #202124;
+  text-decoration: none;
+}
+
+@media (max-width: 767px) {
+  .na-hero__logo {
+    --logo-n: 30px;
+    --logo-texto: 21px;
+  }
+}
+
+/* ----- Columna de texto ----- */
+.na-hero__cuerpo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 0 clamp(40px, 4vw, 64px) var(--texto-izq);
+}
+
+/* Ancho: deja al menos 64 px hasta el móvil, que asoma 80 px a la izquierda
+   de la foto («52vw − 80 px − 64 px − margen izquierdo»). */
+.landing-root.landing-root .na-hero .na-hero__content {
+  max-width: min(560px, calc(100vw - var(--foto-ancho-vw, 48vw) - 152px - var(--texto-izq)));
+  padding: 0;
+}
+
+/* Entrada del texto (restaurada): titular, subtítulo, botones y datos suben
+   en cascada (na-fade-up de global.css, 700 ms, retrasos 80/180/280/380 ms)
+   con la curva de la app. */
+.na-hero .na-hero__content > * {
+  animation-timing-function: var(--ease-out-strong);
+}
+
+/* Entrada del menú (restaurada): baja 8 px mientras aparece. */
+@keyframes na-hero-nav-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.na-hero > .na-nav {
+  animation: na-hero-nav-in 700ms var(--ease-out-strong) both;
+}
+
+.landing-root.landing-root .na-hero .na-hero__title {
+  margin: 0 0 22px;
+  font-size: clamp(40px, 3.6vw, 52px);
+  line-height: 1.12;
+  color: #202124;
+  text-wrap: balance;
+}
+
+.landing-root.landing-root .na-hero .na-hero__lead {
+  margin: 0 0 32px;
+  max-width: 520px;
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.6;
+  color: #3c4043;
+}
+
+.na-hero .na-hero__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 28px;
+}
+
+/* Principal: azul con sombra suave azul. */
+.landing-root .na-hero .na-cta-primary {
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(52, 97, 255, 0.28);
+}
+
+/* Secundario: blanco con borde gris oscuro, bien visible. */
+.landing-root .na-hero .na-cta-secondary {
+  background: #ffffff;
+  border: 1.5px solid #5f6368;
+  color: #202124;
+}
+
+.na-hero__datos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+}
+
+.landing-root.landing-root .na-hero__datos li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #3c4043;
+}
+
+.na-hero__datos svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: #3461ff;
+}
+
+/* Ventanas bajas (menos de 700 px de alto, p. ej. portátiles de 1366 × 657):
+   el texto se reduce un poco para que toda la portada quepa sin desplazar. */
+@media (min-width: 768px) and (max-height: 700px) {
+  .landing-root.landing-root .na-hero .na-hero__title {
+    margin-bottom: 16px;
+    font-size: clamp(36px, 3.2vw, 44px);
+  }
+
+  .landing-root.landing-root .na-hero .na-hero__lead {
+    margin-bottom: 22px;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+
+  .na-hero .na-hero__ctas {
+    margin-bottom: 18px;
+  }
+
+  .na-hero__cuerpo {
+    padding-bottom: 28px;
+  }
+}
+
+/* ----- Fondo «aurora» detrás del texto -----
+   Cuatro manchas muy claras (radial-gradient, sin blur) que se mueven
+   despacio y se mezclan. Debajo de todo (z-index 0); la foto la tapa. Solo
+   animan transform (y el tono del contenedor). Se pausa fuera de pantalla
+   y con la pestaña en segundo plano; con movimiento reducido, quieta.
+   --esc: tamaño de las manchas · --rec: recorrido · --aurora-opacidad:
+   intensidad general (para el contraste del texto). */
+.hero-aurora {
+  --esc: 1;
+  --rec: 1;
+  /* Intensidad completa. Medido: el azul del titular baja como mucho a
+     ~3,1:1, que cumple el 3:1 de WCAG AA para texto grande (el titular mide
+     30–52 px); el resto de textos, por encima de 4,5:1. */
+  --aurora-opacidad: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: min(1100px, 100%);
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--aurora-opacidad);
+  /* Se desvanece hacia el fondo claro por abajo (sin corte recto). */
+  -webkit-mask-image: linear-gradient(#000 62%, transparent 100%);
+  mask-image: linear-gradient(#000 62%, transparent 100%);
+  animation: aur-hue 14s ease-in-out infinite alternate;
+}
+
+.hero-aurora i {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.hero-aurora i:nth-child(1) {
+  width: calc(780px * var(--esc));
+  height: calc(780px * var(--esc));
+  left: calc(-220px * var(--esc));
+  top: calc(-260px * var(--esc));
+  background: radial-gradient(closest-side, rgba(130, 170, 255, 0.34), rgba(130, 170, 255, 0));
+  animation: aur1 9s ease-in-out infinite alternate;
+}
+
+.hero-aurora i:nth-child(2) {
+  width: calc(700px * var(--esc));
+  height: calc(700px * var(--esc));
+  left: calc(380px * var(--esc));
+  top: calc(-120px * var(--esc));
+  background: radial-gradient(closest-side, rgba(255, 180, 145, 0.34), rgba(255, 180, 145, 0));
+  animation: aur2 11s ease-in-out infinite alternate;
+}
+
+.hero-aurora i:nth-child(3) {
+  width: calc(760px * var(--esc));
+  height: calc(760px * var(--esc));
+  left: calc(-160px * var(--esc));
+  top: calc(380px * var(--esc));
+  background: radial-gradient(closest-side, rgba(195, 170, 255, 0.28), rgba(195, 170, 255, 0));
+  animation: aur3 10s ease-in-out infinite alternate;
+}
+
+.hero-aurora i:nth-child(4) {
+  width: calc(620px * var(--esc));
+  height: calc(620px * var(--esc));
+  left: calc(420px * var(--esc));
+  top: calc(420px * var(--esc));
+  background: radial-gradient(closest-side, rgba(140, 215, 255, 0.28), rgba(140, 215, 255, 0));
+  animation: aur4 12s ease-in-out infinite alternate;
+}
+
+@keyframes aur1 {
+  50% {
+    transform: translate(calc(520px * var(--rec)), calc(260px * var(--rec))) scale(1.25);
+  }
+  100% {
+    transform: translate(calc(120px * var(--rec)), calc(420px * var(--rec))) scale(0.9);
+  }
+}
+
+@keyframes aur2 {
+  50% {
+    transform: translate(calc(-460px * var(--rec)), calc(300px * var(--rec))) scale(0.85);
+  }
+  100% {
+    transform: translate(calc(-120px * var(--rec)), calc(-60px * var(--rec))) scale(1.2);
+  }
+}
+
+@keyframes aur3 {
+  50% {
+    transform: translate(calc(520px * var(--rec)), calc(-260px * var(--rec))) scale(1.2);
+  }
+  100% {
+    transform: translate(calc(220px * var(--rec)), calc(-380px * var(--rec))) scale(0.9);
+  }
+}
+
+@keyframes aur4 {
+  50% {
+    transform: translate(calc(-420px * var(--rec)), calc(-300px * var(--rec))) scale(1.25);
+  }
+  100% {
+    transform: translate(calc(-80px * var(--rec)), calc(-120px * var(--rec))) scale(0.85);
+  }
+}
+
+@keyframes aur-hue {
+  from {
+    filter: hue-rotate(-15deg);
+  }
+  to {
+    filter: hue-rotate(20deg);
+  }
+}
+
+/* Pausada fuera de pantalla o con la pestaña en segundo plano. */
+.na-hero[data-fuera] .hero-aurora,
+.na-hero[data-fuera] .hero-aurora i,
+.na-hero[data-oculta] .hero-aurora,
+.na-hero[data-oculta] .hero-aurora i {
+  animation-play-state: paused;
+}
+
+/* 768–1100 px: el ancho a la izquierda de la foto; manchas al 80 %. */
+@media (max-width: 1099px) {
+  .hero-aurora {
+    --esc: 0.8;
+    --rec: 0.8;
+    width: 58%;
+  }
+}
+
+/* Menos de 768 px: todo el ancho; tres manchas al 55 % y la mitad de
+   recorrido. */
+@media (max-width: 767px) {
+  .hero-aurora {
+    --esc: 0.55;
+    --rec: 0.5;
+    width: 100%;
+  }
+
+  .hero-aurora i:nth-child(4) {
+    display: none;
+  }
+}
+
+/* Movimiento reducido: las manchas, quietas en su sitio (visibles). El
+   ajuste «Reducir animaciones» de la web ya deja las animaciones en su
+   estado inicial (global.css, .reduce-motion). */
+@media (prefers-reduced-motion: reduce) {
+  /* Misma prioridad que las reglas de cada mancha (:nth-child), para ganarles. */
+  .hero-aurora,
+  .hero-aurora i:nth-child(n) {
+    animation: none;
+  }
+}
+
+/* ----- Foto a sangre (derecha) ----- */
+.na-hero__visual {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--foto-ancho);
+}
+
+.na-hero__foto {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Arriba a la izquierda, la curva grande; abajo a la izquierda, ~130 px
+     (para que la foto no acabe en esquina recta). */
+  --foto-curva: clamp(180px, 20.8vw, 300px) 0 0 clamp(80px, 9vw, 130px);
+  border-radius: var(--foto-curva);
+  background: #e6b18d;
+}
+
+.na-hero__foto img {
+  display: block;
+  width: 100%;
+  /* 16 px más alta que su marco: al flotar (8 px) nunca asoma el borde. */
+  height: calc(100% + 16px);
+  margin-top: -8px;
+  object-fit: cover;
+  object-position: 88% 50%;
+  /* Entra cuando el naranja ya casi está (350 ms): un poco desde la
+     derecha, con algo de profundidad (desde un 2 % más grande) y, después,
+     flota 8 px muy despacio (9 s). Se pausa fuera de pantalla o con la
+     pestaña oculta. */
+  animation:
+    na-hero-foto-in 900ms var(--ease-out-strong) 350ms both,
+    na-hero-flotar 9s ease-in-out 1250ms infinite alternate;
+}
+
+@keyframes na-hero-foto-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px) scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Con «translate» (no transform), así se suma a la entrada. */
+@keyframes na-hero-flotar {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -8px;
+  }
+}
+
+.na-hero[data-fuera] .na-hero__foto img,
+.na-hero[data-oculta] .na-hero__foto img {
+  animation-play-state: running, paused;
+}
+
+/* ----- Tarjeta del profesional (sobre la pared, arriba a la izquierda de
+   la cara). Tamaños en em: escala con su font-size. ----- */
+.na-hero__aviso {
+  --u: clamp(8.6px, 0.694vw, 10px);
+  position: absolute;
+  z-index: 2;
+  /* Según el alto de la ventana, para no tocar el móvil en pantallas bajas. */
+  top: clamp(100px, 19svh, 200px);
+  left: clamp(48px, 5vw, 72px);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.2);
+  width: calc(var(--u) * 33);
+  padding: calc(var(--u) * 1.4) calc(var(--u) * 1.6);
+  border: 1px solid #dadce0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(32, 33, 36, 0.12);
+  font-size: calc(var(--u) * 1.5);
+  white-space: nowrap;
+}
+
+.na-hero__aviso-icono {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.6em;
+  height: 2.6em;
+  border-radius: 50%;
+  background: #e8f0fe;
+  color: #3461ff;
+}
+
+.na-hero__aviso-icono svg {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.na-hero__aviso-texto {
+  display: grid;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.landing-root.landing-root .na-hero__aviso-texto strong {
+  font-size: 1em;
+  font-weight: 700;
+  color: #202124;
+}
+
+.landing-root.landing-root .na-hero__aviso-texto span {
+  font-size: 0.87em;
+  color: #5f6368;
+}
+
+.landing-root.landing-root .na-hero__aviso-chip {
+  margin-left: auto;
+  padding: 0.3em 0.7em;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #3461ff;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+/* ----- Móvil (delante, a caballo entre el fondo y la foto) -----
+   Todo en em sobre --movil-w / 22: a 220 px de ancho, 1em = 10 px. */
+.na-hero__movil {
+  position: absolute;
+  z-index: 3;
+  left: -80px;
+  bottom: clamp(24px, 4svh, 40px);
+  width: var(--movil-w);
+  height: calc(var(--movil-w) * 1.955);
+  padding: 0.7em;
+  border-radius: 3.8em;
+  background: #0b0c10;
+  font-size: calc(var(--movil-w) / 22);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 40px 80px rgba(16, 24, 40, 0.28),
+    0 12px 28px rgba(16, 24, 40, 0.16);
+}
+
+/* Pantalla: la captura real de la app, entera (contain) y centrada; lo que
+   sobra arriba y abajo es negro, como el fondo de la captura. */
+.na-hero__pantalla {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 3.1em;
+  background: #000000;
+}
+
+.na-hero__pantalla img {
+  display: block;
+  /* Entera, a todo el ancho y con su proporción (centrada en vertical). */
+  width: 100%;
+  height: auto;
+  /* La captura trae un marco de 1 px gris muy oscuro: se recorta. */
+  clip-path: inset(1px);
+}
+
+/* Muesca. */
+.na-hero__pantalla::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: 0.8em;
+  left: 50%;
+  width: 6.4em;
+  height: 1.8em;
+  border-radius: 999px;
+  background: #000000;
+  transform: translateX(-50%);
+}
+
+
+/* ----- Entrada al cargar (useReveal) ----- */
+/* Foto: el naranja de la pared entra desde la derecha, suave. El marco ya
+   asoma (algo más de la mitad) y termina de abrirse hacia la izquierda con
+   su misma curva en el borde que avanza; la foto llega encima un poco
+   después (na-hero-foto-in). */
+.na-hero__aparece.na-reveal {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(0 0 0 45% round var(--foto-curva));
+  transition: clip-path 1000ms var(--ease-out-strong);
+}
+
+.na-hero__aparece.na-reveal.is-visible {
+  clip-path: inset(0 0 0 0 round var(--foto-curva));
+}
+
+/* Móvil y tarjeta: suben 12 px mientras aparecen. */
+.na-hero__sube.na-reveal {
+  transform: translateY(12px);
+}
+
+.na-hero__sube.na-reveal.is-visible {
+  transform: translateY(0);
+}
+
+/* ----- 768–1100 px: foto al 42 %, titular ~44 px; el móvil dentro de la
+   foto (abajo a la izquierda) para no quitar ancho al texto. ----- */
+@media (max-width: 1099px) {
+  .na-hero {
+    --foto-ancho: 42%;
+    --foto-ancho-vw: 42vw;
+    --movil-w: 176px;
+  }
+
+  .landing-root.landing-root .na-hero .na-hero__content {
+    max-width: min(560px, calc(58vw - 64px - var(--texto-izq)));
+  }
+
+  .landing-root.landing-root .na-hero .na-hero__title {
+    font-size: clamp(36px, 4.4vw, 44px);
+  }
+
+  .na-hero__movil {
+    left: 24px;
+  }
+
+  .na-hero__aviso {
+    --u: 8px;
+    left: 36px;
+    top: 18%;
+  }
+}
+
+/* Entre 768 y 1024 px la foto es tan estrecha que la tarjeta taparía la
+   cara: se oculta (como en móvil). */
+@media (max-width: 1023px) {
+  .na-hero__aviso {
+    display: none;
+  }
+}
+
+/* ----- Menos de 768 px: una columna. Texto y botones; debajo, la foto a
+   todo el ancho con el móvil en su esquina inferior izquierda; sin tarjeta. */
+@media (max-width: 767px) {
+  .na-hero__cuerpo {
+    min-height: 0;
+    padding: 8px 20px 36px;
+  }
+
+  .landing-root.landing-root .na-hero .na-hero__content {
+    max-width: none;
+    width: 100%;
+  }
+
+  .landing-root.landing-root .na-hero .na-hero__title {
+    font-size: clamp(30px, 8.4vw, 38px);
+  }
+
+  .na-hero .na-hero__ctas {
+    flex-direction: column;
+  }
+
+  .na-hero .na-hero__ctas > a {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .na-hero__visual {
+    position: relative;
+    width: 100%;
+    height: clamp(400px, 112vw, 520px);
+  }
+
+  .na-hero__foto {
+    /* En móvil, las cuatro esquinas redondeadas: el final queda limpio. */
+    --foto-curva: 32px;
+    border-radius: var(--foto-curva);
+  }
+
+  .na-hero__aviso {
+    display: none;
+  }
+
+  .na-hero__movil {
+    left: 16px;
+    bottom: 20px;
+  }
+}
+
+/* ----- Botones ----- */
+.na-hero .na-btn-primary,
+.na-hero .na-cta-primary,
+.na-hero .na-cta-secondary {
+  position: relative;
+  isolation: isolate;
+  transition: transform 180ms var(--ease-out-strong);
+}
+
+/* Halo de los botones azules al pasar el ratón: aparece por opacidad. */
+.na-hero .na-btn-primary::after,
+.na-hero .na-cta-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: 0 10px 26px rgba(52, 97, 255, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+/* Fondo azul claro del botón con borde, también por opacidad. */
+.na-hero .na-cta-secondary::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  z-index: -1;
+  border: 1.5px solid var(--na-accent);
+  border-radius: inherit;
+  background: #e8f0fe;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+/* Sustituyen a los efectos de color/brillo de la landing en la portada. */
+.na-hero .na-btn-primary:hover {
+  filter: none;
+  box-shadow: none;
+}
+
+.landing-root .na-hero .na-cta-primary:hover {
+  filter: none;
+  box-shadow: 0 8px 20px rgba(52, 97, 255, 0.28);
+}
+
+.landing-root .na-hero .na-cta-secondary:hover {
+  border-color: #5f6368;
+  background: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .na-hero .na-btn-primary:hover,
+  .na-hero .na-cta-primary:hover,
+  .na-hero .na-cta-secondary:hover {
+    transform: translateY(-2px);
+  }
+
+  .na-hero .na-btn-primary:hover::after,
+  .na-hero .na-cta-primary:hover::after,
+  .na-hero .na-cta-secondary:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Táctil: sin efectos de ratón que se queden pegados tras tocar. */
+@media (hover: none) {
+  .na-hero .na-btn-primary:hover,
+  .na-hero .na-cta-primary:hover,
+  .na-hero .na-cta-secondary:hover {
+    transform: none;
+  }
+}
+
+/* Al pulsar (ratón, dedo o teclado): se hunden un poco. */
+.na-hero .na-btn-primary:active,
+.na-hero .na-cta-primary:active,
+.na-hero .na-cta-secondary:active {
+  transform: scale(0.97);
+  transition-duration: 160ms;
+}
+
+/* Foco con teclado: el mismo halo/fondo que al pasar el ratón. */
+.na-hero .na-btn-primary:focus-visible::after,
+.na-hero .na-cta-primary:focus-visible::after,
+.na-hero .na-cta-secondary:focus-visible::before {
+  opacity: 1;
+}
+
+/* ----- Enlaces del menú: subrayado que crece desde la izquierda ----- */
+.na-hero .na-nav__links a {
+  position: relative;
+}
+
+.na-hero .na-nav__links a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 220ms var(--ease-out-strong);
+}
+
+.na-hero .na-nav__links a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .na-hero .na-nav__links a:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* ----- Barra de desplazamiento ----- */
+/* Su pista es transparente y deja ver el fondo oscuro de la página: sobre la
+   landing clara quedaba una franja azul oscura a la derecha. En la landing
+   (clase que pone HeroSection en <html>) la barra es clara, y también el
+   fondo que asoma al estirar la página arriba o abajo; mientras la sección
+   oscura del móvil ocupa la pantalla («na-zona-oscura»), vuelve la oscura. */
+html.na-portada-clara {
+  background-color: #f8f9fa;
+}
+
+html.na-portada-clara:not(.na-zona-oscura) {
+  scrollbar-color: rgba(32, 33, 36, 0.28) #f8f9fa;
+}
+
+/* ----- Reducir animaciones: sin movimiento ----- */
+@media (prefers-reduced-motion: reduce) {
+  .na-hero > .na-nav,
+  .na-hero .na-hero__foto img {
+    animation: none;
+  }
+
+  /* El naranja, ya en su sitio, sin barrido. */
+  .na-hero .na-hero__aparece.na-reveal {
+    clip-path: none;
+    transition: none;
+  }
+
+  .na-hero .na-btn-primary,
+  .na-hero .na-cta-primary,
+  .na-hero .na-cta-secondary,
+  .na-hero .na-nav__links a::after {
+    transition: none;
+  }
+
+  .na-hero .na-btn-primary:hover,
+  .na-hero .na-cta-primary:hover,
+  .na-hero .na-cta-secondary:hover,
+  .na-hero .na-btn-primary:active,
+  .na-hero .na-cta-primary:active,
+  .na-hero .na-cta-secondary:active {
+    transform: none;
+  }
+}

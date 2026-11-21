@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 /**
  * Menú de las páginas secundarias de la landing (/legal/*, /contacto): el
- * logo vuelve a la portada y, a la derecha, «Iniciar sesión» y «Crear cuenta».
+ * logo vuelve a la portada y, a la derecha, «Iniciar sesión» y «Empezar gratis».
  * Con `claro`, el logo para fondo claro (letras oscuras).
  */
 function NavSimple({ claro = false }: { claro?: boolean }) {
@@ -18,8 +18,8 @@ function NavSimple({ claro = false }: { claro?: boolean }) {
         <Link to="/login" className="na-login">
           Iniciar sesión
         </Link>
-        <Link to="/login" className="na-btn-primary">
-          Crear cuenta
+        <Link to="/registro/profesional" className="na-btn-primary">
+          Empezar gratis
         </Link>
       </div>
     </nav>

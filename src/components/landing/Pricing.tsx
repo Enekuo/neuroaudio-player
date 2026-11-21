@@ -10,11 +10,13 @@ type PlanCardProps = {
   description: string
   price: ReactNode
   ctaLabel: string
+  /** Adónde lleva el botón (por defecto, /login). */
+  ctaTo?: string
   ctaVariant: 'outline' | 'primary' | 'light'
   features: string[]
 }
 
-function PlanCard({ index, highlight, badge, name, description, price, ctaLabel, ctaVariant, features }: PlanCardProps) {
+function PlanCard({ index, highlight, badge, name, description, price, ctaLabel, ctaTo = '/login', ctaVariant, features }: PlanCardProps) {
   const { ref, className, style } = useReveal<HTMLDivElement>(index * 110)
 
   return (
@@ -29,7 +31,7 @@ function PlanCard({ index, highlight, badge, name, description, price, ctaLabel,
         <div className="na-plan__desc">{description}</div>
       </div>
       <div className="na-plan__price">{price}</div>
-      <Link to="/login" className={`na-plan__cta na-plan__cta--${ctaVariant}`}>
+      <Link to={ctaTo} className={`na-plan__cta na-plan__cta--${ctaVariant}`}>
         {ctaLabel}
       </Link>
       <ul className="na-plan__features">
@@ -72,6 +74,7 @@ function Pricing() {
             </>
           }
           ctaLabel="Empezar gratis"
+          ctaTo="/registro/profesional"
           ctaVariant="outline"
           features={['Tu biblioteca personal', 'Sube y organiza tus audios', 'Acceso desde web y móvil']}
         />

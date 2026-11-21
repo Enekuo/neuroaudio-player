@@ -60,7 +60,7 @@ function CtaFinalSection() {
             Crea tu cuenta gratis y sube tu primer audio
           </p>
           {/* El mismo botón que estaba en el pie (misma clase y estilo). */}
-          <Link to="/login" className="na-footer__cta">
+          <Link to="/registro/profesional" className="na-footer__cta">
             Únete a NeuroAudio gratis
           </Link>
         </div>
