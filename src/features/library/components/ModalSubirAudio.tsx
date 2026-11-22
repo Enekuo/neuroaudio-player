@@ -38,6 +38,9 @@ function ModalSubirAudio({ isOpen, onClose, onUploaded }: ModalSubirAudioProps) 
   // Cierre animado: el modal sale (fundido + leve escala) y solo entonces se
   // avisa al padre, en vez de desaparecer de golpe.
   const [isClosing, setIsClosing] = useState(false)
+  // Recién abierto: el contenido entra escalonado (como el resto de la web).
+  // Al cambiar de paso deja de estarlo y cada paso entra con su deslizamiento.
+  const [isEntering, setIsEntering] = useState(true)
   const nameInputRef = useRef<HTMLInputElement>(null)
   const { upload, isUploading, progress, error } = useUploadAudio()
 
@@ -73,6 +76,7 @@ function ModalSubirAudio({ isOpen, onClose, onUploaded }: ModalSubirAudioProps) 
     setName('')
     setIsDragging(false)
     setDirection('forward')
+    setIsEntering(true)
     setIsClosing(false)
     onClose()
   }
@@ -82,6 +86,7 @@ function ModalSubirAudio({ isOpen, onClose, onUploaded }: ModalSubirAudioProps) 
       return
     }
     setDirection('forward')
+    setIsEntering(false)
     setFile(selected)
   }
 
@@ -93,6 +98,7 @@ function ModalSubirAudio({ isOpen, onClose, onUploaded }: ModalSubirAudioProps) 
       return
     }
     setDirection('back')
+    setIsEntering(false)
     setFile(null)
   }
 
@@ -129,7 +135,7 @@ function ModalSubirAudio({ isOpen, onClose, onUploaded }: ModalSubirAudioProps) 
       onClick={requestClose}
     >
       <div
-        className={`modal-card modal-subir${isClosing ? ' is-closing' : ''}`}
+        className={`modal-card modal-subir${isEntering ? ' modal-subir--entrada' : ''}${isClosing ? ' is-closing' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-subir-audio-title"

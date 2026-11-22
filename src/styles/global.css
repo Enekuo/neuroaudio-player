@@ -9556,14 +9556,17 @@ input[type='submit']:active,
 
 /* ============================================================
    Modal "Añadir audio" en dos pasos (elegir archivo → nombre).
-   Mismo lenguaje de movimiento que el resto de la app:
-   - Apertura: overlay-in 180ms + panel-in 220ms --ease-out-strong (los
-     de todos los modales, sin tocar).
+   Mismo lenguaje de movimiento que el resto de la web:
+   - Apertura: como el registro y la landing. El fondo se funde (300ms),
+     la tarjeta aparece con fundido + subida de 12px (600ms
+     --ease-out-strong) y su contenido (título, zona de arrastrar,
+     botones) entra escalonado, 60ms entre uno y otro.
    - Cambio de paso: 220ms --ease-out-strong, fundido + 12px de
      desplazamiento en el sentido del recorrido (avanzar entra por la
      derecha, volver por la izquierda) con un blur leve que funde el
      relevo de contenidos.
-   - Cierre: más rápido que la apertura (160ms), fundido + leve escala.
+   - Cierre: la aparición al revés, más rápida (240ms): fundido + bajada
+     de 12px.
    ============================================================ */
 .modal-subir {
   gap: 1rem;
@@ -9742,13 +9745,60 @@ input[type='submit']:active,
   transition-duration: 100ms;
 }
 
-/* Cierre animado (también tras guardar). */
+/* Apertura (ver la cabecera de este bloque). Solo este modal: los demás
+   siguen con overlay-in + panel-in. */
+.modal-subir-overlay {
+  animation: overlay-in 300ms ease;
+}
+
+.modal-subir {
+  animation: modal-subir-aparecer 600ms var(--ease-out-strong) both;
+}
+
+@keyframes modal-subir-aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Recién abierto, el paso no se desliza: entran sus partes, escalonadas. */
+.modal-subir--entrada .modal-subir__step {
+  animation: none;
+}
+
+.modal-subir--entrada > h2,
+.modal-subir--entrada .modal-subir__step > * {
+  animation: modal-subir-aparecer 520ms var(--ease-out-strong) both;
+  animation-delay: 140ms;
+}
+
+.modal-subir--entrada .modal-subir__step > :nth-child(1) {
+  animation-delay: 200ms;
+}
+
+.modal-subir--entrada .modal-subir__step > :nth-child(2) {
+  animation-delay: 260ms;
+}
+
+/* Cierre animado (también tras guardar): la aparición al revés. */
 .modal-subir-overlay.is-closing {
-  animation: modal-overlay-out 160ms ease forwards;
+  animation: modal-overlay-out 240ms ease forwards;
 }
 
 .modal-subir.is-closing {
-  animation: modal-panel-out 160ms var(--ease-out-strong) forwards;
+  animation: modal-subir-desaparecer 240ms ease-in forwards;
+}
+
+@keyframes modal-subir-desaparecer {
+  to {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 }
 
 @keyframes modal-overlay-out {
@@ -9797,7 +9847,22 @@ input[type='submit']:active,
     transform: none;
   }
 
-  /* El cierre debe seguir disparando animationend: solo fundido. */
+  /* Sin movimiento: aparece y se va solo con un fundido corto (el cierre
+     debe seguir disparando animationend); el contenido, sin escalonar. */
+  .modal-subir-overlay,
+  .modal-subir {
+    animation: overlay-in 180ms ease both;
+  }
+
+  .modal-subir--entrada > h2,
+  .modal-subir--entrada .modal-subir__step > * {
+    animation: none;
+  }
+
+  .modal-subir-overlay.is-closing {
+    animation: modal-overlay-out 120ms ease forwards;
+  }
+
   .modal-subir.is-closing {
     animation: modal-overlay-out 120ms ease forwards;
   }
